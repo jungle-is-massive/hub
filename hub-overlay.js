@@ -110,7 +110,7 @@
   style.textContent = `
     #jh-overlay {
       position: fixed; inset: 0; z-index: 99999;
-      background: #F5F0E8;
+      background: #87FB66;
       font-family: 'DM Sans', system-ui, sans-serif;
       color: #0E0E0E;
       opacity: 0; pointer-events: none;
@@ -144,8 +144,8 @@
     #jh-close svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.6; fill: none; }
 
     #jh-body { flex: 1; max-width: 1280px; width: 100%; margin: 0 auto; padding: 28px 40px 32px; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
-    #jh-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: #8A8880; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-    #jh-eyebrow::after { content: ''; flex: 1; height: 1px; background: #E8E3DA; }
+    #jh-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(14,14,14,0.55); margin-bottom: 14px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    #jh-eyebrow::after { content: ''; flex: 1; height: 1px; background: rgba(14,14,14,0.15); }
 
     #jh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; flex: 1; min-height: 0; }
     @media (max-width: 960px) { #jh-grid { grid-template-columns: repeat(2, 1fr); } }
