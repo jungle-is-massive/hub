@@ -38,7 +38,7 @@
     {
       num: '03',
       title: 'BD Planner',
-      desc: 'The 26/27 comms plan. Calendar, programme, assets, prospects, intermediaries and awards — all in one workspace.',
+      desc: 'The 12-month plan. Brand House, Comms engine, Calendar, Nurture, Decisions — the Bible for where Jungle\'s going and what\'s still open.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/',
       tag: 'Gated',
       accent: 'green',
@@ -70,6 +70,15 @@
       tag: 'Tool',
       accent: 'amber',
       match: ['outreach-generator']
+    },
+    {
+      num: '07',
+      title: 'Social Maturity Index',
+      desc: 'Jungle\'s flagship October event. Overview, timeline, speakers, six-month post-event nurture — all Supabase-backed.',
+      url: 'https://jungle-is-massive.github.io/smi/',
+      tag: 'Flagship',
+      accent: 'magenta',
+      match: ['/smi/', '/smi']
     }
   ];
 
@@ -79,7 +88,8 @@
     coral: '#FF6B4A',
     sky: '#4ABFFF',
     amber: '#F0B429',
-    teal: '#3ECF8E'
+    teal: '#3ECF8E',
+    magenta: '#E84A8C'
   };
 
   // Determine which workstream we are currently on
