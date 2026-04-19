@@ -115,12 +115,15 @@
       color: #0E0E0E;
       opacity: 0; pointer-events: none;
       transition: opacity 0.28s cubic-bezier(0.2,0.8,0.2,1);
-      overflow-y: auto;
+      display: flex; flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
     #jh-overlay.open { opacity: 1; pointer-events: auto; }
     #jh-topbar {
-      position: sticky; top: 0; z-index: 2;
+      flex-shrink: 0;
       height: 64px; background: #0E0E0E;
       display: grid; grid-template-columns: 1fr auto 1fr;
       align-items: center; padding: 0 28px;
@@ -140,24 +143,23 @@
     #jh-close:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); transform: rotate(90deg); }
     #jh-close svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.6; fill: none; }
 
-    #jh-body { max-width: 1280px; margin: 0 auto; padding: 60px 40px 120px; }
-    #jh-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: #8A8880; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+    #jh-body { flex: 1; max-width: 1280px; width: 100%; margin: 0 auto; padding: 28px 40px 32px; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+    #jh-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: #8A8880; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
     #jh-eyebrow::after { content: ''; flex: 1; height: 1px; background: #E8E3DA; }
 
-    #jh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    #jh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; flex: 1; min-height: 0; }
     @media (max-width: 960px) { #jh-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 620px) { #jh-grid { grid-template-columns: 1fr; } }
 
     .jh-tile {
       position: relative;
       display: flex; flex-direction: column;
-      padding: 28px 26px 26px;
+      padding: 22px 22px 20px;
       background: #FFFFFF;
       border: 1px solid #E8E3DA;
       border-radius: 14px;
       text-decoration: none;
       color: #0E0E0E;
-      min-height: 220px;
       transition: transform 0.25s cubic-bezier(0.2,0.8,0.2,1), border-color 0.2s, box-shadow 0.25s;
       overflow: hidden;
       opacity: 0;
@@ -186,7 +188,7 @@
     .jh-tile.jh-current .jh-arrow { background: #0E0E0E; border-color: #0E0E0E; }
     .jh-tile.jh-current .jh-arrow svg { stroke: #87FB66; }
 
-    .jh-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+    .jh-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .jh-num { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.14em; color: #8A8880; }
     .jh-arrow {
       width: 32px; height: 32px; border-radius: 50%;
@@ -198,8 +200,8 @@
     .jh-arrow svg { width: 12px; height: 12px; fill: none; stroke: #0E0E0E; stroke-width: 1.6; transition: stroke 0.2s; }
     .jh-tile:hover:not(.jh-current) .jh-arrow { background: #87FB66; border-color: #87FB66; transform: rotate(-45deg); }
 
-    .jh-title { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 10px; }
-    .jh-desc { font-size: 13px; font-weight: 400; color: #8A8880; line-height: 1.45; margin-bottom: 18px; flex: 1; }
+    .jh-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px; }
+    .jh-desc { font-size: 12.5px; font-weight: 400; color: #8A8880; line-height: 1.45; margin-bottom: 14px; flex: 1; }
 
     .jh-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .jh-tag {
