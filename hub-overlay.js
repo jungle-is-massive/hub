@@ -7,6 +7,7 @@
  *
  * Auto-wires any element matching:
  *   - .wordmark
+ *   - .nav-logo
  *   - [data-hub-trigger]
  *
  * Also opens on ⌘K / Ctrl+K, closes on Esc.
@@ -279,7 +280,7 @@
 
   // Auto-wire triggers on the host page
   function wireTriggers() {
-    const triggers = document.querySelectorAll('.wordmark, [data-hub-trigger]');
+    const triggers = document.querySelectorAll('.wordmark, .nav-logo, [data-hub-trigger]');
     triggers.forEach(el => {
       if (el.closest('#jh-overlay')) return; // skip overlay's own wordmark
       if (el.__jhWired) return;
