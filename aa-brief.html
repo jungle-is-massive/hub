@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advertising Association — Should Jungle Join? · Internal Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:   #F5F2EB;
+  --black:   #111110;
+  --green:   #8BFF57;
+  --green-d: #5acc30;
+  --green-x: #3a8c1c;
+  --white:   #FAFAF7;
+  --gl:      #ECEAE3;
+  --grey:    #C8C4BB;
+  --gm:      #888580;
+  --border:  #E2DFD8;
+  --red:     #E05C5C;
+  --amber:   #F5A623;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--black);
+  color: var(--cream);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* GRAIN overlay */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+main { position: relative; z-index: 1; }
+
+/* ── HEADER ── */
+header {
+  padding: 48px 0 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.header-inner {
+  max-width: 1040px; margin: 0 auto; padding: 0 40px 40px;
+  display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end;
+}
+@media(max-width:680px) { .header-inner { grid-template-columns: 1fr; } }
+.doc-eyebrow {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--gm);
+  margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+}
+.doc-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--gm); }
+.doc-title {
+  font-size: clamp(34px, 5vw, 62px); font-weight: 800;
+  letter-spacing: -0.04em; line-height: 1.0; color: var(--cream);
+}
+.doc-title em { color: var(--green); font-style: normal; }
+.doc-subtitle {
+  font-size: 16px; color: rgba(255,255,255,0.4); margin-top: 14px; line-height: 1.5;
+}
+.verdict-card {
+  background: rgba(139,255,87,0.08); border: 1.5px solid rgba(139,255,87,0.25);
+  border-radius: 14px; padding: 20px 22px; min-width: 220px; text-align: center;
+}
+.verdict-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--green); margin-bottom: 8px;
+}
+.verdict-value {
+  font-size: 32px; font-weight: 800; letter-spacing: -0.04em;
+  color: var(--cream); line-height: 1;
+}
+.verdict-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+
+/* ── LAYOUT ── */
+.page { max-width: 1040px; margin: 0 auto; padding: 0 40px; }
+@media(max-width:560px) { .page { padding: 0 20px; } }
+
+/* ── SECTION HEADERS ── */
+.s-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--gm); display: flex; align-items: center;
+  gap: 12px; margin: 64px 0 28px;
+}
+.s-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+.s-num { color: rgba(255,255,255,0.2); }
+
+/* ── COST STRIP ── */
+.cost-strip {
+  margin: 40px 0;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
+  border-radius: 12px; overflow: hidden;
+}
+@media(max-width:680px) { .cost-strip { grid-template-columns: 1fr 1fr; } }
+.cost-cell { padding: 18px 16px; background: rgba(255,255,255,0.04); }
+.cost-cell:first-child { background: rgba(139,255,87,0.08); }
+.cost-cell-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--gm); margin-bottom: 6px;
+}
+.cost-cell-value { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--cream); }
+.cost-cell:first-child .cost-cell-value { color: var(--green); }
+.cost-cell-note { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 3px; }
+
+/* ── WHAT YOU GET grid ── */
+.benefits-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+@media(max-width:680px) { .benefits-grid { grid-template-columns: 1fr; } }
+.benefit-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 22px 20px;
+  transition: background .15s, border-color .15s;
+  cursor: default;
+}
+.benefit-card:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+}
+.benefit-num {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(139,255,87,0.5);
+  letter-spacing: 0.1em; margin-bottom: 8px;
+}
+.benefit-title { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+.benefit-body { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 12px; }
+.benefit-why {
+  font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.55;
+  padding: 10px 12px; background: rgba(139,255,87,0.06);
+  border-radius: 8px; border-left: 2px solid rgba(139,255,87,0.3);
+}
+.benefit-why strong { color: var(--green); font-weight: 600; }
+.benefit-list { list-style: none; margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+.benefit-list li { font-size: 13px; color: rgba(255,255,255,0.55); padding-left: 16px; position: relative; line-height: 1.5; }
+.benefit-list li::before { content: '·'; position: absolute; left: 0; color: var(--green); }
+
+/* ── EVENTS ENGINE ── */
+.events-strip {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.event-pill {
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
+  padding: 6px 12px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.04);
+  white-space: nowrap;
+}
+.event-pill.highlight {
+  background: rgba(139,255,87,0.1); border-color: rgba(139,255,87,0.3); color: var(--green);
+}
+.cannes-detail {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px;
+}
+@media(max-width:580px) { .cannes-detail { grid-template-columns: 1fr 1fr; } }
+.cannes-item {
+  background: rgba(255,255,255,0.04); border-radius: 10px;
+  padding: 14px 14px 12px;
+}
+.cannes-item-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.cannes-item-desc { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+
+/* ── JUNGLE UPSIDE ── */
+.upside-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+}
+@media(max-width:800px) { .upside-grid { grid-template-columns: 1fr 1fr; } }
+@media(max-width:480px) { .upside-grid { grid-template-columns: 1fr; } }
+.upside-card {
+  border-radius: 12px; padding: 18px 16px;
+  background: rgba(139,255,87,0.05); border: 1px solid rgba(139,255,87,0.15);
+}
+.upside-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 6px; }
+.upside-body { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+.upside-tag {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--green); margin-bottom: 8px;
+  display: block;
+}
+
+/* ── REALITY CHECKS ── */
+.checks-list { display: flex; flex-direction: column; gap: 10px; }
+.check-row {
+  display: grid; grid-template-columns: 24px 1fr; gap: 14px;
+  align-items: start; padding: 16px 18px;
+  background: rgba(224,92,92,0.06); border: 1px solid rgba(224,92,92,0.12);
+  border-radius: 12px;
+}
+.check-icon { color: var(--red); font-size: 16px; line-height: 1.5; }
+.check-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; color: rgba(255,255,255,0.9); }
+.check-body { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+/* ── THE QUESTION ── */
+.question-block {
+  margin: 0;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 32px;
+}
+.question-text {
+  font-size: clamp(18px, 2.5vw, 26px); font-weight: 700; letter-spacing: -0.02em;
+  line-height: 1.35; color: var(--cream); margin-bottom: 20px;
+}
+.question-text em {
+  display: block; font-style: italic; font-weight: 400;
+  color: rgba(255,255,255,0.5); font-size: 0.85em;
+}
+.answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:580px) { .answer-grid { grid-template-columns: 1fr; } }
+.answer-card { border-radius: 12px; padding: 18px 16px; }
+.answer-card.uk {
+  background: rgba(139,255,87,0.07); border: 1.5px solid rgba(139,255,87,0.2);
+}
+.answer-card.global {
+  background: rgba(245,166,35,0.07); border: 1.5px solid rgba(245,166,35,0.2);
+}
+.answer-card-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.answer-card.uk .answer-card-label { color: var(--green); }
+.answer-card.global .answer-card-label { color: var(--amber); }
+.answer-card-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.answer-card-body { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+/* ── BOTTOM LINE ── */
+.bottom-line {
+  margin: 64px 0 0;
+  padding: 48px 40px;
+  background: var(--green);
+  border-radius: 20px 20px 0 0;
+}
+.bl-eyebrow {
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: rgba(0,0,0,0.45); margin-bottom: 16px;
+}
+.bl-h2 {
+  font-size: clamp(28px, 3.5vw, 46px); font-weight: 800; letter-spacing: -0.04em;
+  line-height: 1.05; color: var(--black); margin-bottom: 16px;
+}
+.bl-body { font-size: 15px; color: rgba(0,0,0,0.6); line-height: 1.65; max-width: 680px; margin-bottom: 28px; }
+.bl-items { display: flex; flex-direction: column; gap: 8px; max-width: 540px; }
+.bl-item {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 600; color: var(--black);
+}
+.bl-item::before {
+  content: ''; width: 20px; height: 20px; flex-shrink: 0;
+  background: rgba(0,0,0,0.1); border-radius: 50%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111110' stroke-width='2.5'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-size: 11px; background-repeat: no-repeat; background-position: center;
+}
+.bl-caveat { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.15); font-size: 13px; color: rgba(0,0,0,0.5); max-width: 580px; line-height: 1.6; }
+
+/* ── PEERS ── */
+.peers-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.peer-badge {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7);
+}
+.peer-badge.jungle {
+  background: rgba(139,255,87,0.12); border-color: rgba(139,255,87,0.25); color: var(--green);
+}
+
+/* ── FADE IN ── */
+.fi { opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s ease; }
+.fi.in { opacity: 1; transform: none; }
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(17,17,16,0.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: center; padding: 0 40px; height: 50px;
+}
+@media(max-width:560px) { nav { padding: 0 20px; } }
+.nav-logo { font-size: 12px; font-weight: 800; color: var(--green); letter-spacing: -0.01em; margin-right: 24px; }
+.nav-logo span { color: rgba(255,255,255,0.25); font-weight: 400; }
+.nav-links { display: flex; gap: 1px; overflow-x: auto; scrollbar-width: none; }
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-link {
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.35); padding: 0 12px; height: 50px;
+  display: inline-flex; align-items: center; text-decoration: none;
+  border-bottom: 2px solid transparent; transition: color .12s, border-color .12s;
+  white-space: nowrap;
+}
+.nav-link:hover { color: rgba(255,255,255,0.7); }
+.nav-link.active { color: var(--green); border-bottom-color: var(--green); }
+.nav-right { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.2); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Jungle <span>/</span> AA Brief</div>
+  <div class="nav-links">
+    <a href="#offer" class="nav-link">What you get</a>
+    <a href="#engine" class="nav-link">Events engine</a>
+    <a href="#upside" class="nav-link">Jungle upside</a>
+    <a href="#checks" class="nav-link">Reality checks</a>
+    <a href="#verdict" class="nav-link">Verdict</a>
+  </div>
+  <div class="nav-right">Internal · Apr 2026</div>
+</nav>
+
+<main>
+
+<header>
+  <div class="header-inner page">
+    <div>
+      <div class="doc-eyebrow">Membership review · Internal brief</div>
+      <h1 class="doc-title">Advertising<br><em>Association.</em></h1>
+      <p class="doc-subtitle">What it is, what it costs, and what it could unlock for Jungle — stripped of noise.</p>
+    </div>
+    <div class="verdict-card fi">
+      <div class="verdict-label">Annual cost</div>
+      <div class="verdict-value">£4,500</div>
+      <div class="verdict-sub">Membership only<br>Events are additional</div>
+    </div>
+  </div>
+</header>
+
+<!-- COST STRIP -->
+<div class="page">
+  <div class="cost-strip fi">
+    <div class="cost-cell">
+      <div class="cost-cell-label">Membership</div>
+      <div class="cost-cell-value">£4,500</div>
+      <div class="cost-cell-note">Per year</div>
+    </div>
+    <div class="cost-cell">
+      <div class="cost-cell-label">Events (est.)</div>
+      <div class="cost-cell-value">£2–8k+</div>
+      <div class="cost-cell-note">Per event attended</div>
+    </div>
+    <div class="cost-cell">
+      <div class="cost-cell-label">Cannes total est.</div>
+      <div class="cost-cell-value">£15–25k</div>
+      <div class="cost-cell-note">Travel + accommodation + fees</div>
+    </div>
+    <div class="cost-cell">
+      <div class="cost-cell-label">Events per year</div>
+      <div class="cost-cell-value">7</div>
+      <div class="cost-cell-note">Core programme</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1: WHAT YOU GET -->
+<section id="offer">
+  <div class="page">
+    <div class="s-label fi"><span class="s-num">01 /</span> What you actually get</div>
+
+    <div class="benefits-grid">
+
+      <div class="benefit-card fi">
+        <div class="benefit-num">01</div>
+        <div class="benefit-title">Access to rooms you can't buy into</div>
+        <ul class="benefit-list">
+          <li>3 curated roundtables per day at Cannes — themed, small, invite-only</li>
+          <li>Guaranteed seat at one roundtable per event</li>
+          <li>Access to invite-only receptions and private gatherings</li>
+          <li>Must bring an international guest — keeps quality high</li>
+        </ul>
+        <div class="benefit-why">
+          <strong>Why it matters:</strong> You're not buying attendance. You're buying access to rooms you can't otherwise get into, with people you want to meet.
+        </div>
+      </div>
+
+      <div class="benefit-card fi">
+        <div class="benefit-num">02</div>
+        <div class="benefit-title">International network without the groundwork</div>
+        <ul class="benefit-list">
+          <li>Curated introductions to Saudi Arabia (official partner), Nigeria, US, Thailand</li>
+          <li>SXSW, Advertising Week NY, embassy events, trade missions</li>
+          <li>Cross-market relationship building — brought to you</li>
+        </ul>
+        <div class="benefit-why">
+          <strong>Why it matters:</strong> This is a shortcut into global markets without building those relationships from scratch.
+        </div>
+      </div>
+
+      <div class="benefit-card fi">
+        <div class="benefit-num">03</div>
+        <div class="benefit-title">A platform, not just a badge</div>
+        <ul class="benefit-list">
+          <li>Real speaking opportunities (selective but accessible)</li>
+          <li>Roundtable participation and ownership</li>
+          <li>Inclusion in industry write-ups and media amplification</li>
+          <li>Attach Jungle's POV to the global programme</li>
+        </ul>
+        <div class="benefit-why">
+          <strong>Why it matters:</strong> It's not passive. You can actively build Jungle's profile if you show up with strong thinking.
+        </div>
+      </div>
+
+      <div class="benefit-card fi">
+        <div class="benefit-num">04</div>
+        <div class="benefit-title">Peer positioning — a known tier</div>
+        <div class="benefit-body" style="margin-bottom:14px">You sit alongside agencies who are already in the conversation:</div>
+        <div class="peers-row" style="margin-bottom:14px">
+          <div class="peer-badge jungle">Jungle Creations</div>
+          <div class="peer-badge">Whalar</div>
+          <div class="peer-badge">Billion Dollar Boy</div>
+          <div class="peer-badge">Coolr</div>
+        </div>
+        <div class="benefit-why">
+          <strong>Why it matters:</strong> You're instantly placed in a known tier of agency. That changes perception in pitches and partnerships — you're no longer trying to get noticed, you're shaping the conversation.
+        </div>
+      </div>
+
+      <div class="benefit-card fi">
+        <div class="benefit-num">05</div>
+        <div class="benefit-title">Year-round intelligence layer</div>
+        <ul class="benefit-list">
+          <li>Webinars across all major global events — even without attending</li>
+          <li>Strategic thinking, global trends, creator economy focus</li>
+          <li>Access to where CMOs are heading, not where they've been</li>
+        </ul>
+        <div class="benefit-why">
+          <strong>Why it matters:</strong> Keeps your thinking sharp and commercially relevant. Not fluff — this is the industry's actual direction-setting.
+        </div>
+      </div>
+
+      <div class="benefit-card fi">
+        <div class="benefit-num">06</div>
+        <div class="benefit-title">Managed network, not a directory</div>
+        <ul class="benefit-list">
+          <li>The team actively curates introductions</li>
+          <li>Recommends who should attend what and why</li>
+          <li>Matches you to relevant opportunities — proactively</li>
+          <li>Scale involvement based on budget and priority</li>
+        </ul>
+        <div class="benefit-why">
+          <strong>Why it matters:</strong> Someone is doing the work of connecting you, not just listing you.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: EVENTS ENGINE -->
+<section id="engine">
+  <div class="page">
+    <div class="s-label fi"><span class="s-num">02 /</span> The events engine</div>
+
+    <p class="fi" style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:20px">7 core events per year. Each with its own format, access structure, and opportunity type.</p>
+
+    <div class="events-strip fi">
+      <div class="event-pill highlight">Cannes Lions</div>
+      <div class="event-pill highlight">SXSW Austin</div>
+      <div class="event-pill">SXSW London</div>
+      <div class="event-pill">Advertising Week NY</div>
+      <div class="event-pill">Saudi Arabia</div>
+      <div class="event-pill">Nigeria</div>
+      <div class="event-pill">Thailand</div>
+    </div>
+
+    <div class="benefit-card fi" style="margin-bottom:10px">
+      <div class="benefit-num">Cannes Lions — the flagship</div>
+      <div class="benefit-title" style="margin-bottom:12px">How the AA runs Cannes</div>
+      <div class="cannes-detail">
+        <div class="cannes-item">
+          <div class="cannes-item-title">Private UK Hub</div>
+          <div class="cannes-item-desc">Dedicated venue — cabana or beach space. Central meeting point for all activity. Yours to use.</div>
+        </div>
+        <div class="cannes-item">
+          <div class="cannes-item-title">3 Roundtables / Day</div>
+          <div class="cannes-item-desc">Themed, curated mix, followed by write-ups and media partnerships. You can own one.</div>
+        </div>
+        <div class="cannes-item">
+          <div class="cannes-item-title">300–400 person reception</div>
+          <div class="cannes-item-desc">Invite-only. Includes entertainment. The highest-density networking moment of the week.</div>
+        </div>
+        <div class="cannes-item">
+          <div class="cannes-item-title">Curated access</div>
+          <div class="cannes-item-desc">Campaign party allocation, other high-demand events — negotiated on your behalf.</div>
+        </div>
+        <div class="cannes-item">
+          <div class="cannes-item-title">Global introductions</div>
+          <div class="cannes-item-desc">International players brought to your table. Cross-market relationship building built in.</div>
+        </div>
+        <div class="cannes-item">
+          <div class="cannes-item-title">Full week structure</div>
+          <div class="cannes-item-desc">Now runs Sun → Thu. Increasing scale, increasing intensity. Not a day trip.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: JUNGLE UPSIDE -->
+<section id="upside">
+  <div class="page">
+    <div class="s-label fi"><span class="s-num">03 /</span> What this actually unlocks for Jungle</div>
+
+    <div class="upside-grid">
+
+      <div class="upside-card fi">
+        <span class="upside-tag">Biggest lever</span>
+        <div class="upside-title">International growth — without the groundwork</div>
+        <div class="upside-body">You're not guessing how to enter Saudi, Nigeria, or the US market. You're being walked into them with structured agendas, local introductions, and official partner status already in place.</div>
+      </div>
+
+      <div class="upside-card fi">
+        <span class="upside-tag">Reputation</span>
+        <div class="upside-title">Shortcut years of trying to get in the room</div>
+        <div class="upside-body">One season of active participation at the right events does more for Jungle's profile than two years of cold outreach — but only if you show up with strong thinking, not just a lanyard.</div>
+      </div>
+
+      <div class="upside-card fi">
+        <span class="upside-tag">Pipeline (indirect)</span>
+        <div class="upside-title">Feeds your intermediary ecosystem</div>
+        <div class="upside-body">The AA network overlaps heavily with intermediaries, global agency networks, and brand-side decision makers. This isn't pitch culture — but pipeline follows profile, and profile follows presence.</div>
+      </div>
+
+      <div class="upside-card fi">
+        <span class="upside-tag">Most interesting</span>
+        <div class="upside-title">A platform for Jungle's POV on social maturity</div>
+        <div class="upside-body">Own a space — "social maturity", "creator systems", "the death of vanity metrics" — attach it to the AA's global programme, and scale that narrative internationally. The Social Maturity Index event fits perfectly here.</div>
+      </div>
+
+      <div class="upside-card fi">
+        <span class="upside-tag">Positioning shift</span>
+        <div class="upside-title">From "social agency trying to get noticed" to something different</div>
+        <div class="upside-body">You're not competing for attention. You're in the room with Whalar, Billion Dollar Boy, and Coolr — agencies shaping industry conversations. That's a different game with different downstream effects.</div>
+      </div>
+
+      <div class="upside-card fi">
+        <span class="upside-tag">SMI alignment</span>
+        <div class="upside-title">The October event becomes internationally amplifiable</div>
+        <div class="upside-body">The Social Maturity Index as a named framework, attached to a global programme, with the AA's distribution behind it — that's how proprietary thinking goes from internal framework to industry-defining narrative.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: REALITY CHECKS -->
+<section id="checks">
+  <div class="page">
+    <div class="s-label fi"><span class="s-num">04 /</span> Reality checks — don't ignore these</div>
+
+    <div class="checks-list">
+
+      <div class="check-row fi">
+        <div class="check-icon">⚠</div>
+        <div>
+          <div class="check-title">This is not a passive investment</div>
+          <div class="check-body">You'll be expected to contribute ideas, show up prepared, bring valuable guests, and engage actively. If you don't, you'll get very little back. A membership that sits on a shelf is wasted money at any price.</div>
+        </div>
+      </div>
+
+      <div class="check-row fi">
+        <div class="check-icon">⚠</div>
+        <div>
+          <div class="check-title">The real cost is significantly higher than £4,500</div>
+          <div class="check-body">Membership is the entry point — not the total. Add event participation fees, Cannes travel and accommodation (easily £15–25k for one person for the week), time investment across multiple events per year. Build a realistic budget before committing.</div>
+        </div>
+      </div>
+
+      <div class="check-row fi">
+        <div class="check-icon">⚠</div>
+        <div>
+          <div class="check-title">Only valuable if aligned to Jungle's actual direction</div>
+          <div class="check-body">The AA asked the right question: are you trying to build Jungle in the UK first, or globally? This membership accelerates international reach. If the priority is UK pipeline, there are better-targeted ways to spend this money. Get the strategic question right first.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- THE QUESTION -->
+    <div class="question-block fi" style="margin-top:28px">
+      <div class="question-text">
+        The decision hinges on one question.
+        <em>"Are we building Jungle in the UK first — or globally?"</em>
+      </div>
+      <div class="answer-grid">
+        <div class="answer-card uk">
+          <div class="answer-card-label">If the answer is UK first</div>
+          <div class="answer-card-title">Consider the membership, skip the events</div>
+          <div class="answer-card-body">The intelligence layer, peer positioning, and UK network value still justify £4,500. Hold off on Cannes and international travel until pipeline warrants it. Test before scaling.</div>
+        </div>
+        <div class="answer-card global">
+          <div class="answer-card-label">If the answer is global</div>
+          <div class="answer-card-title">Go all in — but plan the budget properly</div>
+          <div class="answer-card-body">The international expansion play is the biggest lever here. Saudi, Nigeria, US market access via structured trade missions is genuinely hard to replicate independently. But budget the full cost, not just membership.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOTTOM LINE -->
+<section id="verdict">
+  <div class="page">
+    <div class="s-label fi"><span class="s-num">05 /</span> Bottom line</div>
+  </div>
+  <div class="page">
+    <div class="bottom-line fi">
+      <div class="bl-eyebrow">The verdict</div>
+      <h2 class="bl-h2">Not a "join and get leads" play.</h2>
+      <p class="bl-body">This is a network accelerator, a reputation builder, and an international expansion platform. The £4,500 membership fee is almost beside the point — the question is whether Jungle is ready to treat this like a system, not a one-off activity.</p>
+      <div class="bl-items">
+        <div class="bl-item">Worth it if: you're serious about international growth</div>
+        <div class="bl-item">Worth it if: you have a POV you're ready to put in rooms</div>
+        <div class="bl-item">Worth it if: the SMI narrative needs global amplification</div>
+        <div class="bl-item">Worth it if: someone owns the relationship actively</div>
+      </div>
+      <p class="bl-caveat">Next decision to pressure-test: where Jungle actually needs growth right now (UK vs global) · what role this plays vs intermediaries · whether Cannes alone is worth it vs the full AA programme. That's the real conversation.</p>
+    </div>
+  </div>
+</section>
+
+<div style="height:1px;background:rgba(255,255,255,0.06);margin:0 40px"></div>
+<div class="page" style="padding-top:24px;padding-bottom:40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+  <div style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:0.08em">Jungle Creations · Internal · April 2026 · Coris Leachman</div>
+  <a href="https://jungle-is-massive.github.io/hub/" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);text-decoration:none;letter-spacing:0.06em;transition:color .12s" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">← Back to hub</a>
+</div>
+
+</main>
+
+<script>
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      e.target.style.transitionDelay = `${i * 0.04}s`;
+      e.target.classList.add('in');
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+
+// Active nav
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const navObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => navObs.observe(s));
+</script>
+<script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
+</body>
+</html>
