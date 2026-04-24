@@ -38,7 +38,7 @@
     {
       num: '03',
       title: 'BD Planner',
-      desc: 'The 12-month plan. Brand House, Comms engine, Calendar, Nurture, Decisions — the Bible for where Jungle\'s going and what\'s still open.',
+      desc: 'The BD operating system. Brand House, Comms, Calendar, Prospects, Opportunities, Decisions and Awards — one gated Bible.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/',
       tag: 'Gated',
       accent: 'green',
@@ -55,6 +55,15 @@
     },
     {
       num: '05',
+      title: 'AA Membership Brief',
+      desc: 'Internal decision brief on the Advertising Association. What it costs, what it unlocks, and whether it fits Jungle\'s growth strategy.',
+      url: 'https://jungle-is-massive.github.io/hub/aa-brief.html',
+      tag: 'Internal',
+      accent: 'amber',
+      match: ['aa-brief']
+    },
+    {
+      num: '06',
       title: 'Intermediary Plan',
       desc: 'The intermediary strategy on a page. Targets, cadence and activation across Ingenuity+, AAR, Oystercatchers and more.',
       url: 'https://jungle-is-massive.github.io/intermediary-plan/',
@@ -63,7 +72,7 @@
       match: ['intermediary-plan']
     },
     {
-      num: '06',
+      num: '07',
       title: 'Outreach Generator',
       desc: 'Personalised outreach tool. Cross-references prospects with shared client sectors to draft context-rich messages.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/outreach-generator.html',
@@ -72,7 +81,7 @@
       match: ['outreach-generator']
     },
     {
-      num: '07',
+      num: '08',
       title: 'Social Maturity Index',
       desc: 'Jungle\'s flagship October event. Overview, timeline, speakers, six-month post-event nurture — all Supabase-backed.',
       url: 'https://jungle-is-massive.github.io/smi/',
