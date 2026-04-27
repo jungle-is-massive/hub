@@ -432,8 +432,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 
   <!-- EVENTS -->
   <div class="section-head">
-    <div class="section-label">Events Pipeline</div>
-    <div class="section-count" id="events-count">—</div>
+    <div class="section-label">Events</div>
+    <div style="display:flex;gap:6px;margin-left:auto">
+      <button class="mtab active" id="etab-upcoming" onclick="switchEventTab('upcoming')">
+        Upcoming <span class="mtab-count" id="etab-count-upcoming">—</span>
+      </button>
+      <button class="mtab" id="etab-past" onclick="switchEventTab('past')">
+        Past <span class="mtab-count" id="etab-count-past">—</span>
+      </button>
+    </div>
   </div>
   <div id="events-list"><div class="empty-state">Loading events…</div></div>
 
@@ -517,7 +524,7 @@ const STAGE_LABELS = {
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-let dashboardData = { meetings: [], attendedMeetings: [], inquiries: [], deals: [], events: [] };
+let dashboardData = { meetings: [], attendedMeetings: [], inquiries: [], deals: [], events: [], pastEvents: [] };
 
 // ─────────────────────────────────────────────
 // INIT
@@ -858,63 +865,104 @@ function renderLane(containerId, deals, colorVar) {
 }
 
 // ─────────────────────────────────────────────
-// EVENTS — from Supabase
+// EVENTS — from Supabase events table
 // ─────────────────────────────────────────────
+const EXCL_EVENT_CATEGORIES = ['content', 'nurture'];
+
+const EVENT_CATEGORY_LABELS = {
+  intermediary: 'Intermediary',
+  speaking:     'Speaking',
+  attendance:   'Attendance',
+  owned:        'Owned Event',
+};
+
+const EVENT_CATEGORY_COLOURS = {
+  intermediary: '#4ABFFF',
+  speaking:     '#7B6FE0',
+  attendance:   '#87FB66',
+  owned:        '#FF6B4A',
+};
+
 async function loadEvents() {
-  const container = document.getElementById('events-list');
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?select=*&order=event_date.asc&event_date=gte.${new Date().toISOString().split('T')[0]}`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
+    const today = new Date().toISOString().split('T')[0];
 
-    if (!res.ok) throw new Error(`Supabase ${res.status}`);
-    const events = await res.json();
-    dashboardData.events = events;
+    // Fetch upcoming and past in parallel, excluding content/nurture
+    const notIn = EXCL_EVENT_CATEGORIES.map(c => `category.neq.${c}`).join('&');
+    const [upRes, pastRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/events?select=*&start_date=gte.${today}&${notIn}&order=start_date.asc&limit=50`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }),
+      fetch(`${SUPABASE_URL}/rest/v1/events?select=*&start_date=lt.${today}&${notIn}&order=start_date.desc&limit=50`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } })
+    ]);
 
-    document.getElementById('events-count').textContent = events.length;
+    if (!upRes.ok)   throw new Error(`Supabase ${upRes.status}`);
+    if (!pastRes.ok) throw new Error(`Supabase ${pastRes.status}`);
 
-    if (!events.length) {
-      container.innerHTML = '<div class="empty-state">No upcoming events. Add them to the events table in Supabase.</div>';
-      return;
-    }
+    const [upcoming, past] = await Promise.all([upRes.json(), pastRes.json()]);
 
-    container.innerHTML = '';
-    events.forEach((ev, i) => {
-      const d = new Date(ev.event_date);
-      const day = d.getDate();
-      const mon = d.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
-      const statusClass = ev.status === 'Confirmed' ? 'event-status-confirmed' : ev.status === 'Planning' ? 'event-status-planning' : 'event-status-exploring';
-      const row = document.createElement('div');
-      row.className = 'event-row';
-      row.style.animationDelay = `${i * 0.05}s`;
-      row.innerHTML = `
-        <div class="event-date-block">
-          <div class="event-day">${day}</div>
-          <div class="event-mon">${mon}</div>
-        </div>
-        <div>
-          <div class="event-name">${ev.name}</div>
-          <div class="event-desc">${ev.description || ev.bd_angle || ''}</div>
-        </div>
-        <div class="stage-pill ${statusClass}">${ev.status || 'TBC'}</div>
-      `;
-      container.appendChild(row);
-    });
+    dashboardData.events       = upcoming;
+    dashboardData.pastEvents   = past;
+
+    document.getElementById('events-count') && (document.getElementById('events-count').textContent = upcoming.length);
+    document.getElementById('etab-count-upcoming').textContent = upcoming.length;
+    document.getElementById('etab-count-past').textContent     = past.length;
+
+    // Render whichever tab is active
+    const activeTab = document.getElementById('etab-upcoming').classList.contains('active') ? 'upcoming' : 'past';
+    renderEvents(activeTab);
 
   } catch(e) {
     console.error('Events error:', e);
-    // Show placeholder events if Supabase table doesn't exist yet
-    container.innerHTML = `
-      <div class="empty-state">
-        Events table not found in Supabase. Create a table called <strong>events</strong> with columns: <em>id, name, description, event_date, status, bd_angle</em>
+    document.getElementById('events-list').innerHTML = `<div class="empty-state">Unable to load events — ${e.message}</div>`;
+  }
+}
+
+function switchEventTab(tab) {
+  document.getElementById('etab-upcoming').classList.toggle('active', tab === 'upcoming');
+  document.getElementById('etab-past').classList.toggle('active', tab === 'past');
+  renderEvents(tab);
+}
+
+function renderEvents(tab) {
+  const container = document.getElementById('events-list');
+  const events    = tab === 'upcoming' ? (dashboardData.events || []) : (dashboardData.pastEvents || []);
+
+  if (!events.length) {
+    container.innerHTML = `<div class="empty-state">${tab === 'upcoming' ? 'No upcoming events.' : 'No past events found.'}</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  events.forEach((ev, i) => {
+    const start    = new Date(ev.start_date);
+    const end      = ev.end_date && ev.end_date !== ev.start_date ? new Date(ev.end_date) : null;
+    const day      = start.getUTCDate();
+    const mon      = start.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+    const colour   = EVENT_CATEGORY_COLOURS[ev.category] || '#C8C3B8';
+    const catLabel = EVENT_CATEGORY_LABELS[ev.category] || ev.category || 'Event';
+    const isPast   = tab === 'past';
+
+    const row = document.createElement('div');
+    row.className = 'event-row';
+    row.style.animationDelay = `${i * 0.05}s`;
+    if (isPast) row.style.opacity = '0.75';
+
+    row.innerHTML = `
+      <div class="event-date-block">
+        <div class="event-day" style="color:${isPast ? 'var(--grey-mid)' : 'var(--black)'}">${day}</div>
+        <div class="event-mon">${mon}</div>
+      </div>
+      <div>
+        <div class="event-name">${ev.name}</div>
+        <div class="event-desc">${ev.location ? ev.location + (ev.description ? ' — ' : '') : ''}${ev.description ? ev.description.substring(0,100) + (ev.description.length > 100 ? '…' : '') : ''}</div>
+      </div>
+      <div>
+        <span class="stage-pill stage-default" style="border-color:${colour};color:${colour === '#87FB66' ? 'var(--black)' : colour};background:${colour}18">${catLabel}</span>
       </div>
     `;
-    document.getElementById('events-count').textContent = '0';
-    dashboardData.events = [];
-  }
+    container.appendChild(row);
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -1016,12 +1064,13 @@ function buildSnapshotEmail() {
   body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEVENTS PIPELINE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   if (events.length) {
     events.forEach(ev => {
-      const d = new Date(ev.event_date);
-      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-      body += `• ${ev.name} — ${dateStr} (${ev.status || 'TBC'})\n`;
-      if (ev.bd_angle) body += `  BD angle: ${ev.bd_angle}\n`;
+      const d = new Date(ev.start_date);
+      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+      const cat = EVENT_CATEGORY_LABELS[ev.category] || ev.category || '';
+      body += `• ${ev.name}${cat ? ' [' + cat + ']' : ''} — ${dateStr}\n`;
+      if (ev.description) body += `  ${ev.description.substring(0,80)}\n`;
     });
-  } else { body += '• No upcoming events logged\n'; }
+  } else { body += '• No upcoming events\n'; }
 
   body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSent from Jungle Activity Dashboard\nhttps://jungle-is-massive.github.io/hub/activity-dashboard.html\n`;
 
