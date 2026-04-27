@@ -272,6 +272,22 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.mtab {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px;
+  border-radius: 100px; border: 1px solid var(--grey-light); background: transparent;
+  color: var(--grey-mid); cursor: pointer; display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.mtab:hover { border-color: var(--black); color: var(--black); }
+.mtab.active { background: var(--black); color: var(--cream); border-color: var(--black); }
+.mtab-count {
+  background: rgba(255,255,255,0.15); color: inherit; padding: 1px 6px;
+  border-radius: 20px; font-size: 9px;
+}
+.mtab.active .mtab-count { background: rgba(255,255,255,0.2); }
+.mtab:not(.active) .mtab-count { background: var(--grey-light); color: var(--grey-mid); }
+
 #gcal-connect-bar {
   display: none; align-items: center; justify-content: space-between;
   background: var(--black); color: var(--cream); padding: 10px 20px;
@@ -323,10 +339,17 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <div class="stat-value" id="stat-pipeline"><div class="stat-loading"></div></div>
       <div class="stat-sub" id="stat-pipeline-sub">weighted value</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Meetings This Week</div>
-      <div class="stat-value" id="stat-meetings"><div class="stat-loading"></div></div>
-      <div class="stat-sub" id="stat-meetings-sub">across all contacts</div>
+    <div class="stat-card" style="grid-column: span 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0; overflow: hidden; background: transparent; border-radius: 14px;">
+      <div style="background: var(--black); border-radius: 14px 0 0 14px; padding: 20px 16px 20px 22px; border-right: 1px solid rgba(255,255,255,0.08);">
+        <div class="stat-label">Upcoming</div>
+        <div class="stat-value" id="stat-meetings-upcoming"><div class="stat-loading"></div></div>
+        <div class="stat-sub">next 14 days</div>
+      </div>
+      <div style="background: var(--black); border-radius: 0 14px 14px 0; padding: 20px 22px 20px 16px;">
+        <div class="stat-label">Attended</div>
+        <div class="stat-value" id="stat-meetings-attended"><div class="stat-loading"></div></div>
+        <div class="stat-sub">last 30 days</div>
+      </div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Fresh Inquiries</div>
@@ -356,8 +379,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 
   <!-- MEETINGS -->
   <div class="section-head">
-    <div class="section-label">Upcoming Meetings</div>
-    <div class="section-count" id="meetings-count">—</div>
+    <div class="section-label">Meetings</div>
+    <div style="display:flex;gap:6px;margin-left:auto">
+      <button class="mtab active" id="mtab-upcoming" onclick="switchMeetingTab('upcoming')">
+        Upcoming <span class="mtab-count" id="mtab-count-upcoming">—</span>
+      </button>
+      <button class="mtab" id="mtab-attended" onclick="switchMeetingTab('attended')">
+        Attended <span class="mtab-count" id="mtab-count-attended">—</span>
+      </button>
+    </div>
   </div>
   <div id="meetings-grid"><div class="empty-state">Loading meetings…</div></div>
 
@@ -487,7 +517,7 @@ const STAGE_LABELS = {
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-let dashboardData = { meetings: [], inquiries: [], deals: [], events: [] };
+let dashboardData = { meetings: [], attendedMeetings: [], inquiries: [], deals: [], events: [] };
 
 // ─────────────────────────────────────────────
 // INIT
@@ -540,80 +570,117 @@ async function hsPost(path, body) {
 // ─────────────────────────────────────────────
 async function loadMeetings() {
   const container = document.getElementById('meetings-grid');
+  if (!gcalIsConnected()) {
+    container.innerHTML = '<div class="empty-state">Connect Google Calendar above to see your BD meetings.</div>';
+    document.getElementById('stat-meetings-upcoming').textContent = '—';
+    document.getElementById('stat-meetings-attended').textContent = '—';
+    return;
+  }
   try {
-    // Pull from Google Calendar via Claude MCP — filter on #nbm or #netm in description
-    const now     = new Date();
-    const twoWeeks = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-    const timeMin = now.toISOString();
-    const timeMax = twoWeeks.toISOString();
+    const now      = new Date();
+    const future   = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const past     = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=50`,
-      { headers: { 'Authorization': `Bearer ${gcalAccessToken}` } }
-    );
+    // Fetch upcoming (now → +14 days) and past (−30 days → now) in parallel
+    const [upcomingRes, pastRes] = await Promise.all([
+      fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(now.toISOString())}&timeMax=${encodeURIComponent(future.toISOString())}&singleEvents=true&orderBy=startTime&maxResults=50`,
+        { headers: { 'Authorization': `Bearer ${gcalAccessToken}` } }),
+      fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(past.toISOString())}&timeMax=${encodeURIComponent(now.toISOString())}&singleEvents=true&orderBy=startTime&maxResults=100`,
+        { headers: { 'Authorization': `Bearer ${gcalAccessToken}` } })
+    ]);
 
-    if (!res.ok) throw new Error(`Calendar API ${res.status}`);
-    const data = await res.json();
-    const allEvents = data.items || [];
+    if (!upcomingRes.ok) throw new Error(`Calendar API ${upcomingRes.status}`);
+    if (!pastRes.ok)     throw new Error(`Calendar API ${pastRes.status}`);
 
-    // Filter to only #nbm or #netm tagged events
-    const meetings = allEvents.filter(ev => {
+    const [upcomingData, pastData] = await Promise.all([upcomingRes.json(), pastRes.json()]);
+
+    const filterBD = ev => {
       const desc = (ev.description || '').toLowerCase();
       return desc.includes('#nbm') || desc.includes('#netm');
-    });
+    };
 
-    dashboardData.meetings = meetings;
+    const upcomingMeetings = (upcomingData.items || []).filter(filterBD);
+    const attendedMeetings = (pastData.items || []).filter(filterBD).reverse(); // most recent first
 
-    const thisWeekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const thisWeek = meetings.filter(ev => new Date(ev.start?.dateTime || ev.start?.date) <= thisWeekEnd);
-    document.getElementById('stat-meetings').textContent = thisWeek.length;
-    document.getElementById('stat-meetings-sub').textContent = 'this week';
-    document.getElementById('meetings-count').textContent = meetings.length;
+    dashboardData.meetings         = upcomingMeetings;
+    dashboardData.attendedMeetings = attendedMeetings;
 
-    if (!meetings.length) {
-      container.innerHTML = '<div class="empty-state">No BD meetings in the next 14 days. Add <strong>#nbm</strong> or <strong>#netm</strong> to a Google Calendar event description to surface it here.</div>';
-      return;
-    }
+    // Update stat cards
+    document.getElementById('stat-meetings-upcoming').textContent = upcomingMeetings.length;
+    document.getElementById('stat-meetings-attended').textContent = attendedMeetings.length;
 
-    container.innerHTML = '';
-    meetings.forEach((ev, i) => {
-      const start     = new Date(ev.start?.dateTime || ev.start?.date);
-      const isToday   = start.toDateString() === now.toDateString();
-      const isTomorrow = start.toDateString() === new Date(now.getTime() + 86400000).toDateString();
-      const dateStr   = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      const timeStr   = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'All day';
-      const desc      = (ev.description || '').replace(/#nbm|#netm/gi, '').replace(/<[^>]+>/g, '').trim();
-      const isNbm     = (ev.description || '').toLowerCase().includes('#nbm');
-      const tagLabel  = isNbm ? 'New Business' : 'Network';
-      const tagColour = isNbm ? 'var(--green)' : 'var(--next)';
-      const attendees = (ev.attendees || []).filter(a => !a.self).map(a => a.displayName || a.email).slice(0,3).join(', ');
+    // Update tab counters
+    document.getElementById('mtab-count-upcoming').textContent = upcomingMeetings.length;
+    document.getElementById('mtab-count-attended').textContent = attendedMeetings.length;
 
-      const card = document.createElement('div');
-      card.className = 'meeting-card';
-      card.style.animationDelay = `${i * 0.06}s`;
-      card.style.setProperty('--card-accent', tagColour);
-      card.innerHTML = `
-        <div class="meeting-top">
-          <div class="meeting-datetime">${dateStr}${timeStr !== 'All day' ? ' · ' + timeStr : ''}</div>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:${tagColour};color:${isNbm?'var(--black)':'white'}">${tagLabel}</span>
-        </div>
-        <div class="meeting-title">${ev.summary || 'Untitled'}</div>
-        ${attendees ? `<div class="meeting-company">${attendees}</div>` : ''}
-        ${desc ? `<div class="meeting-next"><div class="meeting-next-label">Notes</div>${desc.substring(0,150)}${desc.length>150?'…':''}</div>` : ''}
-      `;
-      container.appendChild(card);
-    });
+    // Render whichever tab is currently active
+    const activeTab = document.getElementById('mtab-upcoming').classList.contains('active') ? 'upcoming' : 'attended';
+    renderMeetings(activeTab);
 
   } catch(e) {
     console.error('Meetings error:', e);
-    // If Google Calendar auth fails, show helpful message rather than blank
-    if (e.message.includes('401') || e.message.includes('403') || !gcalAccessToken) {
-      container.innerHTML = '<div class="empty-state">Google Calendar not connected. Set GCAL_TOKEN in config.js to enable meeting sync.</div>';
+    if (e.message.includes('401') || e.message.includes('403')) {
+      gcalSignOut();
+      container.innerHTML = '<div class="empty-state">Google Calendar session expired. Reconnect above.</div>';
     } else {
       container.innerHTML = `<div class="empty-state">Unable to load meetings — ${e.message}</div>`;
     }
-    document.getElementById('stat-meetings').textContent = '—';
+    document.getElementById('stat-meetings-upcoming').textContent = '—';
+    document.getElementById('stat-meetings-attended').textContent = '—';
   }
+}
+
+function switchMeetingTab(tab) {
+  document.getElementById('mtab-upcoming').classList.toggle('active', tab === 'upcoming');
+  document.getElementById('mtab-attended').classList.toggle('active', tab === 'attended');
+  renderMeetings(tab);
+}
+
+function renderMeetings(tab) {
+  const container = document.getElementById('meetings-grid');
+  const now       = new Date();
+  const meetings  = tab === 'upcoming'
+    ? (dashboardData.meetings || [])
+    : (dashboardData.attendedMeetings || []);
+
+  if (!meetings.length) {
+    const hint = tab === 'upcoming'
+      ? 'No upcoming BD meetings in the next 14 days. Add <strong>#nbm</strong> or <strong>#netm</strong> to a Google Calendar event description.'
+      : 'No BD meetings attended in the last 30 days.';
+    container.innerHTML = `<div class="empty-state">${hint}</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  meetings.forEach((ev, i) => {
+    const start      = new Date(ev.start?.dateTime || ev.start?.date);
+    const isToday    = start.toDateString() === now.toDateString();
+    const isTomorrow = start.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+    const isYesterday = tab === 'attended' && start.toDateString() === new Date(now.getTime() - 86400000).toDateString();
+    const dateLabel  = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : isYesterday ? 'Yesterday'
+      : start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const timeStr    = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'All day';
+    const desc       = (ev.description || '').replace(/#nbm|#netm/gi, '').replace(/<[^>]+>/g, '').trim();
+    const isNbm      = (ev.description || '').toLowerCase().includes('#nbm');
+    const tagLabel   = isNbm ? 'New Business' : 'Network';
+    const tagColour  = isNbm ? 'var(--green)' : 'var(--next)';
+    const tagText    = isNbm ? 'var(--black)' : 'white';
+    const attendees  = (ev.attendees || []).filter(a => !a.self).map(a => a.displayName || a.email).slice(0,3).join(', ');
+
+    const card = document.createElement('div');
+    card.className = 'meeting-card';
+    card.style.animationDelay = `${i * 0.06}s`;
+    card.innerHTML = `
+      <div class="meeting-top">
+        <div class="meeting-datetime">${dateLabel}${timeStr !== 'All day' ? ' · ' + timeStr : ''}</div>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:${tagColour};color:${tagText};white-space:nowrap">${tagLabel}</span>
+      </div>
+      <div class="meeting-title">${ev.summary || 'Untitled'}</div>
+      ${attendees ? `<div class="meeting-company">${attendees}</div>` : ''}
+      ${desc ? `<div class="meeting-next"><div class="meeting-next-label">Notes</div>${desc.substring(0,150)}${desc.length>150?'…':''}</div>` : ''}
+    `;
+    container.appendChild(card);
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -890,7 +957,7 @@ function buildSnapshotEmail() {
   body += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSUMMARY\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   body += `• Agency Pipeline: ${valStr} across ${nowDeals.length+nextDeals.length+futureDeals.length} deals\n`;
   body += `• BD-flagged inquiries: ${dashboardData.inquiries.length}\n`;
-  body += `• Upcoming meetings: ${meetings.length}\n`;
+  body += `• Upcoming meetings: ${(dashboardData.meetings||[]).length} · Attended (30 days): ${(dashboardData.attendedMeetings||[]).length}\n`;
   body += `• Events in pipeline: ${events.length}\n\n`;
 
   body += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nUPCOMING MEETINGS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
