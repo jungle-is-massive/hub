@@ -19,6 +19,15 @@
   const WORKSTREAMS = [
     {
       num: '01',
+      title: 'Activity Dashboard',
+      desc: 'Live pipeline command centre. Upcoming meetings, fresh inquiries, active opportunities by horizon, and weekly snapshot email.',
+      url: 'https://jungle-is-massive.github.io/hub/activity-dashboard.html',
+      tag: 'Live',
+      accent: 'green',
+      match: ['activity-dashboard']
+    },
+    {
+      num: '02',
       title: 'Referrals',
       desc: 'Employee referral programme hub. Launch materials, relationship-tier message templates and company-wide rollout.',
       url: 'https://jungle-is-massive.github.io/referrals/',
@@ -27,7 +36,7 @@
       match: ['referrals']
     },
     {
-      num: '02',
+      num: '03',
       title: 'Synergist',
       desc: 'Internal project dashboard. Live view of active work pulled from Synergist with client-first hierarchy and notes persistence.',
       url: 'https://jungle-is-massive.github.io/playground/dashboard.html',
@@ -36,7 +45,7 @@
       match: ['playground/dashboard', 'playground/synergist']
     },
     {
-      num: '03',
+      num: '04',
       title: 'BD Planner',
       desc: 'The BD operating system. Brand House, Comms, Calendar, Prospects, Opportunities, Decisions and Awards — one gated Bible.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/',
@@ -45,7 +54,7 @@
       match: ['jungle-bd-planner/index', 'jungle-bd-planner/$', 'jungle-bd-planner/?']
     },
     {
-      num: '04',
+      num: '05',
       title: 'Vanity is Dead',
       desc: 'Event hub for the Vanity is Dead session. Agenda, attendee tracking and related assets.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/vanity-is-dead.html',
@@ -54,7 +63,7 @@
       match: ['vanity-is-dead']
     },
     {
-      num: '05',
+      num: '06',
       title: 'AA Membership Brief',
       desc: 'Internal decision brief on the Advertising Association. What it costs, what it unlocks, and whether it fits Jungle\'s growth strategy.',
       url: 'https://jungle-is-massive.github.io/hub/aa-brief.html',
@@ -63,7 +72,7 @@
       match: ['aa-brief']
     },
     {
-      num: '06',
+      num: '07',
       title: 'Intermediary Plan',
       desc: 'The intermediary strategy on a page. Targets, cadence and activation across Ingenuity+, AAR, Oystercatchers and more.',
       url: 'https://jungle-is-massive.github.io/intermediary-plan/',
@@ -72,7 +81,7 @@
       match: ['intermediary-plan']
     },
     {
-      num: '07',
+      num: '08',
       title: 'Outreach Generator',
       desc: 'Personalised outreach tool. Cross-references prospects with shared client sectors to draft context-rich messages.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/outreach-generator.html',
@@ -81,7 +90,7 @@
       match: ['outreach-generator']
     },
     {
-      num: '08',
+      num: '09',
       title: 'Social Maturity Index',
       desc: 'Jungle\'s flagship October event. Overview, timeline, speakers, six-month post-event nurture — all Supabase-backed.',
       url: 'https://jungle-is-massive.github.io/smi/',
@@ -194,6 +203,9 @@
     #jh-overlay.open .jh-tile:nth-child(4) { transition-delay: 0.17s; }
     #jh-overlay.open .jh-tile:nth-child(5) { transition-delay: 0.21s; }
     #jh-overlay.open .jh-tile:nth-child(6) { transition-delay: 0.25s; }
+    #jh-overlay.open .jh-tile:nth-child(7) { transition-delay: 0.29s; }
+    #jh-overlay.open .jh-tile:nth-child(8) { transition-delay: 0.33s; }
+    #jh-overlay.open .jh-tile:nth-child(9) { transition-delay: 0.37s; }
 
     .jh-tile:hover { transform: translateY(-3px); border-color: #0E0E0E; box-shadow: 0 12px 28px -14px rgba(0,0,0,0.18); }
     .jh-tile::before {
@@ -331,3 +343,4 @@
   // Public API (in case a page wants explicit control)
   window.JungleHub = { open: openHub, close: closeHub };
 })();
+
