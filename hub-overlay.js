@@ -28,15 +28,6 @@
     },
     {
       num: '02',
-      title: 'Referrals',
-      desc: 'Employee referral programme hub. Launch materials, relationship-tier message templates and company-wide rollout.',
-      url: 'https://jungle-is-massive.github.io/referrals/',
-      tag: 'Programme',
-      accent: 'teal',
-      match: ['referrals']
-    },
-    {
-      num: '03',
       title: 'Synergist',
       desc: 'Internal project dashboard. Live view of active work pulled from Synergist with client-first hierarchy and notes persistence.',
       url: 'https://jungle-is-massive.github.io/playground/dashboard.html',
@@ -45,7 +36,7 @@
       match: ['playground/dashboard', 'playground/synergist']
     },
     {
-      num: '04',
+      num: '03',
       title: 'BD Planner',
       desc: 'The BD operating system. Brand House, Comms, Calendar, Prospects, Opportunities, Decisions and Awards — one gated Bible.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/',
@@ -54,25 +45,7 @@
       match: ['jungle-bd-planner/index', 'jungle-bd-planner/$', 'jungle-bd-planner/?']
     },
     {
-      num: '05',
-      title: 'Vanity is Dead',
-      desc: 'Event hub for the Vanity is Dead session. Agenda, attendee tracking and related assets.',
-      url: 'https://jungle-is-massive.github.io/jungle-bd-planner/vanity-is-dead.html',
-      tag: 'Event',
-      accent: 'coral',
-      match: ['vanity-is-dead']
-    },
-    {
-      num: '06',
-      title: 'AA Membership Brief',
-      desc: 'Internal decision brief on the Advertising Association. What it costs, what it unlocks, and whether it fits Jungle\'s growth strategy.',
-      url: 'https://jungle-is-massive.github.io/hub/aa-brief.html',
-      tag: 'Internal',
-      accent: 'amber',
-      match: ['aa-brief']
-    },
-    {
-      num: '07',
+      num: '04',
       title: 'Intermediary Plan',
       desc: 'The intermediary strategy on a page. Targets, cadence and activation across Ingenuity+, AAR, Oystercatchers and more.',
       url: 'https://jungle-is-massive.github.io/intermediary-plan/',
@@ -81,7 +54,16 @@
       match: ['intermediary-plan']
     },
     {
-      num: '08',
+      num: '05',
+      title: 'Referrals',
+      desc: 'Employee referral programme hub. Launch materials, relationship-tier message templates and company-wide rollout.',
+      url: 'https://jungle-is-massive.github.io/referrals/',
+      tag: 'Programme',
+      accent: 'teal',
+      match: ['referrals']
+    },
+    {
+      num: '06',
       title: 'Outreach Generator',
       desc: 'Personalised outreach tool. Cross-references prospects with shared client sectors to draft context-rich messages.',
       url: 'https://jungle-is-massive.github.io/jungle-bd-planner/outreach-generator.html',
@@ -90,13 +72,32 @@
       match: ['outreach-generator']
     },
     {
-      num: '09',
+      num: '07',
       title: 'Social Maturity Index',
       desc: 'Jungle\'s flagship October event. Overview, timeline, speakers, six-month post-event nurture — all Supabase-backed.',
       url: 'https://jungle-is-massive.github.io/smi/',
       tag: 'Flagship',
       accent: 'magenta',
       match: ['/smi/', '/smi']
+    }
+  ];,
+    {
+      num: '08',
+      title: 'Vanity is Dead',
+      desc: 'Event hub for the Vanity is Dead session. Agenda, attendee tracking and related assets.',
+      url: 'https://jungle-is-massive.github.io/jungle-bd-planner/vanity-is-dead.html',
+      tag: 'Event',
+      accent: 'coral',
+      match: ['vanity-is-dead']
+    },
+    {
+      num: '09',
+      title: 'AA Membership Brief',
+      desc: 'Internal decision brief on the Advertising Association. What it costs, what it unlocks, and whether it fits Jungle\'s growth strategy.',
+      url: 'https://jungle-is-massive.github.io/hub/aa-brief.html',
+      tag: 'Internal',
+      accent: 'amber',
+      match: ['aa-brief']
     }
   ];
 
@@ -219,7 +220,7 @@
     .jh-tile.jh-current .jh-arrow { background: #0E0E0E; border-color: #0E0E0E; }
     .jh-tile.jh-current .jh-arrow svg { stroke: #87FB66; }
 
-    .jh-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .jh-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: -12px; }
     .jh-num { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.14em; color: #8A8880; }
     .jh-arrow {
       width: 32px; height: 32px; border-radius: 50%;
@@ -231,8 +232,8 @@
     .jh-arrow svg { width: 12px; height: 12px; fill: none; stroke: #0E0E0E; stroke-width: 1.6; transition: stroke 0.2s; }
     .jh-tile:hover:not(.jh-current) .jh-arrow { background: #87FB66; border-color: #87FB66; transform: rotate(-45deg); }
 
-    .jh-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px; }
-    .jh-desc { font-size: 12.5px; font-weight: 400; color: #8A8880; line-height: 1.45; margin-bottom: 14px; flex: 1; }
+    .jh-title { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 0px; }
+    .jh-desc { font-size: 12.5px; font-weight: 400; color: #8A8880; line-height: 1.45; margin-bottom: 8px; flex: 1; }
 
     .jh-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .jh-tag {
