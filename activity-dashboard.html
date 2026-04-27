@@ -147,6 +147,7 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 }
 .lane-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lane-color); flex-shrink: 0; }
 .lane-title { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--black); }
+.lane-sub { font-size: 11px; color: var(--grey-mid); margin-bottom: 12px; line-height: 1.5; }
 .lane-desc { font-size: 11px; color: var(--grey-mid); margin-left: auto; }
 
 .opp-card {
@@ -408,24 +409,24 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <div class="lane-header">
         <div class="lane-dot"></div>
         <div class="lane-title">Now</div>
-        <div class="lane-desc">Late-stage · close window</div>
       </div>
+      <div class="lane-sub">Late-stage opps. % likely to convert.</div>
       <div id="lane-now"><div class="empty-state">Loading…</div></div>
     </div>
     <div class="opp-lane" style="--lane-color: var(--next)">
       <div class="lane-header">
         <div class="lane-dot"></div>
         <div class="lane-title">Next</div>
-        <div class="lane-desc">Meetings · proposals</div>
       </div>
+      <div class="lane-sub">Nurtured MQLs moving toward SQL. Meetings, proposals, pitches on the horizon.</div>
       <div id="lane-next"><div class="empty-state">Loading…</div></div>
     </div>
     <div class="opp-lane" style="--lane-color: var(--future)">
       <div class="lane-header">
         <div class="lane-dot"></div>
         <div class="lane-title">Future</div>
-        <div class="lane-desc">Seeding · early nurture</div>
       </div>
+      <div class="lane-sub">Whales being seeded today for 2027. Plant now or miss the window.</div>
       <div id="lane-future"><div class="empty-state">Loading…</div></div>
     </div>
   </div>
@@ -524,7 +525,7 @@ const STAGE_LABELS = {
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-let dashboardData = { meetings: [], attendedMeetings: [], inquiries: [], deals: [], events: [], pastEvents: [] };
+let dashboardData = { meetings: [], attendedMeetings: [], inquiries: [], deals: [], nowJobs: [], events: [], pastEvents: [] };
 
 // ─────────────────────────────────────────────
 // INIT
@@ -691,51 +692,106 @@ function renderMeetings(tab) {
 }
 
 // ─────────────────────────────────────────────
-// DEALS — Agency Pipeline from HubSpot
+// DEALS — NOW from Synergist, NEXT+FUTURE from HubSpot Agency Pipeline
 // ─────────────────────────────────────────────
-async function loadDeals() {
-  try {
+
+// NOW lane — Synergist active opp stages
+const SYN_NOW_STAGES = new Set([
+  'RTB','RTB & Pitch','RFI (Request for Info)',
+  'Headline Proposal','Negotiation/Feedback Loop',
+  'Presented & Awaiting Feedback','Further Development Req'
+]);
+const SYN_OPEN_STATUSES = new Set([
+  'Open - Pipeline Brief','Open - Awaiting Feedback','Open - Brief in Progress'
+]);
+
+async function loadNowFromSynergist() {
+  // Paginate through all Synergist opps to find active ones
+  let all = [], page = 1, total = null;
+  while (true) {
     const res = await fetch(HS_PROXY, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'x-hs-path': '/crm/v3/objects/deals/search',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        filterGroups: [{ filters: [
-          { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
-          { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' }
-        ]}],
-        properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
-        sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
-        limit: 100
-      })
+        'x-proxy-target': 'synergist',
+        'x-syn-params': JSON.stringify({ endpoint: 'jobs.json', modelstructure: 'opportunitylist', rows: '200', page: String(page) })
+      }
     });
-    if (!res.ok) throw new Error(`HubSpot ${res.status}`);
-    const data = await res.json();
-    const deals = data.results || [];
-    dashboardData.deals = deals;
+    if (!res.ok) throw new Error(`Synergist ${res.status}`);
+    const d = await res.json();
+    all = all.concat(d.data || []);
+    if (total === null) total = parseInt(d.totalrows || '0');
+    if (all.length >= total || !d.data?.length) break;
+    page++;
+    if (page > 10) break; // safety cap
+  }
+  // Filter to active opportunities
+  return all.filter(j =>
+    (j.jobSalesStatus?.startsWith('Open') || SYN_OPEN_STATUSES.has(j.jobSalesStatus)) &&
+    SYN_NOW_STAGES.has(j.jobOppCurrentStatus || '')
+  );
+}
 
-    const totalValue = deals.reduce((s, d) => s + (parseFloat(d.properties.amount) || 0), 0);
+async function loadDeals() {
+  try {
+    // Run Synergist (NOW) and HubSpot (NEXT+FUTURE) in parallel
+    const [nowJobs, hubspotRes] = await Promise.all([
+      loadNowFromSynergist(),
+      fetch(HS_PROXY, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'x-proxy-target': 'hubspot',
+          'x-hs-path': '/crm/v3/objects/deals/search',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          filterGroups: [{ filters: [
+            { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
+            { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' }
+          ]}],
+          properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
+          sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
+          limit: 100
+        })
+      })
+    ]);
+
+    if (!hubspotRes.ok) throw new Error(`HubSpot ${hubspotRes.status}`);
+    const hubData = await hubspotRes.json();
+    const hsDeals = hubData.results || [];
+
+    // Store separately
+    dashboardData.nowJobs = nowJobs;
+    dashboardData.deals   = hsDeals;
+
+    // Summary stats — combine both sources
+    const hsValue  = hsDeals.reduce((s, d) => s + (parseFloat(d.properties.amount) || 0), 0);
+    const synValue = nowJobs.reduce((s, j) => s + (j.jobQuotedPrice || 0), 0);
+    const totalValue = hsValue + synValue;
+    const totalCount = nowJobs.length + hsDeals.length;
+
     document.getElementById('stat-pipeline').textContent = totalValue >= 1000000
       ? `£${(totalValue/1000000).toFixed(1)}m`
       : totalValue >= 1000 ? `£${Math.round(totalValue/1000)}k` : `£${Math.round(totalValue)}`;
-    document.getElementById('stat-pipeline-sub').textContent = `across ${deals.length} deals`;
-    document.getElementById('stat-deals').textContent = deals.length;
-    document.getElementById('stat-deals-sub').textContent = 'Agency Pipeline';
-    document.getElementById('opps-count').textContent = deals.length;
-    renderOpportunities(deals);
+    document.getElementById('stat-pipeline-sub').textContent = `across ${totalCount} opportunities`;
+    document.getElementById('stat-deals').textContent = totalCount;
+    document.getElementById('stat-deals-sub').textContent = `${nowJobs.length} live · ${hsDeals.length} pipeline`;
+    document.getElementById('opps-count').textContent = totalCount;
+
+    renderOpportunities(nowJobs, hsDeals);
+
   } catch(e) {
     console.error('Deals error:', e);
     document.getElementById('stat-pipeline').textContent = '—';
     document.getElementById('stat-deals').textContent = '—';
-    const err = `<div class="empty-state">Unable to load deals — ${e.message}</div>`;
+    const err = `<div class="empty-state">Unable to load — ${e.message}</div>`;
     document.getElementById('lane-now').innerHTML = err;
     document.getElementById('lane-next').innerHTML = err;
     document.getElementById('lane-future').innerHTML = err;
   }
 }
+
 
 // ─────────────────────────────────────────────
 // FRESH INQUIRIES — Supabase bd_flagged only
@@ -822,13 +878,43 @@ function renderInquiries(inquiries) {
   });
 }
 
-function renderOpportunities(deals) {
-  const nowDeals    = deals.filter(d => NOW_STAGES.includes(d.properties.dealstage));
-  const nextDeals   = deals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
-  const futureDeals = deals.filter(d => !NOW_STAGES.includes(d.properties.dealstage) && !NEXT_STAGES.includes(d.properties.dealstage));
-  renderLane('lane-now',    nowDeals,    '--now');
+function renderOpportunities(nowJobs, hsDeals) {
+  const nextDeals   = hsDeals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
+  const futureDeals = hsDeals.filter(d => !NEXT_STAGES.includes(d.properties.dealstage));
+  renderNowLane(nowJobs);
   renderLane('lane-next',   nextDeals,   '--next');
   renderLane('lane-future', futureDeals, '--future');
+}
+
+function renderNowLane(jobs) {
+  const container = document.getElementById('lane-now');
+  if (!jobs.length) {
+    container.innerHTML = '<div class="empty-state">No live pitches or active briefs in Synergist right now.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  jobs.forEach((j, i) => {
+    const val     = j.jobQuotedPrice > 0
+      ? (j.jobQuotedPrice >= 1000000 ? `£${(j.jobQuotedPrice/1000000).toFixed(1)}m` : `£${Math.round(j.jobQuotedPrice/1000)}k`)
+      : null;
+    const handler = j.jobHandlerFullName || '';
+    const initials = handler.split(' ').map(p => p[0]).join('').substring(0,2).toUpperCase();
+    const card = document.createElement('div');
+    card.className = 'opp-card';
+    card.style.animationDelay = `${i * 0.07}s`;
+    card.innerHTML = `
+      <div class="opp-top">
+        <div class="opp-company">${j.jobClientName || 'Unknown'}</div>
+        ${val ? `<div class="opp-value">${val}</div>` : ''}
+      </div>
+      <div class="opp-stage-row">
+        <div class="stage-pill stage-proposal">${j.jobOppCurrentStatus || '—'}</div>
+        ${handler ? `<div class="opp-age" title="${handler}">${initials}</div>` : ''}
+      </div>
+      ${j.jobDescription1stLine ? `<div class="opp-next"><div class="opp-next-label">Brief</div><div class="opp-next-text">${j.jobDescription1stLine}</div></div>` : ''}
+    `;
+    container.appendChild(card);
+  });
 }
 
 function renderLane(containerId, deals, colorVar) {
@@ -1021,13 +1107,12 @@ function buildSnapshotEmail() {
 
   body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nACTIVE OPPORTUNITIES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
-  body += `\nNOW (late-stage · close window)\n`;
+  body += `\nNOW (live pitches · Synergist)\n`;
   if (nowDeals.length) {
-    nowDeals.forEach(d => {
-      const p = d.properties;
-      const val = formatValue(p.amount);
-      const next = p.hs_next_step || p.description || 'No next step recorded';
-      body += `• ${p.dealname}${val ? ` (${val})` : ''} — ${stageLabel(p.dealstage)}\n  → ${next.substring(0,100)}\n`;
+    nowDeals.forEach(j => {
+      const val = j.jobQuotedPrice > 0 ? ` (£${Math.round(j.jobQuotedPrice/1000)}k)` : '';
+      body += `• ${j.jobClientName}${val} — ${j.jobOppCurrentStatus}\n`;
+      if (j.jobDescription1stLine) body += `  ${j.jobDescription1stLine.substring(0,100)}\n`;
     });
   } else { body += '• None\n'; }
 
