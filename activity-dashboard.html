@@ -431,9 +431,20 @@ const SUPABASE_URL = (window.JUNGLE_CONFIG||{}).SB_URL||'';
 const SUPABASE_KEY = (window.JUNGLE_CONFIG||{}).SB_KEY||'';
 
 // Deal stage → horizon mapping (customize to match your HubSpot pipeline stages)
-const NOW_STAGES = ['presentationscheduled','decisionmakerboughtin','contractsent','closedwon','appointmentscheduled'];
-const NEXT_STAGES = ['qualifiedtobuy','proposalschedule'];
-// Everything else → Future
+const // Agency Pipeline (id: 2808364263)
+NOW_STAGES  = ['3846843581'];              // Contracts
+const NEXT_STAGES  = ['3846843579','3846843580'];  // Qualified, Pitch/Proposal
+const EXCL_STAGES  = ['3846843582'];       // Closed Lost
+const AGENCY_PIPELINE = '2808364263';
+const STAGE_LABELS = {
+  '3846842616': 'Cold Outreach',
+  '3846842617': 'Response',
+  '3846843578': 'Warm',
+  '3846843579': 'Qualified',
+  '3846843580': 'Pitch / Proposal',
+  '3846843581': 'Contracts',
+  '3846843582': 'Closed Lost'
+};
 
 // ─────────────────────────────────────────────
 // STATE
@@ -454,7 +465,7 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadEvents()]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents()]);
   } catch(e) { console.error(e); }
   btn.classList.remove('spinning');
 }
@@ -560,9 +571,52 @@ async function loadMeetings() {
 }
 
 // ─────────────────────────────────────────────
-// FRESH INQUIRIES — from Supabase hubspot_enquiries (bd_flagged only)
+// DEALS — Agency Pipeline from HubSpot
 // ─────────────────────────────────────────────
 async function loadDeals() {
+  try {
+    const res = await fetch('https://api.hubapi.com/crm/v3/objects/deals/search', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${HUBSPOT_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filterGroups: [{ filters: [
+          { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
+          { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' }
+        ]}],
+        properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
+        sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
+        limit: 100
+      })
+    });
+    if (!res.ok) throw new Error(`HubSpot ${res.status}`);
+    const data = await res.json();
+    const deals = data.results || [];
+    dashboardData.deals = deals;
+
+    const totalValue = deals.reduce((s, d) => s + (parseFloat(d.properties.amount) || 0), 0);
+    document.getElementById('stat-pipeline').textContent = totalValue >= 1000000
+      ? `£${(totalValue/1000000).toFixed(1)}m`
+      : totalValue >= 1000 ? `£${Math.round(totalValue/1000)}k` : `£${Math.round(totalValue)}`;
+    document.getElementById('stat-pipeline-sub').textContent = `across ${deals.length} deals`;
+    document.getElementById('stat-deals').textContent = deals.length;
+    document.getElementById('stat-deals-sub').textContent = 'Agency Pipeline';
+    document.getElementById('opps-count').textContent = deals.length;
+    renderOpportunities(deals);
+  } catch(e) {
+    console.error('Deals error:', e);
+    document.getElementById('stat-pipeline').textContent = '—';
+    document.getElementById('stat-deals').textContent = '—';
+    const err = `<div class="empty-state">Unable to load deals — ${e.message}</div>`;
+    document.getElementById('lane-now').innerHTML = err;
+    document.getElementById('lane-next').innerHTML = err;
+    document.getElementById('lane-future').innerHTML = err;
+  }
+}
+
+// ─────────────────────────────────────────────
+// FRESH INQUIRIES — Supabase bd_flagged only
+// ─────────────────────────────────────────────
+async function loadInquiries() {
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/hubspot_enquiries?select=*&bd_flagged=eq.true&order=bd_flagged_at.desc&limit=100`,
@@ -570,66 +624,105 @@ async function loadDeals() {
     );
     if (!res.ok) throw new Error(`Supabase ${res.status}`);
     const rows = await res.json();
-
     const inquiries = rows.map(r => ({
-      id:          r.id,
-      submittedAt: new Date(r.submitted_at).getTime(),
-      flaggedAt:   r.bd_flagged_at ? new Date(r.bd_flagged_at).getTime() : null,
-      firstname:   r.firstname || '',
-      lastname:    r.lastname  || '',
-      email:       r.email     || '',
-      company:     r.company   || '',
-      message:     r.message   || '',
-      bdNotes:     r.bd_notes  || '',
+      id: r.id, submittedAt: new Date(r.submitted_at).getTime(),
+      flaggedAt: r.bd_flagged_at ? new Date(r.bd_flagged_at).getTime() : null,
+      firstname: r.firstname||'', lastname: r.lastname||'', email: r.email||'',
+      company: r.company||'', message: r.message||'', bdNotes: r.bd_notes||''
     }));
-
     dashboardData.inquiries = inquiries;
-    dashboardData.deals = []; // HubSpot deals not yet connected
-
-    // Stats
     document.getElementById('stat-inquiries').textContent = inquiries.length;
     document.getElementById('stat-inquiries-sub').textContent = 'flagged as BD interest';
     document.getElementById('inquiries-count').textContent = inquiries.length;
-
-    // Pipeline stats — placeholder until HubSpot deals connected
-    document.getElementById('stat-pipeline').textContent = '—';
-    document.getElementById('stat-pipeline-sub').textContent = 'connect HubSpot deals';
-    document.getElementById('stat-deals').textContent = '—';
-    document.getElementById('stat-deals-sub').textContent = 'connect HubSpot deals';
-
     renderInquiries(inquiries);
-
-    // Opportunities lanes — empty until HubSpot deals connected
-    document.getElementById('opps-count').textContent = '0';
-    document.getElementById('lane-now').innerHTML = '<div class="empty-state">HubSpot deals not yet connected — scope coming soon</div>';
-    document.getElementById('lane-next').innerHTML = '<div class="empty-state">HubSpot deals not yet connected — scope coming soon</div>';
-    document.getElementById('lane-future').innerHTML = '<div class="empty-state">HubSpot deals not yet connected — scope coming soon</div>';
-
   } catch(e) {
     console.error('Inquiries error:', e);
     document.getElementById('stat-inquiries').textContent = '—';
-    document.getElementById('inquiries-list').innerHTML = '<div class="empty-state">Unable to load — check Supabase connection</div>';
+    document.getElementById('inquiries-list').innerHTML = `<div class="empty-state">Unable to load — ${e.message}</div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// MEETINGS — pulled from HubSpot meetings/engagements
+// ─────────────────────────────────────────────
+async function loadMeetings() {
+  const container = document.getElementById('meetings-grid');
+  try {
+    // Get upcoming meetings from HubSpot engagements
+    const now = Date.now();
+    const weekEnd = now + (7 * 24 * 60 * 60 * 1000);
+
+    const data = await hsPost('/crm/v3/objects/meetings/search', {
+      filterGroups: [{
+        filters: [{
+          propertyName: 'hs_meeting_start_time',
+          operator: 'BETWEEN',
+          value: String(now),
+          highValue: String(weekEnd + 14 * 24 * 60 * 60 * 1000) // next 3 weeks
+        }]
+      }],
+      properties: ['hs_meeting_title','hs_meeting_start_time','hs_meeting_end_time','hs_meeting_outcome','hs_meeting_body','hubspot_owner_id'],
+      sorts: [{ propertyName: 'hs_meeting_start_time', direction: 'ASCENDING' }],
+      limit: 12
+    });
+
+    const meetings = (data.results || []);
+    dashboardData.meetings = meetings;
+
+    const countEl = document.getElementById('meetings-count');
+    const weekMeetings = meetings.filter(m => {
+      const t = parseInt(m.properties.hs_meeting_start_time);
+      return t >= now && t <= weekEnd;
+    });
+    countEl.textContent = meetings.length;
+    document.getElementById('stat-meetings').textContent = weekMeetings.length;
+    document.getElementById('stat-meetings-sub').textContent = 'this week';
+
+    if (!meetings.length) {
+      container.innerHTML = '<div class="empty-state">No upcoming meetings found in HubSpot</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    meetings.forEach((m, i) => {
+      const props = m.properties;
+      const startTs = parseInt(props.hs_meeting_start_time);
+      const startDate = new Date(startTs);
+      const isToday = startDate.toDateString() === new Date().toDateString();
+      const dateStr = startDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const timeStr = startDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+      const card = document.createElement('div');
+      card.className = 'meeting-card';
+      card.style.animationDelay = `${i * 0.06}s`;
+      card.innerHTML = `
+        <div class="meeting-top">
+          <div class="meeting-datetime">${dateStr} · ${timeStr}</div>
+          ${isToday ? '<span class="meeting-today">Today</span>' : ''}
+        </div>
+        <div class="meeting-title">${props.hs_meeting_title || 'Meeting'}</div>
+        <div class="meeting-next">
+          <div class="meeting-next-label">Notes</div>
+          ${props.hs_meeting_body ? props.hs_meeting_body.substring(0, 120) + (props.hs_meeting_body.length > 120 ? '…' : '') : 'No notes yet'}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+  } catch(e) {
+    console.error('Meetings error:', e);
+    container.innerHTML = '<div class="empty-state">Unable to load meetings. Check HubSpot connection.</div>';
+    document.getElementById('stat-meetings').textContent = '—';
   }
 }
 
 function stageLabel(stage) {
-  const map = {
-    appointmentscheduled: 'New Inquiry',
-    qualifiedtobuy: 'Qualified',
-    presentationscheduled: 'Presentation',
-    decisionmakerboughtin: 'Decision Stage',
-    contractsent: 'Contract Sent',
-    proposalschedule: 'Proposal',
-    closedwon: 'Won',
-    closedlost: 'Lost'
-  };
-  return map[stage] || stage || 'Unknown';
+  return STAGE_LABELS[stage] || stage || 'Unknown';
 }
 
 function stagePillClass(stage) {
-  if (NOW_STAGES.includes(stage)) return 'stage-proposal';
+  if (NOW_STAGES.includes(stage))  return 'stage-proposal';
   if (NEXT_STAGES.includes(stage)) return 'stage-meeting';
-  if (stage === 'appointmentscheduled') return 'stage-new';
   return 'stage-default';
 }
 
@@ -677,12 +770,11 @@ function renderInquiries(inquiries) {
 }
 
 function renderOpportunities(deals) {
-  const nowDeals = deals.filter(d => NOW_STAGES.includes(d.properties.dealstage));
-  const nextDeals = deals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
+  const nowDeals    = deals.filter(d => NOW_STAGES.includes(d.properties.dealstage));
+  const nextDeals   = deals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
   const futureDeals = deals.filter(d => !NOW_STAGES.includes(d.properties.dealstage) && !NEXT_STAGES.includes(d.properties.dealstage));
-
-  renderLane('lane-now', nowDeals, '--now');
-  renderLane('lane-next', nextDeals, '--next');
+  renderLane('lane-now',    nowDeals,    '--now');
+  renderLane('lane-next',   nextDeals,   '--next');
   renderLane('lane-future', futureDeals, '--future');
 }
 
@@ -810,12 +902,16 @@ function buildSnapshotEmail() {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const { meetings, deals, events } = dashboardData;
 
-  const nowDeals = [];
-  const nextDeals = [];
-  const futureDeals = [];
+  const { deals } = dashboardData;
+  const nowDeals    = (deals||[]).filter(d => NOW_STAGES.includes(d.properties.dealstage));
+  const nextDeals   = (deals||[]).filter(d => NEXT_STAGES.includes(d.properties.dealstage));
+  const futureDeals = (deals||[]).filter(d => !NOW_STAGES.includes(d.properties.dealstage) && !NEXT_STAGES.includes(d.properties.dealstage));
 
+  const totalVal = [...nowDeals,...nextDeals,...futureDeals].reduce((s,d)=>s+(parseFloat(d.properties.amount)||0),0);
+  const valStr = totalVal>=1000000?`£${(totalVal/1000000).toFixed(1)}m`:`£${Math.round(totalVal/1000)}k`;
   let body = `Jungle — Growth Weekly Snapshot\n${today}\n\n`;
   body += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSUMMARY\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  body += `• Agency Pipeline: ${valStr} across ${nowDeals.length+nextDeals.length+futureDeals.length} deals\n`;
   body += `• BD-flagged inquiries: ${dashboardData.inquiries.length}\n`;
   body += `• Upcoming meetings: ${meetings.length}\n`;
   body += `• Events in pipeline: ${events.length}\n\n`;
