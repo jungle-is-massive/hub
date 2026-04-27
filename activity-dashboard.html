@@ -436,6 +436,7 @@ NOW_STAGES  = ['3846843581'];              // Contracts
 const NEXT_STAGES  = ['3846843579','3846843580'];  // Qualified, Pitch/Proposal
 const EXCL_STAGES  = ['3846843582'];       // Closed Lost
 const AGENCY_PIPELINE = '2808364263';
+const HS_PROXY = `${SUPABASE_URL}/functions/v1/hs-proxy`;
 const STAGE_LABELS = {
   '3846842616': 'Cold Outreach',
   '3846842617': 'Response',
@@ -575,9 +576,13 @@ async function loadMeetings() {
 // ─────────────────────────────────────────────
 async function loadDeals() {
   try {
-    const res = await fetch('https://api.hubapi.com/crm/v3/objects/deals/search', {
+    const res = await fetch(HS_PROXY, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${HUBSPOT_TOKEN}`, 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-hs-path': '/crm/v3/objects/deals/search',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         filterGroups: [{ filters: [
           { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
