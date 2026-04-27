@@ -696,13 +696,12 @@ function renderMeetings(tab) {
 // ─────────────────────────────────────────────
 
 // NOW lane — Synergist active opp stages
+// Exactly matches OPP_ACTIVE_STAGES in the playground Live Opportunities tab
 const SYN_NOW_STAGES = new Set([
   'RTB','RTB & Pitch','RFI (Request for Info)',
+  'Further Development Req','Nurture/Future Opportunity',
   'Headline Proposal','Negotiation/Feedback Loop',
-  'Presented & Awaiting Feedback','Further Development Req'
-]);
-const SYN_OPEN_STATUSES = new Set([
-  'Open - Pipeline Brief','Open - Awaiting Feedback','Open - Brief in Progress'
+  'Presented & Awaiting Feedback'
 ]);
 
 async function loadNowFromSynergist() {
@@ -725,10 +724,12 @@ async function loadNowFromSynergist() {
     page++;
     if (page > 10) break; // safety cap
   }
-  // Filter to active opportunities
+  // Exact same filter as the Live Opportunities tab on the playground dashboard
+  const OPP_HANDLERS = new Set(['Kitty Lewis-Williams','Jade Raad','Coris Leachman']);
   return all.filter(j =>
-    (j.jobSalesStatus?.startsWith('Open') || SYN_OPEN_STATUSES.has(j.jobSalesStatus)) &&
-    SYN_NOW_STAGES.has(j.jobOppCurrentStatus || '')
+    (j.jobSalesStatus || '').startsWith('Open') &&
+    SYN_NOW_STAGES.has(j.jobOppCurrentStatus || '') &&
+    OPP_HANDLERS.has(j.jobHandlerFullName || '')
   );
 }
 
