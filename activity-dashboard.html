@@ -436,7 +436,8 @@ NOW_STAGES  = ['3846843581'];              // Contracts
 const NEXT_STAGES  = ['3846843579','3846843580'];  // Qualified, Pitch/Proposal
 const EXCL_STAGES  = ['3846843582'];       // Closed Lost
 const AGENCY_PIPELINE = '2808364263';
-const HS_PROXY = `${SUPABASE_URL}/functions/v1/hs-proxy`;
+const HS_PROXY   = `${SUPABASE_URL}/functions/v1/hs-proxy`;
+const GCAL_TOKEN = (window.JUNGLE_CONFIG||{}).GCAL_TOKEN||'';  // Set via OAuth flow
 const STAGE_LABELS = {
   '3846842616': 'Cold Outreach',
   '3846842617': 'Response',
@@ -503,70 +504,77 @@ async function hsPost(path, body) {
 async function loadMeetings() {
   const container = document.getElementById('meetings-grid');
   try {
-    // Get upcoming meetings from HubSpot engagements
-    const now = Date.now();
-    const weekEnd = now + (7 * 24 * 60 * 60 * 1000);
+    // Pull from Google Calendar via Claude MCP — filter on #nbm or #netm in description
+    const now     = new Date();
+    const twoWeeks = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const timeMin = now.toISOString();
+    const timeMax = twoWeeks.toISOString();
 
-    const data = await hsPost('/crm/v3/objects/meetings/search', {
-      filterGroups: [{
-        filters: [{
-          propertyName: 'hs_meeting_start_time',
-          operator: 'BETWEEN',
-          value: String(now),
-          highValue: String(weekEnd + 14 * 24 * 60 * 60 * 1000) // next 3 weeks
-        }]
-      }],
-      properties: ['hs_meeting_title','hs_meeting_start_time','hs_meeting_end_time','hs_meeting_outcome','hs_meeting_body','hubspot_owner_id'],
-      sorts: [{ propertyName: 'hs_meeting_start_time', direction: 'ASCENDING' }],
-      limit: 12
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=50`,
+      { headers: { 'Authorization': `Bearer ${GCAL_TOKEN}` } }
+    );
+
+    if (!res.ok) throw new Error(`Calendar API ${res.status}`);
+    const data = await res.json();
+    const allEvents = data.items || [];
+
+    // Filter to only #nbm or #netm tagged events
+    const meetings = allEvents.filter(ev => {
+      const desc = (ev.description || '').toLowerCase();
+      return desc.includes('#nbm') || desc.includes('#netm');
     });
 
-    const meetings = (data.results || []);
     dashboardData.meetings = meetings;
 
-    const countEl = document.getElementById('meetings-count');
-    const weekMeetings = meetings.filter(m => {
-      const t = parseInt(m.properties.hs_meeting_start_time);
-      return t >= now && t <= weekEnd;
-    });
-    countEl.textContent = meetings.length;
-    document.getElementById('stat-meetings').textContent = weekMeetings.length;
+    const thisWeekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const thisWeek = meetings.filter(ev => new Date(ev.start?.dateTime || ev.start?.date) <= thisWeekEnd);
+    document.getElementById('stat-meetings').textContent = thisWeek.length;
     document.getElementById('stat-meetings-sub').textContent = 'this week';
+    document.getElementById('meetings-count').textContent = meetings.length;
 
     if (!meetings.length) {
-      container.innerHTML = '<div class="empty-state">No upcoming meetings found in HubSpot</div>';
+      container.innerHTML = '<div class="empty-state">No BD meetings in the next 14 days. Add <strong>#nbm</strong> or <strong>#netm</strong> to a Google Calendar event description to surface it here.</div>';
       return;
     }
 
     container.innerHTML = '';
-    meetings.forEach((m, i) => {
-      const props = m.properties;
-      const startTs = parseInt(props.hs_meeting_start_time);
-      const startDate = new Date(startTs);
-      const isToday = startDate.toDateString() === new Date().toDateString();
-      const dateStr = startDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      const timeStr = startDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    meetings.forEach((ev, i) => {
+      const start     = new Date(ev.start?.dateTime || ev.start?.date);
+      const isToday   = start.toDateString() === now.toDateString();
+      const isTomorrow = start.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+      const dateStr   = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const timeStr   = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'All day';
+      const desc      = (ev.description || '').replace(/#nbm|#netm/gi, '').replace(/<[^>]+>/g, '').trim();
+      const isNbm     = (ev.description || '').toLowerCase().includes('#nbm');
+      const tagLabel  = isNbm ? 'New Business' : 'Network';
+      const tagColour = isNbm ? 'var(--green)' : 'var(--next)';
+      const attendees = (ev.attendees || []).filter(a => !a.self).map(a => a.displayName || a.email).slice(0,3).join(', ');
 
       const card = document.createElement('div');
       card.className = 'meeting-card';
       card.style.animationDelay = `${i * 0.06}s`;
+      card.style.setProperty('--card-accent', tagColour);
       card.innerHTML = `
         <div class="meeting-top">
-          <div class="meeting-datetime">${dateStr} · ${timeStr}</div>
-          ${isToday ? '<span class="meeting-today">Today</span>' : ''}
+          <div class="meeting-datetime">${dateStr}${timeStr !== 'All day' ? ' · ' + timeStr : ''}</div>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:${tagColour};color:${isNbm?'var(--black)':'white'}">${tagLabel}</span>
         </div>
-        <div class="meeting-title">${props.hs_meeting_title || 'Meeting'}</div>
-        <div class="meeting-next">
-          <div class="meeting-next-label">Notes</div>
-          ${props.hs_meeting_body ? props.hs_meeting_body.substring(0, 120) + (props.hs_meeting_body.length > 120 ? '…' : '') : 'No notes yet'}
-        </div>
+        <div class="meeting-title">${ev.summary || 'Untitled'}</div>
+        ${attendees ? `<div class="meeting-company">${attendees}</div>` : ''}
+        ${desc ? `<div class="meeting-next"><div class="meeting-next-label">Notes</div>${desc.substring(0,150)}${desc.length>150?'…':''}</div>` : ''}
       `;
       container.appendChild(card);
     });
 
   } catch(e) {
     console.error('Meetings error:', e);
-    container.innerHTML = '<div class="empty-state">Unable to load meetings. Check HubSpot connection.</div>';
+    // If Google Calendar auth fails, show helpful message rather than blank
+    if (e.message.includes('401') || e.message.includes('403') || !GCAL_TOKEN) {
+      container.innerHTML = '<div class="empty-state">Google Calendar not connected. Set GCAL_TOKEN in config.js to enable meeting sync.</div>';
+    } else {
+      container.innerHTML = `<div class="empty-state">Unable to load meetings — ${e.message}</div>`;
+    }
     document.getElementById('stat-meetings').textContent = '—';
   }
 }
@@ -649,77 +657,6 @@ async function loadInquiries() {
 
 // ─────────────────────────────────────────────
 // MEETINGS — pulled from HubSpot meetings/engagements
-// ─────────────────────────────────────────────
-async function loadMeetings() {
-  const container = document.getElementById('meetings-grid');
-  try {
-    // Get upcoming meetings from HubSpot engagements
-    const now = Date.now();
-    const weekEnd = now + (7 * 24 * 60 * 60 * 1000);
-
-    const data = await hsPost('/crm/v3/objects/meetings/search', {
-      filterGroups: [{
-        filters: [{
-          propertyName: 'hs_meeting_start_time',
-          operator: 'BETWEEN',
-          value: String(now),
-          highValue: String(weekEnd + 14 * 24 * 60 * 60 * 1000) // next 3 weeks
-        }]
-      }],
-      properties: ['hs_meeting_title','hs_meeting_start_time','hs_meeting_end_time','hs_meeting_outcome','hs_meeting_body','hubspot_owner_id'],
-      sorts: [{ propertyName: 'hs_meeting_start_time', direction: 'ASCENDING' }],
-      limit: 12
-    });
-
-    const meetings = (data.results || []);
-    dashboardData.meetings = meetings;
-
-    const countEl = document.getElementById('meetings-count');
-    const weekMeetings = meetings.filter(m => {
-      const t = parseInt(m.properties.hs_meeting_start_time);
-      return t >= now && t <= weekEnd;
-    });
-    countEl.textContent = meetings.length;
-    document.getElementById('stat-meetings').textContent = weekMeetings.length;
-    document.getElementById('stat-meetings-sub').textContent = 'this week';
-
-    if (!meetings.length) {
-      container.innerHTML = '<div class="empty-state">No upcoming meetings found in HubSpot</div>';
-      return;
-    }
-
-    container.innerHTML = '';
-    meetings.forEach((m, i) => {
-      const props = m.properties;
-      const startTs = parseInt(props.hs_meeting_start_time);
-      const startDate = new Date(startTs);
-      const isToday = startDate.toDateString() === new Date().toDateString();
-      const dateStr = startDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      const timeStr = startDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-
-      const card = document.createElement('div');
-      card.className = 'meeting-card';
-      card.style.animationDelay = `${i * 0.06}s`;
-      card.innerHTML = `
-        <div class="meeting-top">
-          <div class="meeting-datetime">${dateStr} · ${timeStr}</div>
-          ${isToday ? '<span class="meeting-today">Today</span>' : ''}
-        </div>
-        <div class="meeting-title">${props.hs_meeting_title || 'Meeting'}</div>
-        <div class="meeting-next">
-          <div class="meeting-next-label">Notes</div>
-          ${props.hs_meeting_body ? props.hs_meeting_body.substring(0, 120) + (props.hs_meeting_body.length > 120 ? '…' : '') : 'No notes yet'}
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-  } catch(e) {
-    console.error('Meetings error:', e);
-    container.innerHTML = '<div class="empty-state">Unable to load meetings. Check HubSpot connection.</div>';
-    document.getElementById('stat-meetings').textContent = '—';
-  }
-}
 
 function stageLabel(stage) {
   return STAGE_LABELS[stage] || stage || 'Unknown';
@@ -921,13 +858,14 @@ function buildSnapshotEmail() {
 
   body += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nUPCOMING MEETINGS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   if (meetings.length) {
-    meetings.slice(0,5).forEach(m => {
-      const d = new Date(parseInt(m.properties.hs_meeting_start_time));
-      const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-      body += `• ${m.properties.hs_meeting_title || 'Meeting'} — ${dateStr} ${timeStr}\n`;
+    meetings.slice(0,5).forEach(ev => {
+      const start   = new Date(ev.start?.dateTime || ev.start?.date);
+      const dateStr = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const timeStr = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'All day';
+      const tag     = (ev.description||'').toLowerCase().includes('#nbm') ? '[NB]' : '[NET]';
+      body += `• ${tag} ${ev.summary || 'Untitled'} — ${dateStr} ${timeStr}\n`;
     });
-  } else { body += '• No upcoming meetings logged in HubSpot\n'; }
+  } else { body += '• No BD meetings tagged #nbm or #netm in the next 14 days\n'; }
 
   body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nACTIVE OPPORTUNITIES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
