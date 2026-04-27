@@ -906,8 +906,6 @@ function togglePill(el) {
 function buildSnapshotEmail() {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const { meetings, deals, events } = dashboardData;
-
-  const { deals } = dashboardData;
   const nowDeals    = (deals||[]).filter(d => NOW_STAGES.includes(d.properties.dealstage));
   const nextDeals   = (deals||[]).filter(d => NEXT_STAGES.includes(d.properties.dealstage));
   const futureDeals = (deals||[]).filter(d => !NOW_STAGES.includes(d.properties.dealstage) && !NEXT_STAGES.includes(d.properties.dealstage));
