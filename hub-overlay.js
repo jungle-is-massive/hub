@@ -79,8 +79,7 @@
       tag: 'Flagship',
       accent: 'magenta',
       match: ['/smi/', '/smi']
-    }
-  ];,
+    },
     {
       num: '08',
       title: 'Vanity is Dead',
