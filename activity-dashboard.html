@@ -549,7 +549,7 @@ async function loadLinkedInConnections() {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/contacts?select=full_name,first_name,company,title,created_at&source_type=eq.Dripify&created_at=gte.${sevenDaysAgo}&order=created_at.desc&limit=50`,
+      `${SUPABASE_URL}/rest/v1/contacts?select=full_name,first_name,company,title,linkedin_url,created_at&source_type=eq.Dripify&created_at=gte.${sevenDaysAgo}&order=created_at.desc&limit=50`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     if (!res.ok) throw new Error(`Supabase ${res.status}`);
@@ -747,9 +747,16 @@ async function loadNowFromSynergist() {
     page++;
     if (page > 10) break; // safety cap
   }
+  // Deduplicate by jobNumber (Synergist repeats rows across pages in opportunitylist)
+  const seen = new Set();
+  const deduped = all.filter(j => {
+    if (seen.has(j.jobNumber)) return false;
+    seen.add(j.jobNumber);
+    return true;
+  });
   // Exact same filter as the Live Opportunities tab on the playground dashboard
   const OPP_HANDLERS = new Set(['Kitty Lewis-Williams','Jade Raad','Coris Leachman']);
-  return all.filter(j =>
+  return deduped.filter(j =>
     (j.jobSalesStatus || '').startsWith('Open') &&
     SYN_NOW_STAGES.has(j.jobOppCurrentStatus || '') &&
     OPP_HANDLERS.has(j.jobHandlerFullName || '')
@@ -1207,7 +1214,10 @@ function buildSnapshotEmail() {
     const name    = c.full_name || c.first_name || '—';
     const company = c.company || '—';
     const title   = c.title   || '—';
-    return li(`<b>${name}</b> &mdash; ${title}, ${company}`);
+    const url     = c.linkedin_url
+      ? ` &mdash; <a href="${c.linkedin_url}" style="color:#0060AA">LinkedIn</a>`
+      : '';
+    return li(`<b>${name}</b> &mdash; ${title}, ${company}${url}`);
   });
   body += section('Recent LinkedIn Connections (Last 7 Days)', ul(connItems.length ? connItems : [li('<span style="color:#888">No new Dripify connections this week</span>')]));
 
