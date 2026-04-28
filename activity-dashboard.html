@@ -340,6 +340,16 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   <!-- SUMMARY BAR -->
   <div id="summary-bar">
     <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
+      <div class="stat-label">Open Deals ↓</div>
+      <div class="stat-value" id="stat-deals"><div class="stat-loading"></div></div>
+      <div class="stat-sub" id="stat-deals-sub">active opportunities</div>
+    </div>
+    <div class="stat-card clickable" onclick="scrollToSection('section-inquiries')" title="Jump to Fresh HubSpot Inquiries">
+      <div class="stat-label">Fresh HubSpot Inquiries ↓</div>
+      <div class="stat-value" id="stat-inquiries"><div class="stat-loading"></div></div>
+      <div class="stat-sub" id="stat-inquiries-sub">flagged as BD interest</div>
+    </div>
+    <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
       <div class="stat-label">Active Pipeline ↓</div>
       <div class="stat-value" id="stat-pipeline"><div class="stat-loading"></div></div>
       <div class="stat-sub" id="stat-pipeline-sub">weighted value</div>
@@ -355,16 +365,6 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
         <div class="stat-value" id="stat-meetings-attended"><div class="stat-loading"></div></div>
         <div class="stat-sub">last 30 days</div>
       </div>
-    </div>
-    <div class="stat-card clickable" onclick="scrollToSection('section-inquiries')" title="Jump to Fresh HubSpot Inquiries">
-      <div class="stat-label">Fresh HubSpot Inquiries ↓</div>
-      <div class="stat-value" id="stat-inquiries"><div class="stat-loading"></div></div>
-      <div class="stat-sub" id="stat-inquiries-sub">last 30 days</div>
-    </div>
-    <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
-      <div class="stat-label">Open Deals ↓</div>
-      <div class="stat-value" id="stat-deals"><div class="stat-loading"></div></div>
-      <div class="stat-sub" id="stat-deals-sub">active opportunities</div>
     </div>
   </div>
 
