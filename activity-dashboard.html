@@ -411,6 +411,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
 }
 .prio-red { background: #FF6B4A; }
+.opp-add-task {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid);
+  background: none; border: 1px solid var(--grey-light); border-radius: 20px;
+  padding: 3px 8px; cursor: pointer; margin-top: 8px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.opp-add-task:hover { border-color: var(--black); color: var(--black); }
 .prio-amber { background: #F0B429; }
 .prio-green { background: #3ECF8E; }
 
@@ -1147,7 +1156,10 @@ function renderNowLane(jobs) {
         ${handler ? `<div class="opp-age" title="${handler}">${initials}</div>` : ''}
         ${ageLabel ? `<div class="opp-age" style="color:${ageColour};border-color:${ageColour};background:${ageColour}18" title="Days since 1st response">${ageLabel}</div>` : ''}
       </div>
+      <button class="opp-add-task" onclick="quickAddTask(this.dataset.co)" data-co="">+ Add task</button>
     `;
+    // Set company data attr after innerHTML (can't interpolate onclick safely in template)
+    card.querySelector('.opp-add-task').dataset.co = j.jobClientName || '';
     container.appendChild(card);
   });
 }
@@ -1183,7 +1195,9 @@ function renderLane(containerId, deals, colorVar) {
         <div class="opp-next-label">Next action</div>
         <div class="opp-next-text">${nextStep.substring(0, 120)}${nextStep.length > 120 ? '…' : ''}</div>
       </div>
+      <button class="opp-add-task" onclick="quickAddTask(this.dataset.co)" data-co="">+ Add task</button>
     `;
+    card.querySelector('.opp-add-task').dataset.co = p.dealname || '';
     container.appendChild(card);
   });
 }
@@ -1711,6 +1725,14 @@ function buildTodoEl(t) {
   });
 
   return el;
+}
+
+function quickAddTask(company) { company = company || ''; 
+  openTodoPanel();
+  const titleEl = document.getElementById('todo-new-title');
+  const coEl    = document.getElementById('todo-new-company');
+  if (coEl) coEl.value = company;
+  if (titleEl) { titleEl.value = ''; setTimeout(() => titleEl.focus(), 350); }
 }
 
 function openTodoPanel() {
