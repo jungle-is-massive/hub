@@ -1085,87 +1085,110 @@ function togglePill(el) {
 
 function buildSnapshotEmail() {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const { meetings, deals, events } = dashboardData;
-  const nowDeals    = (deals||[]).filter(d => NOW_STAGES.includes(d.properties.dealstage));
-  const nextDeals   = (deals||[]).filter(d => NEXT_STAGES.includes(d.properties.dealstage));
-  const futureDeals = (deals||[]).filter(d => !NOW_STAGES.includes(d.properties.dealstage) && !NEXT_STAGES.includes(d.properties.dealstage));
+  const { meetings, events } = dashboardData;
+  const nowJobs     = dashboardData.nowJobs || [];
+  const hsDeals     = dashboardData.deals   || [];
+  const inquiries   = dashboardData.inquiries || [];
+  const nextDeals   = hsDeals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
+  const futureDeals = hsDeals.filter(d => !NEXT_STAGES.includes(d.properties.dealstage));
 
-  const totalVal = [...nowDeals,...nextDeals,...futureDeals].reduce((s,d)=>s+(parseFloat(d.properties.amount)||0),0);
-  const valStr = totalVal>=1000000?`£${(totalVal/1000000).toFixed(1)}m`:`£${Math.round(totalVal/1000)}k`;
-  let body = `Jungle — Growth Weekly Snapshot\n${today}\n\n`;
-  body += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSUMMARY\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  body += `• Agency Pipeline: ${valStr} across ${nowDeals.length+nextDeals.length+futureDeals.length} deals\n`;
-  body += `• BD-flagged inquiries: ${dashboardData.inquiries.length}\n`;
-  body += `• Upcoming meetings: ${(dashboardData.meetings||[]).length} · Attended (30 days): ${(dashboardData.attendedMeetings||[]).length}\n`;
-  body += `• Events in pipeline: ${events.length}\n\n`;
+  // Pipeline value: Synergist NOW + HubSpot NEXT+FUTURE
+  const synVal = nowJobs.reduce((s,j) => s + (j.jobQuotedPrice||0), 0);
+  const hsVal  = hsDeals.reduce((s,d) => s + (parseFloat(d.properties.amount)||0), 0);
+  const totalVal = synVal + hsVal;
+  const valStr = totalVal >= 1000000 ? `\u00a3${(totalVal/1000000).toFixed(1)}m` : `\u00a3${Math.round(totalVal/1000)}k`;
 
-  body += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nUPCOMING MEETINGS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  if (meetings.length) {
-    meetings.slice(0,5).forEach(ev => {
+  // Events: next 60 days only, exclude content + nurture
+  const now60 = new Date(); now60.setDate(now60.getDate() + 60);
+  const upcomingEvents = (events||[]).filter(ev => {
+    const d = new Date(ev.start_date);
+    return d <= now60 && !['content','nurture'].includes(ev.category);
+  });
+
+  let body = '';
+  body += `Jungle Growth Weekly Snapshot\n`;
+  body += `${today}\n\n`;
+
+  body += `SUMMARY\n`;
+  body += `${'='.repeat(40)}\n`;
+  body += `Active pipeline: ${valStr} (${nowJobs.length} live pitches + ${hsDeals.length} pipeline)\n`;
+  body += `BD-flagged inquiries: ${inquiries.length}\n`;
+  body += `Upcoming BD meetings: ${(meetings||[]).length}\n`;
+  body += `Attended BD meetings (30 days): ${(dashboardData.attendedMeetings||[]).length}\n`;
+  body += `Upcoming events (60 days): ${upcomingEvents.length}\n\n`;
+
+  body += `UPCOMING MEETINGS\n`;
+  body += `${'='.repeat(40)}\n`;
+  if (meetings && meetings.length) {
+    meetings.slice(0,8).forEach(ev => {
       const start   = new Date(ev.start?.dateTime || ev.start?.date);
       const dateStr = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      const timeStr = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'All day';
-      const tag     = (ev.description||'').toLowerCase().includes('#nbm') ? '[NB]' : '[NET]';
-      body += `• ${tag} ${ev.summary || 'Untitled'} — ${dateStr} ${timeStr}\n`;
+      const timeStr = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+      const tag     = (ev.description||'').toLowerCase().includes('#nbm') ? 'New Business' : 'Network';
+      body += `  ${ev.summary || 'Untitled'} [${tag}] - ${dateStr}${timeStr ? ' ' + timeStr : ''}\n`;
     });
-  } else { body += '• No BD meetings tagged #nbm or #netm in the next 14 days\n'; }
+  } else {
+    body += `  No upcoming BD meetings tagged #nbm or #netm\n`;
+  }
 
-  body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nACTIVE OPPORTUNITIES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  body += `\nACTIVE OPPORTUNITIES\n`;
+  body += `${'='.repeat(40)}\n`;
 
-  body += `\nNOW (live pitches · Synergist)\n`;
-  if (nowDeals.length) {
-    nowDeals.forEach(j => {
-      const val = j.jobQuotedPrice > 0 ? ` (£${Math.round(j.jobQuotedPrice/1000)}k)` : '';
-      body += `• ${j.jobClientName}${val} — ${j.jobOppCurrentStatus}\n`;
-      if (j.jobDescription1stLine) body += `  ${j.jobDescription1stLine.substring(0,100)}\n`;
+  body += `\nNOW - Live Pitches (Synergist)\n`;
+  if (nowJobs.length) {
+    nowJobs.forEach(j => {
+      const val = j.jobQuotedPrice > 0 ? ` - \u00a3${Math.round(j.jobQuotedPrice/1000)}k` : '';
+      body += `  ${j.jobClientName}${val} [${j.jobOppCurrentStatus}]\n`;
+      if (j.jobDescription1stLine) body += `    ${j.jobDescription1stLine.substring(0,100)}\n`;
     });
-  } else { body += '• None\n'; }
+  } else { body += `  None\n`; }
 
-  body += `\nNEXT (nurtured · moving toward SQL)\n`;
+  body += `\nNEXT - Nurtured, moving toward SQL\n`;
   if (nextDeals.length) {
     nextDeals.forEach(d => {
-      const p = d.properties;
-      const val = formatValue(p.amount);
-      const next = p.hs_next_step || p.description || 'No next step recorded';
-      body += `• ${p.dealname}${val ? ` (${val})` : ''} — ${stageLabel(p.dealstage)}\n  → ${next.substring(0,100)}\n`;
+      const p   = d.properties;
+      const val = p.amount > 0 ? ` - \u00a3${Math.round(p.amount/1000)}k` : '';
+      const next = p.hs_next_step || '';
+      body += `  ${p.dealname}${val} [${stageLabel(p.dealstage)}]\n`;
+      if (next) body += `    Next: ${next.substring(0,100)}\n`;
     });
-  } else { body += '• None\n'; }
+  } else { body += `  None\n`; }
 
-  body += `\nFUTURE (seeding · early nurture)\n`;
+  body += `\nFUTURE - Seeding for 2027\n`;
   if (futureDeals.length) {
-    futureDeals.slice(0,5).forEach(d => {
-      const p = d.properties;
-      body += `• ${p.dealname} — ${stageLabel(p.dealstage)}\n`;
+    futureDeals.forEach(d => {
+      body += `  ${d.properties.dealname} [${stageLabel(d.properties.dealstage)}]\n`;
     });
-    if (futureDeals.length > 5) body += `• …and ${futureDeals.length - 5} more\n`;
-  } else { body += '• None\n'; }
+  } else { body += `  None\n`; }
 
-  body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFLAGGED INQUIRIES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  const { inquiries } = dashboardData;
+  body += `\nFLAGGED HUBSPOT INQUIRIES\n`;
+  body += `${'='.repeat(40)}\n`;
   if (inquiries.length) {
-    inquiries.slice(0,8).forEach(e => {
+    inquiries.forEach(e => {
       const name = [e.firstname, e.lastname].filter(Boolean).join(' ');
-      const label = e.company ? `${e.company}${name ? ' (' + name + ')' : ''}` : name || e.email;
-      const note = e.bdNotes || e.message.substring(0,80);
-      body += `• ${label}\n  ${note}\n`;
+      const who  = e.company ? `${e.company}${name ? ', ' + name : ''}` : name || e.email;
+      body += `  ${who}\n`;
     });
-  } else { body += '• No BD-flagged enquiries yet\n'; }
+  } else { body += `  None\n`; }
 
-  body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEVENTS PIPELINE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  if (events.length) {
-    events.forEach(ev => {
-      const d = new Date(ev.start_date);
-      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-      const cat = EVENT_CATEGORY_LABELS[ev.category] || ev.category || '';
-      body += `• ${ev.name}${cat ? ' [' + cat + ']' : ''} — ${dateStr}\n`;
-      if (ev.description) body += `  ${ev.description.substring(0,80)}\n`;
+  body += `\nEVENTS - Next 60 Days\n`;
+  body += `${'='.repeat(40)}\n`;
+  if (upcomingEvents.length) {
+    upcomingEvents.forEach(ev => {
+      const d       = new Date(ev.start_date);
+      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+      const cat     = EVENT_CATEGORY_LABELS[ev.category] || ev.category || '';
+      body += `  ${ev.name}${cat ? ' [' + cat + ']' : ''} - ${dateStr}\n`;
     });
-  } else { body += '• No upcoming events\n'; }
+  } else { body += `  No events in the next 60 days\n`; }
 
-  body += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSent from Jungle Activity Dashboard\nhttps://jungle-is-massive.github.io/hub/activity-dashboard.html\n`;
+  body += `\n${'='.repeat(40)}\n`;
+  body += `Sent from Jungle Activity Dashboard\n`;
+  body += `https://jungle-is-massive.github.io/hub/activity-dashboard.html\n`;
 
   return body;
 }
+
 
 async function sendSnapshot() {
   const recipients = new Set([...activePills]);
@@ -1189,7 +1212,7 @@ async function sendSnapshot() {
   try {
     const emailBody  = buildSnapshotEmail();
     const today      = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    const subject    = `Jungle Growth — Weekly Snapshot · ${today}`;
+    const subject    = 'Jungle Growth Weekly Snapshot ' + today;
     const toList     = [...recipients];
 
     // Build RFC 2822 message and base64url-encode it for Gmail API
