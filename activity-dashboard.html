@@ -68,6 +68,10 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
   margin-bottom: 28px;
 }
+.stat-card-link { text-decoration: none; color: inherit; display: contents; }
+.stat-card.clickable { cursor: pointer; transition: opacity 0.15s, transform 0.15s; }
+.stat-card.clickable:hover { opacity: 0.85; transform: translateY(-2px); }
+
 .stat-card {
   background: var(--black); border-radius: 14px; padding: 20px 22px;
   display: flex; flex-direction: column; gap: 6px;
@@ -335,12 +339,12 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 
   <!-- SUMMARY BAR -->
   <div id="summary-bar">
-    <div class="stat-card">
-      <div class="stat-label">Active Pipeline</div>
+    <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
+      <div class="stat-label">Active Pipeline ↓</div>
       <div class="stat-value" id="stat-pipeline"><div class="stat-loading"></div></div>
       <div class="stat-sub" id="stat-pipeline-sub">weighted value</div>
     </div>
-    <div class="stat-card" style="grid-column: span 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0; overflow: hidden; background: transparent; border-radius: 14px;">
+    <div class="stat-card clickable" onclick="scrollToSection('section-meetings')" title="Jump to Meetings" style="grid-column: span 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0; overflow: hidden; background: transparent; border-radius: 14px;">
       <div style="background: var(--black); border-radius: 14px 0 0 14px; padding: 20px 16px 20px 22px; border-right: 1px solid rgba(255,255,255,0.08);">
         <div class="stat-label">Upcoming</div>
         <div class="stat-value" id="stat-meetings-upcoming"><div class="stat-loading"></div></div>
@@ -352,13 +356,13 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
         <div class="stat-sub">last 30 days</div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Fresh Inquiries</div>
+    <div class="stat-card clickable" onclick="scrollToSection('section-inquiries')" title="Jump to Fresh HubSpot Inquiries">
+      <div class="stat-label">Fresh HubSpot Inquiries ↓</div>
       <div class="stat-value" id="stat-inquiries"><div class="stat-loading"></div></div>
       <div class="stat-sub" id="stat-inquiries-sub">last 30 days</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Open Deals</div>
+    <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
+      <div class="stat-label">Open Deals ↓</div>
       <div class="stat-value" id="stat-deals"><div class="stat-loading"></div></div>
       <div class="stat-sub" id="stat-deals-sub">active opportunities</div>
     </div>
@@ -379,7 +383,7 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   </div>
 
   <!-- MEETINGS -->
-  <div class="section-head">
+  <div id="section-meetings" class="section-head">
     <div class="section-label">Meetings</div>
     <div style="display:flex;gap:6px;margin-left:auto">
       <button class="mtab active" id="mtab-upcoming" onclick="switchMeetingTab('upcoming')">
@@ -393,15 +397,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   <div id="meetings-grid"><div class="empty-state">Loading meetings…</div></div>
 
   <!-- FRESH INQUIRIES -->
-  <div class="section-head">
-    <div class="section-label">Fresh Inquiries</div>
+  <div id="section-inquiries" class="section-head">
+    <div class="section-label">Fresh HubSpot Inquiries</div>
     <div class="section-count" id="inquiries-count">—</div>
   </div>
   <div id="inquiries-list"><div class="empty-state">Loading inquiries…</div></div>
 
   <!-- ACTIVE OPPORTUNITIES -->
-  <div class="section-head">
-    <div class="section-label">Active Opportunities</div>
+  <div id="section-deals" class="section-head">
+    <div class="section-label">Open Deals</div>
     <div class="section-count" id="opps-count">—</div>
   </div>
   <div id="opp-lanes">
@@ -851,7 +855,7 @@ function formatValue(v) {
 function renderInquiries(inquiries) {
   const container = document.getElementById('inquiries-list');
   if (!inquiries.length) {
-    container.innerHTML = `<div class="empty-state">No BD-flagged enquiries yet. Go to <a href="https://jungle-is-massive.github.io/playground/dashboard.html#opportunities" style="color:var(--black);font-weight:700">the playground dashboard</a> → Fresh Enquiries and click ★ on anything worth tracking.</div>`;
+    container.innerHTML = `<div class="empty-state">No BD-flagged inquiries yet. Go to <a href="https://jungle-is-massive.github.io/playground/dashboard.html#opportunities" style="color:var(--black);font-weight:700">the opportunities dashboard</a> → Fresh Enquiries and click ★ on anything worth tracking.</div>`;
     return;
   }
   container.innerHTML = '';
@@ -1219,6 +1223,12 @@ async function sendSnapshot() {
 
   btn.disabled = false;
   btn.textContent = 'Send snapshot →';
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function showToast(msg, type = '') {
