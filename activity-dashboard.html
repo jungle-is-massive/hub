@@ -925,24 +925,25 @@ function renderNowLane(jobs) {
   }
   container.innerHTML = '';
   jobs.forEach((j, i) => {
-    const val     = j.jobQuotedPrice > 0
+    const val      = j.jobQuotedPrice > 0
       ? (j.jobQuotedPrice >= 1000000 ? `£${(j.jobQuotedPrice/1000000).toFixed(1)}m` : `£${Math.round(j.jobQuotedPrice/1000)}k`)
       : null;
-    const handler = j.jobHandlerFullName || '';
+    const handler  = j.jobHandlerFullName || '';
     const initials = handler.split(' ').map(p => p[0]).join('').substring(0,2).toUpperCase();
+    const brief    = j.jobDescription1stLine || '';
     const card = document.createElement('div');
     card.className = 'opp-card';
     card.style.animationDelay = `${i * 0.07}s`;
+    card.style.marginBottom = '14px';
     card.innerHTML = `
       <div class="opp-top">
-        <div class="opp-company">${j.jobClientName || 'Unknown'}</div>
+        <div class="opp-company">${j.jobClientName || 'Unknown'}${brief ? `<span style="font-weight:400;color:var(--grey-mid)"> — ${brief}</span>` : ''}</div>
         ${val ? `<div class="opp-value">${val}</div>` : ''}
       </div>
       <div class="opp-stage-row">
         <div class="stage-pill stage-proposal">${j.jobOppCurrentStatus || '—'}</div>
         ${handler ? `<div class="opp-age" title="${handler}">${initials}</div>` : ''}
       </div>
-      ${j.jobDescription1stLine ? `<div class="opp-next"><div class="opp-next-label">Brief</div><div class="opp-next-text">${j.jobDescription1stLine}</div></div>` : ''}
     `;
     container.appendChild(card);
   });
