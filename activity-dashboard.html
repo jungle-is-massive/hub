@@ -1640,12 +1640,14 @@ function renderTodos() {
   const done     = todos.filter(t => t.completed);
   const allItems = [...active, ...done];
 
-  // Group by category
+  // Group by category — defensive: handle null, array, or object from Supabase join
   const groups = {};
   const noCat  = [];
   allItems.forEach(t => {
-    const cat = t.todo_categories;
-    if (cat) {
+    // Supabase may return todo_categories as object, array, or null
+    let cat = t.todo_categories;
+    if (Array.isArray(cat)) cat = cat[0] || null;
+    if (cat && cat.id) {
       if (!groups[cat.id]) groups[cat.id] = { cat, items: [] };
       groups[cat.id].items.push(t);
     } else { noCat.push(t); }
@@ -1660,7 +1662,11 @@ function renderTodos() {
     const labelEl = document.createElement('div');
     labelEl.className = 'todo-cat-label';
     labelEl.style.color = colour || 'var(--grey-mid)';
+    // Colour the separator line too
+    const line = document.createElement('span');
+    line.style.cssText = `flex:1;height:1px;background:${colour || 'var(--grey-light)'};opacity:0.4;margin-left:8px`;
     labelEl.textContent = label;
+    labelEl.appendChild(line);
     grp.appendChild(labelEl);
     items.forEach(t => grp.appendChild(buildTodoEl(t)));
     wrap.appendChild(grp);
@@ -1673,8 +1679,15 @@ function renderTodos() {
     return (prioOrder[a.priority]||1) - (prioOrder[b.priority]||1);
   });
 
-  Object.values(groups).forEach(({ cat, items }) =>
-    renderGroup(cat.name, cat.colour, sortItems(items)));
+  // Render in the order categories appear in todoCategories (consistent, not random)
+  todoCategories.forEach(cat => {
+    if (groups[cat.id]) renderGroup(cat.name, cat.colour, sortItems(groups[cat.id].items));
+  });
+  // Any categories not in todoCategories (shouldn't happen, but defensive)
+  Object.values(groups).forEach(({ cat, items }) => {
+    if (!todoCategories.find(c => c.id === cat.id))
+      renderGroup(cat.name, cat.colour, sortItems(items));
+  });
   if (noCat.length) renderGroup('Uncategorised', null, sortItems(noCat));
 }
 
