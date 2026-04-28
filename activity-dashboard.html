@@ -348,7 +348,7 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <div style="background: var(--black); border-radius: 14px 0 0 14px; padding: 20px 16px 20px 22px; border-right: 1px solid rgba(255,255,255,0.08);">
         <div class="stat-label">Upcoming</div>
         <div class="stat-value" id="stat-meetings-upcoming"><div class="stat-loading"></div></div>
-        <div class="stat-sub">next 14 days</div>
+        <div class="stat-sub">next 30 days</div>
       </div>
       <div style="background: var(--black); border-radius: 0 14px 14px 0; padding: 20px 22px 20px 16px;">
         <div class="stat-label">Attended</div>
@@ -609,10 +609,10 @@ async function loadMeetings() {
   }
   try {
     const now      = new Date();
-    const future   = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const future   = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const past     = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Fetch upcoming (now → +14 days) and past (−30 days → now) in parallel
+    // Fetch upcoming (now → +30 days) and past (−30 days → now) in parallel
     const [upcomingRes, pastRes] = await Promise.all([
       fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(now.toISOString())}&timeMax=${encodeURIComponent(future.toISOString())}&singleEvents=true&orderBy=startTime&maxResults=50`,
         { headers: { 'Authorization': `Bearer ${gcalAccessToken}` } }),
@@ -676,7 +676,7 @@ function renderMeetings(tab) {
 
   if (!meetings.length) {
     const hint = tab === 'upcoming'
-      ? 'No upcoming BD meetings in the next 14 days. Add <strong>#nbm</strong> or <strong>#netm</strong> to a Google Calendar event description.'
+      ? 'No upcoming BD meetings in the next 30 days. Add <strong>#nbm</strong> or <strong>#netm</strong> to a Google Calendar event description.'
       : 'No BD meetings attended in the last 30 days.';
     container.innerHTML = `<div class="empty-state">${hint}</div>`;
     return;
