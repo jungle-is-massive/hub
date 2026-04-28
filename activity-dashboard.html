@@ -1105,129 +1105,116 @@ function togglePill(el) {
 function buildSnapshotEmail() {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const { meetings, events } = dashboardData;
-  const nowJobs     = dashboardData.nowJobs || [];
-  const hsDeals     = dashboardData.deals   || [];
-  const inquiries   = dashboardData.inquiries || [];
+  const nowJobs     = dashboardData.nowJobs     || [];
+  const hsDeals     = dashboardData.deals       || [];
+  const inquiries   = dashboardData.inquiries   || [];
+  const connections = dashboardData.linkedinConnections || [];
   const nextDeals   = hsDeals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
   const futureDeals = hsDeals.filter(d => !NEXT_STAGES.includes(d.properties.dealstage));
 
-  // Pipeline value: Synergist NOW + HubSpot NEXT+FUTURE
-  const synVal = nowJobs.reduce((s,j) => s + (j.jobQuotedPrice||0), 0);
-  const hsVal  = hsDeals.reduce((s,d) => s + (parseFloat(d.properties.amount)||0), 0);
+  const synVal   = nowJobs.reduce((s,j) => s + (j.jobQuotedPrice||0), 0);
+  const hsVal    = hsDeals.reduce((s,d) => s + (parseFloat(d.properties.amount)||0), 0);
   const totalVal = synVal + hsVal;
-  const valStr = totalVal >= 1000000 ? `\u00a3${(totalVal/1000000).toFixed(1)}m` : `\u00a3${Math.round(totalVal/1000)}k`;
+  const valStr   = totalVal >= 1000000 ? `\u00a3${(totalVal/1000000).toFixed(1)}m` : `\u00a3${Math.round(totalVal/1000)}k`;
 
-  // Events: next 60 days only, exclude content + nurture
   const now60 = new Date(); now60.setDate(now60.getDate() + 60);
   const upcomingEvents = (events||[]).filter(ev => {
     const d = new Date(ev.start_date);
     return d <= now60 && !['content','nurture'].includes(ev.category);
   });
 
-  let body = '';
-  body += `Jungle Growth Weekly Snapshot\n`;
-  body += `${today}\n\n`;
+  const s = (txt) => `<b>${txt}</b>`;
+  const li = (txt) => `<li style="margin:3px 0">${txt}</li>`;
+  const ul = (items) => items.length ? `<ul style="margin:6px 0 12px 0;padding-left:20px">${items.join('')}</ul>` : `<ul style="margin:6px 0 12px 0;padding-left:20px"><li style="color:#888">None</li></ul>`;
+  const section = (title, content) => `<p style="margin:18px 0 4px 0">${s(title)}</p>${content}`;
+  const subhead = (title) => `<p style="margin:12px 0 4px 0"><b><i>${title}</i></b></p>`;
 
-  body += `SUMMARY\n`;
-  body += `${'='.repeat(40)}\n`;
-  body += `Active pipeline: ${valStr} (${nowJobs.length} live pitches + ${hsDeals.length} pipeline)\n`;
-  body += `BD-flagged inquiries: ${inquiries.length}\n`;
-  body += `Upcoming BD meetings: ${(meetings||[]).length}\n`;
-  body += `Attended BD meetings (30 days): ${(dashboardData.attendedMeetings||[]).length}\n`;
-  body += `Upcoming events (60 days): ${upcomingEvents.length}\n\n`;
+  let body = `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;max-width:600px">`;
 
-  body += `UPCOMING MEETINGS\n`;
-  body += `${'='.repeat(40)}\n`;
-  if (meetings && meetings.length) {
-    meetings.slice(0,8).forEach(ev => {
-      const start   = new Date(ev.start?.dateTime || ev.start?.date);
-      const dateStr = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      const timeStr = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
-      const tag     = (ev.description||'').toLowerCase().includes('#nbm') ? 'New Business' : 'Network';
-      body += `  ${ev.summary || 'Untitled'} [${tag}] - ${dateStr}${timeStr ? ' ' + timeStr : ''}\n`;
-    });
-  } else {
-    body += `  No upcoming BD meetings tagged #nbm or #netm\n`;
-  }
+  // Header
+  body += `<p style="font-size:18px;font-weight:bold;margin:0 0 4px 0">Jungle Growth Weekly Snapshot</p>`;
+  body += `<p style="color:#666;margin:0 0 20px 0">${today}</p>`;
+  body += `<hr style="border:none;border-top:2px solid #e0e0e0;margin:0 0 20px 0">`;
 
-  body += `\nACTIVE OPPORTUNITIES\n`;
-  body += `${'='.repeat(40)}\n`;
+  // Summary
+  body += section('Summary', ul([
+    li(`Active pipeline: <b>${valStr}</b> (${nowJobs.length} live pitches + ${hsDeals.length} in pipeline)`),
+    li(`BD-flagged inquiries: <b>${inquiries.length}</b>`),
+    li(`Upcoming BD meetings: <b>${(meetings||[]).length}</b> &nbsp;|&nbsp; Attended (30 days): <b>${(dashboardData.attendedMeetings||[]).length}</b>`),
+    li(`Upcoming events (60 days): <b>${upcomingEvents.length}</b>`),
+    li(`New LinkedIn connections (7 days): <b>${connections.length}</b>`),
+  ]));
 
-  body += `\nNOW - Live Pitches (Synergist)\n`;
-  if (nowJobs.length) {
-    nowJobs.forEach(j => {
-      const val = j.jobQuotedPrice > 0 ? ` - \u00a3${Math.round(j.jobQuotedPrice/1000)}k` : '';
-      body += `  ${j.jobClientName}${val} [${j.jobOppCurrentStatus}]\n`;
-      if (j.jobDescription1stLine) body += `    ${j.jobDescription1stLine.substring(0,100)}\n`;
-    });
-  } else { body += `  None\n`; }
+  // Upcoming meetings
+  const meetingItems = (meetings||[]).slice(0,8).map(ev => {
+    const start   = new Date(ev.start?.dateTime || ev.start?.date);
+    const dateStr = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const timeStr = ev.start?.dateTime ? start.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+    const tag     = (ev.description||'').toLowerCase().includes('#nbm') ? 'New Business' : 'Network';
+    return li(`${ev.summary || 'Untitled'} &mdash; ${dateStr}${timeStr ? ' ' + timeStr : ''} <span style="color:#888">[${tag}]</span>`);
+  });
+  body += section('Upcoming Meetings', meetingItems.length ? ul(meetingItems) : ul([]));
 
-  body += `\nNEXT - Nurtured, moving toward SQL\n`;
-  if (nextDeals.length) {
-    nextDeals.forEach(d => {
-      const p   = d.properties;
-      const val = p.amount > 0 ? ` - \u00a3${Math.round(p.amount/1000)}k` : '';
-      const next = p.hs_next_step || '';
-      body += `  ${p.dealname}${val} [${stageLabel(p.dealstage)}]\n`;
-      if (next) body += `    Next: ${next.substring(0,100)}\n`;
-    });
-  } else { body += `  None\n`; }
+  // Active opportunities
+  body += `<p style="margin:18px 0 4px 0"><b>Active Opportunities</b></p>`;
 
-  body += `\nFUTURE - Seeding for 2027\n`;
-  if (futureDeals.length) {
-    futureDeals.forEach(d => {
-      body += `  ${d.properties.dealname} [${stageLabel(d.properties.dealstage)}]\n`;
-    });
-  } else { body += `  None\n`; }
+  // NOW
+  const nowItems = nowJobs.map(j => {
+    const val  = j.jobQuotedPrice > 0 ? ` &mdash; <b>\u00a3${Math.round(j.jobQuotedPrice/1000)}k</b>` : '';
+    const desc = j.jobDescription1stLine ? ` &mdash; ${j.jobDescription1stLine}` : '';
+    return li(`${j.jobClientName}${desc}${val} <span style="color:#888">[${j.jobOppCurrentStatus}]</span>`);
+  });
+  body += subhead('NOW &mdash; Live Pitches (Synergist)');
+  body += ul(nowItems);
 
-  body += `\nFLAGGED HUBSPOT INQUIRIES\n`;
-  body += `${'='.repeat(40)}\n`;
-  if (inquiries.length) {
-    inquiries.forEach(e => {
-      const name = [e.firstname, e.lastname].filter(Boolean).join(' ');
-      const who  = e.company ? `${e.company}${name ? ', ' + name : ''}` : name || e.email;
-      body += `  ${who}\n`;
-    });
-  } else { body += `  None\n`; }
+  // NEXT
+  const nextItems = nextDeals.map(d => {
+    const p   = d.properties;
+    const val = p.amount > 0 ? ` &mdash; <b>\u00a3${Math.round(p.amount/1000)}k</b>` : '';
+    const next = p.hs_next_step ? `<br><span style="color:#666;font-size:13px">Next: ${p.hs_next_step.substring(0,120)}</span>` : '';
+    return li(`${p.dealname}${val} <span style="color:#888">[${stageLabel(p.dealstage)}]</span>${next}`);
+  });
+  body += subhead('NEXT &mdash; Nurtured, moving toward SQL');
+  body += ul(nextItems);
 
-  body += `\nEVENTS - Next 60 Days\n`;
-  body += `${'='.repeat(40)}\n`;
-  if (upcomingEvents.length) {
-    upcomingEvents.forEach(ev => {
-      const d       = new Date(ev.start_date);
-      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-      const cat     = EVENT_CATEGORY_LABELS[ev.category] || ev.category || '';
-      body += `  ${ev.name}${cat ? ' [' + cat + ']' : ''} - ${dateStr}\n`;
-    });
-  } else { body += `  No events in the next 60 days\n`; }
+  // FUTURE
+  const futureItems = futureDeals.map(d => {
+    const p = d.properties;
+    return li(`${p.dealname} <span style="color:#888">[${stageLabel(p.dealstage)}]</span>`);
+  });
+  body += subhead('FUTURE &mdash; Seeding for 2027');
+  body += ul(futureItems);
 
-  // LinkedIn connections — pulled from dashboardData.linkedinConnections
-  const connections = dashboardData.linkedinConnections || [];
-  body += `
-RECENT LINKEDIN CONNECTIONS (Last 7 Days)
-`;
-  body += `${'='.repeat(40)}
-`;
-  if (connections.length) {
-    connections.forEach(c => {
-      const name    = c.full_name || c.first_name || '—';
-      const company = c.company   || '—';
-      const title   = c.title     || '—';
-      body += `  ${name} — ${title}, ${company}
-`;
-    });
-  } else {
-    body += `  No new Dripify connections in the last 7 days
-`;
-  }
+  // Flagged inquiries
+  const inqItems = inquiries.map(e => {
+    const name = [e.firstname, e.lastname].filter(Boolean).join(' ');
+    const who  = e.company ? `<b>${e.company}</b>${name ? ', ' + name : ''}` : name || e.email;
+    return li(who);
+  });
+  body += section('Flagged HubSpot Inquiries', ul(inqItems));
 
-  body += `
-${'='.repeat(40)}
-`;
-  body += `Sent from Jungle Activity Dashboard
-`;
-  body += `https://jungle-is-massive.github.io/hub/activity-dashboard.html
-`;
+  // Events next 60 days
+  const eventItems = upcomingEvents.map(ev => {
+    const d       = new Date(ev.start_date);
+    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    const cat     = EVENT_CATEGORY_LABELS[ev.category] || ev.category || '';
+    return li(`<b>${ev.name}</b> &mdash; ${dateStr}${cat ? ` <span style="color:#888">[${cat}]</span>` : ''}`);
+  });
+  body += section('Events &mdash; Next 60 Days', ul(eventItems));
+
+  // LinkedIn connections
+  const connItems = connections.map(c => {
+    const name    = c.full_name || c.first_name || '—';
+    const company = c.company || '—';
+    const title   = c.title   || '—';
+    return li(`<b>${name}</b> &mdash; ${title}, ${company}`);
+  });
+  body += section('Recent LinkedIn Connections (Last 7 Days)', ul(connItems.length ? connItems : [li('<span style="color:#888">No new Dripify connections this week</span>')]));
+
+  // Footer
+  body += `<hr style="border:none;border-top:1px solid #e0e0e0;margin:20px 0 12px 0">`;
+  body += `<p style="color:#999;font-size:12px;margin:0">Sent from <a href="https://jungle-is-massive.github.io/hub/activity-dashboard.html" style="color:#999">Jungle Activity Dashboard</a></p>`;
+  body += `</div>`;
 
   return body;
 }
@@ -1263,8 +1250,8 @@ async function sendSnapshot() {
     const rawMessage = [
       `To: ${toList.join(', ')}`,
       `Subject: ${subject}`,
-      'Content-Type: text/plain; charset=utf-8',
       'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=utf-8',
       '',
       emailBody
     ].join('\r\n');
