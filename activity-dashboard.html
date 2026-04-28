@@ -273,6 +273,147 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 #toast.success { background: var(--green); color: var(--black); }
 #toast.error { background: var(--coral); color: var(--white); }
 
+
+/* ── TODO PANEL ── */
+#todo-toggle-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--green); color: var(--black);
+  border: none; border-radius: 100px; padding: 8px 16px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+  white-space: nowrap;
+}
+#todo-toggle-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+#todo-toggle-btn svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
+#todo-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0); pointer-events: none;
+  transition: background 0.25s;
+}
+#todo-overlay.open { background: rgba(0,0,0,0.25); pointer-events: all; }
+
+#todo-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 301;
+  width: 420px; max-width: 95vw;
+  background: var(--cream); border-left: 1px solid var(--grey-light);
+  display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.2,0.8,0.2,1);
+  box-shadow: -8px 0 40px -8px rgba(0,0,0,0.15);
+}
+#todo-panel.open { transform: translateX(0); }
+
+#todo-panel-header {
+  padding: 20px 20px 16px; border-bottom: 1px solid var(--grey-light);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.todo-panel-title { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
+#todo-close-btn {
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--grey-light);
+  background: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--grey-mid); transition: background 0.15s;
+}
+#todo-close-btn:hover { background: var(--grey-light); }
+
+#todo-add-bar {
+  padding: 14px 20px; border-bottom: 1px solid var(--grey-light); flex-shrink: 0;
+}
+.todo-add-row { display: flex; gap: 8px; margin-bottom: 8px; }
+#todo-new-title {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--grey-light);
+  border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  background: var(--white); outline: none; transition: border-color 0.15s;
+}
+#todo-new-title:focus { border-color: var(--black); }
+#todo-add-submit {
+  background: var(--black); color: var(--green); border: none;
+  padding: 8px 14px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: opacity 0.15s;
+}
+#todo-add-submit:hover { opacity: 0.85; }
+.todo-add-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.todo-meta-select {
+  padding: 5px 8px; border: 1px solid var(--grey-light); border-radius: 6px;
+  font-family: 'DM Sans', sans-serif; font-size: 11px; background: var(--white);
+  outline: none; cursor: pointer;
+}
+#todo-new-company {
+  flex: 1; min-width: 100px; padding: 5px 8px; border: 1px solid var(--grey-light);
+  border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 11px;
+  background: var(--white); outline: none;
+}
+#todo-new-due { padding: 5px 8px; border: 1px solid var(--grey-light); border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 11px; background: var(--white); outline: none; }
+.todo-add-cat-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.todo-cat-chip {
+  padding: 3px 10px; border-radius: 20px; border: 1.5px solid transparent;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s; opacity: 0.5;
+}
+.todo-cat-chip.selected { opacity: 1; transform: scale(1.05); }
+.todo-cat-chip-new {
+  padding: 3px 10px; border-radius: 20px; border: 1.5px dashed var(--grey);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer;
+  color: var(--grey-mid); background: none; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.15s;
+}
+.todo-cat-chip-new:hover { border-color: var(--black); color: var(--black); }
+
+#todo-list-wrap { flex: 1; overflow-y: auto; padding: 12px 20px 20px; }
+
+.todo-cat-group { margin-bottom: 20px; }
+.todo-cat-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+}
+.todo-cat-label::after { content: ''; flex: 1; height: 1px; background: var(--grey-light); }
+
+.todo-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+  background: var(--white); border: 1px solid var(--grey-light); border-radius: 10px;
+  margin-bottom: 6px; cursor: grab; transition: box-shadow 0.15s, opacity 0.15s;
+  border-left: 3px solid transparent;
+}
+.todo-item:active { cursor: grabbing; }
+.todo-item.dragging { opacity: 0.4; box-shadow: 0 8px 24px -8px rgba(0,0,0,0.2); }
+.todo-item.completed { opacity: 0.45; }
+.todo-item.completed .todo-title { text-decoration: line-through; color: var(--grey-mid); }
+.todo-item.priority-red { border-left-color: #FF6B4A; }
+.todo-item.priority-amber { border-left-color: #F0B429; }
+.todo-item.priority-green { border-left-color: #3ECF8E; }
+
+.todo-check {
+  width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--grey);
+  flex-shrink: 0; margin-top: 2px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: background 0.15s, border-color 0.15s;
+}
+.todo-check.done { background: var(--black); border-color: var(--black); }
+.todo-check.done::after { content: '✓'; font-size: 9px; color: var(--green); font-weight: 700; }
+
+.todo-body { flex: 1; min-width: 0; }
+.todo-title { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+.todo-meta-line { display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+.todo-company { font-size: 11px; color: var(--grey-mid); }
+.todo-due { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; padding: 2px 6px; border-radius: 20px; background: var(--cream-soft); color: var(--grey-mid); }
+.todo-due.overdue { background: rgba(255,107,74,0.12); color: #a03020; }
+
+.todo-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+.todo-item:hover .todo-actions { opacity: 1; }
+.todo-action-btn {
+  width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--grey-light);
+  background: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--grey-mid); transition: background 0.15s;
+}
+.todo-action-btn:hover { background: var(--grey-light); color: var(--black); }
+
+.prio-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+}
+.prio-red { background: #FF6B4A; }
+.prio-amber { background: #F0B429; }
+.prio-green { background: #3ECF8E; }
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -337,6 +478,13 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
     <div class="page-sub">Live pipeline, meetings, inquiries and events — updated on load.</div>
   </div>
 
+  <!-- TODO BUTTON + SUMMARY BAR -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button id="todo-toggle-btn" onclick="openTodoPanel()">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      To do list
+    </button>
+  </div>
   <!-- SUMMARY BAR -->
   <div id="summary-bar">
     <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
@@ -462,6 +610,34 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 
 </main>
 
+<!-- TODO OVERLAY + PANEL -->
+<div id="todo-overlay" onclick="closeTodoPanel()"></div>
+<div id="todo-panel">
+  <div id="todo-panel-header">
+    <div class="todo-panel-title">To do list</div>
+    <button id="todo-close-btn" onclick="closeTodoPanel()">✕</button>
+  </div>
+
+  <div id="todo-add-bar">
+    <div class="todo-add-row">
+      <input type="text" id="todo-new-title" placeholder="New task…" onkeydown="if(event.key==='Enter')addTodo()">
+      <button id="todo-add-submit" onclick="addTodo()">Add</button>
+    </div>
+    <div class="todo-add-meta">
+      <select class="todo-meta-select" id="todo-new-priority">
+        <option value="red">🔴 High</option>
+        <option value="amber" selected>🟡 Medium</option>
+        <option value="green">🟢 Low</option>
+      </select>
+      <input type="text" id="todo-new-company" placeholder="Company (optional)">
+      <input type="date" id="todo-new-due">
+    </div>
+    <div class="todo-add-cat-row" id="todo-cat-chips"></div>
+  </div>
+
+  <div id="todo-list-wrap"></div>
+</div>
+
 <!-- EMAIL PANEL -->
 <div id="email-panel">
   <div id="email-composer">
@@ -576,7 +752,7 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections()]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData()]);
   } catch(e) { console.error(e); }
   btn.classList.remove('spinning');
 }
@@ -1252,6 +1428,9 @@ function buildSnapshotEmail() {
   });
   body += section('Recent LinkedIn Connections (Last 7 Days)', ul(connItems.length ? connItems : [li('<span style="color:#888">No new Dripify connections this week</span>')]));
 
+  // To do list
+  body += buildTodoEmailSection();
+
   // Footer
   body += `<hr style="border:none;border-top:1px solid #e0e0e0;margin:20px 0 12px 0">`;
   body += `<p style="color:#999;font-size:12px;margin:0">Sent from <a href="https://jungle-is-massive.github.io/hub/activity-dashboard.html" style="color:#999">Jungle Activity Dashboard</a></p>`;
@@ -1330,6 +1509,253 @@ async function sendSnapshot() {
 
   btn.disabled = false;
   btn.textContent = 'Send snapshot →';
+}
+
+
+// ─────────────────────────────────────────────
+// TODO LIST
+// ─────────────────────────────────────────────
+let todoCategories = [];
+let todos = [];
+let selectedCatId = null;
+let dragSrcId = null;
+
+async function loadTodoCategories() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/todo_categories?select=*&order=name.asc`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  if (res.ok) todoCategories = await res.json();
+  renderCatChips();
+}
+
+async function loadTodos() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/todos?select=*,todo_categories(id,name,colour)&order=sort_order.asc,created_at.desc`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  if (res.ok) { todos = await res.json(); renderTodos(); }
+}
+
+function renderCatChips() {
+  const wrap = document.getElementById('todo-cat-chips');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  todoCategories.forEach(cat => {
+    const chip = document.createElement('button');
+    chip.className = 'todo-cat-chip' + (selectedCatId === cat.id ? ' selected' : '');
+    chip.textContent = cat.name;
+    chip.style.borderColor = cat.colour;
+    chip.style.color = selectedCatId === cat.id ? '#000' : cat.colour;
+    chip.style.background = selectedCatId === cat.id ? cat.colour : 'transparent';
+    chip.onclick = () => { selectedCatId = selectedCatId === cat.id ? null : cat.id; renderCatChips(); };
+    wrap.appendChild(chip);
+  });
+  // + New category button
+  const newBtn = document.createElement('button');
+  newBtn.className = 'todo-cat-chip-new';
+  newBtn.textContent = '+ Category';
+  newBtn.onclick = addCategoryInline;
+  wrap.appendChild(newBtn);
+}
+
+async function addCategoryInline() {
+  const name = prompt('Category name:');
+  if (!name || !name.trim()) return;
+  const colours = ['#87FB66','#4ABFFF','#7B6FE0','#FF6B4A','#F0B429','#3ECF8E','#FF9F45'];
+  const colour = colours[todoCategories.length % colours.length];
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/todo_categories`,
+    { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify({ name: name.trim(), colour }) });
+  if (res.ok) { const [cat] = await res.json(); todoCategories.push(cat); renderCatChips(); }
+}
+
+async function addTodo() {
+  const titleEl = document.getElementById('todo-new-title');
+  const title = titleEl.value.trim();
+  if (!title) return;
+  const payload = {
+    title,
+    priority: document.getElementById('todo-new-priority').value,
+    category_id: selectedCatId || null,
+    company: document.getElementById('todo-new-company').value.trim() || null,
+    due_date: document.getElementById('todo-new-due').value || null,
+    sort_order: todos.length
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/todos`,
+    { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify(payload) });
+  if (res.ok) {
+    titleEl.value = '';
+    document.getElementById('todo-new-company').value = '';
+    document.getElementById('todo-new-due').value = '';
+    await loadTodos();
+  }
+}
+
+async function toggleComplete(id) {
+  const todo = todos.find(t => t.id === id);
+  if (!todo) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/todos?id=eq.${id}`,
+    { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ completed: !todo.completed }) });
+  await loadTodos();
+}
+
+async function deleteTodo(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/todos?id=eq.${id}`,
+    { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  todos = todos.filter(t => t.id !== id);
+  renderTodos();
+}
+
+async function cyclePriority(id) {
+  const todo = todos.find(t => t.id === id);
+  if (!todo) return;
+  const next = { red: 'amber', amber: 'green', green: 'red' };
+  const newPrio = next[todo.priority] || 'amber';
+  await fetch(`${SUPABASE_URL}/rest/v1/todos?id=eq.${id}`,
+    { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ priority: newPrio }) });
+  todo.priority = newPrio;
+  renderTodos();
+}
+
+function renderTodos() {
+  const wrap = document.getElementById('todo-list-wrap');
+  if (!wrap) return;
+  const active   = todos.filter(t => !t.completed);
+  const done     = todos.filter(t => t.completed);
+  const allItems = [...active, ...done];
+
+  // Group by category
+  const groups = {};
+  const noCat  = [];
+  allItems.forEach(t => {
+    const cat = t.todo_categories;
+    if (cat) {
+      if (!groups[cat.id]) groups[cat.id] = { cat, items: [] };
+      groups[cat.id].items.push(t);
+    } else { noCat.push(t); }
+  });
+
+  wrap.innerHTML = '';
+
+  const renderGroup = (label, colour, items) => {
+    if (!items.length) return;
+    const grp = document.createElement('div');
+    grp.className = 'todo-cat-group';
+    const labelEl = document.createElement('div');
+    labelEl.className = 'todo-cat-label';
+    labelEl.style.color = colour || 'var(--grey-mid)';
+    labelEl.textContent = label;
+    grp.appendChild(labelEl);
+    items.forEach(t => grp.appendChild(buildTodoEl(t)));
+    wrap.appendChild(grp);
+  };
+
+  // Priority order within each group: red → amber → green → done
+  const prioOrder = { red: 0, amber: 1, green: 2 };
+  const sortItems = items => [...items].sort((a,b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    return (prioOrder[a.priority]||1) - (prioOrder[b.priority]||1);
+  });
+
+  Object.values(groups).forEach(({ cat, items }) =>
+    renderGroup(cat.name, cat.colour, sortItems(items)));
+  if (noCat.length) renderGroup('Uncategorised', null, sortItems(noCat));
+}
+
+function buildTodoEl(t) {
+  const el = document.createElement('div');
+  el.className = `todo-item priority-${t.priority}${t.completed ? ' completed' : ''}`;
+  el.draggable = true;
+  el.dataset.id = t.id;
+
+  const today = new Date().toISOString().split('T')[0];
+  const isOverdue = t.due_date && !t.completed && t.due_date < today;
+  const dueLabel = t.due_date ? new Date(t.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+  const prioEmoji = { red: '🔴', amber: '🟡', green: '🟢' }[t.priority] || '';
+
+  el.innerHTML = `
+    <div class="todo-check${t.completed ? ' done' : ''}" onclick="toggleComplete('${t.id}')"></div>
+    <div class="todo-body">
+      <div class="todo-title">${t.title}</div>
+      <div class="todo-meta-line">
+        ${t.company ? `<span class="todo-company">${t.company}</span>` : ''}
+        ${dueLabel ? `<span class="todo-due${isOverdue ? ' overdue' : ''}">${isOverdue ? '⚠ ' : ''}${dueLabel}</span>` : ''}
+      </div>
+    </div>
+    <div class="todo-actions">
+      <button class="todo-action-btn" onclick="cyclePriority('${t.id}')" title="Change priority">${prioEmoji}</button>
+      <button class="todo-action-btn" onclick="deleteTodo('${t.id}')" title="Delete">✕</button>
+    </div>
+  `;
+
+  // Drag and drop
+  el.addEventListener('dragstart', e => { dragSrcId = t.id; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+  el.addEventListener('dragend',   () => el.classList.remove('dragging'));
+  el.addEventListener('dragover',  e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+  el.addEventListener('drop', async e => {
+    e.preventDefault();
+    if (dragSrcId === t.id) return;
+    const srcIdx = todos.findIndex(x => x.id === dragSrcId);
+    const dstIdx = todos.findIndex(x => x.id === t.id);
+    const moved  = todos.splice(srcIdx, 1)[0];
+    todos.splice(dstIdx, 0, moved);
+    renderTodos();
+    // Persist new order
+    await Promise.all(todos.map((item, i) =>
+      fetch(`${SUPABASE_URL}/rest/v1/todos?id=eq.${item.id}`,
+        { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ sort_order: i }) })
+    ));
+  });
+
+  return el;
+}
+
+function openTodoPanel() {
+  document.getElementById('todo-panel').classList.add('open');
+  document.getElementById('todo-overlay').classList.add('open');
+  if (!todos.length && !todoCategories.length) {
+    loadTodoCategories();
+    loadTodos();
+  }
+}
+
+function closeTodoPanel() {
+  document.getElementById('todo-panel').classList.remove('open');
+  document.getElementById('todo-overlay').classList.remove('open');
+}
+
+// Pre-load on page load so snapshot email has data
+async function loadTodoData() {
+  await Promise.all([loadTodoCategories(), loadTodos()]);
+}
+
+// ── TODO IN SNAPSHOT EMAIL ──
+function buildTodoEmailSection() {
+  const urgent = todos.filter(t => !t.completed && (t.priority === 'red' || t.priority === 'amber'));
+  if (!urgent.length) return '';
+
+  const prioLabel = { red: '🔴 High', amber: '🟡 Medium' };
+  const byPrio = { red: urgent.filter(t => t.priority === 'red'), amber: urgent.filter(t => t.priority === 'amber') };
+
+  const li  = txt => `<li style="margin:3px 0">${txt}</li>`;
+  const ul  = items => `<ul style="margin:6px 0 12px 0;padding-left:20px">${items.join('')}</ul>`;
+
+  let out = `<p style="margin:18px 0 4px 0"><b>To Do — High & Medium Priority</b></p>`;
+  ['red','amber'].forEach(p => {
+    if (!byPrio[p].length) return;
+    out += `<p style="margin:10px 0 4px 0"><b><i>${prioLabel[p]}</i></b></p>`;
+    out += ul(byPrio[p].map(t => {
+      const cat  = t.todo_categories?.name || '';
+      const due  = t.due_date ? ` — due ${new Date(t.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : '';
+      const co   = t.company ? ` <span style="color:#888">(${t.company})</span>` : '';
+      const catL = cat ? ` <span style="color:#888">[${cat}]</span>` : '';
+      return li(`${t.title}${co}${catL}${due}`);
+    }));
+  });
+  return out;
 }
 
 function scrollToSection(id) {
