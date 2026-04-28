@@ -349,10 +349,21 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <div class="stat-value" id="stat-inquiries"><div class="stat-loading"></div></div>
       <div class="stat-sub" id="stat-inquiries-sub">flagged as BD interest</div>
     </div>
-    <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
-      <div class="stat-label">Active Pipeline ↓</div>
+    <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals" style="gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <div class="stat-label">Active Pipeline ↓</div>
+        <div class="stat-label" id="stat-cover-ratio" style="color:var(--green);letter-spacing:0">—</div>
+      </div>
       <div class="stat-value" id="stat-pipeline"><div class="stat-loading"></div></div>
-      <div class="stat-sub" id="stat-pipeline-sub">weighted value</div>
+      <div style="margin-top:2px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <div class="stat-sub" id="stat-pipeline-sub">of £6m target</div>
+          <div class="stat-sub">3:1 target</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:100px;height:4px;overflow:hidden">
+          <div id="stat-pipeline-bar" style="height:100%;background:var(--green);border-radius:100px;width:0%;transition:width 0.6s ease"></div>
+        </div>
+      </div>
     </div>
     <div class="stat-card clickable" onclick="scrollToSection('section-meetings')" title="Jump to Meetings" style="grid-column: span 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 0; overflow: hidden; background: transparent; border-radius: 14px;">
       <div style="background: var(--black); border-radius: 14px 0 0 14px; padding: 20px 16px 20px 22px; border-right: 1px solid rgba(255,255,255,0.08);">
@@ -802,10 +813,16 @@ async function loadDeals() {
     const totalValue = hsValue + synValue;
     const totalCount = nowJobs.length + hsDeals.length;
 
+    const PIPELINE_TARGET = 6000000; // £6m = 3:1 on £2m revenue target
     document.getElementById('stat-pipeline').textContent = totalValue >= 1000000
       ? `£${(totalValue/1000000).toFixed(1)}m`
       : totalValue >= 1000 ? `£${Math.round(totalValue/1000)}k` : `£${Math.round(totalValue)}`;
-    document.getElementById('stat-pipeline-sub').textContent = `across ${totalCount} opportunities`;
+    document.getElementById('stat-pipeline-sub').textContent = `of £6m target`;
+    const coverRatio = totalValue > 0 ? (totalValue / 2000000).toFixed(2) : '0';
+    document.getElementById('stat-cover-ratio').textContent = `${coverRatio}:1`;
+    const pct = Math.min(100, (totalValue / PIPELINE_TARGET) * 100);
+    document.getElementById('stat-pipeline-bar').style.width = `${pct}%`;
+    document.getElementById('stat-pipeline-bar').style.background = pct >= 100 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--coral)';
     document.getElementById('stat-deals').textContent = totalCount;
     document.getElementById('stat-deals-sub').textContent = `${nowJobs.length} live · ${hsDeals.length} pipeline`;
     document.getElementById('opps-count').textContent = totalCount;
@@ -931,6 +948,15 @@ function renderNowLane(jobs) {
     const handler  = j.jobHandlerFullName || '';
     const initials = handler.split(' ').map(p => p[0]).join('').substring(0,2).toUpperCase();
     const brief    = j.jobDescription1stLine || '';
+    // Deal ageing — use jobCustomField18 (1st Response date) or fall back to today
+    const responseDate = j.jobCustomField18 ? new Date(j.jobCustomField18) : null;
+    const ageDays = responseDate ? Math.floor((Date.now() - responseDate.getTime()) / 86400000) : null;
+    const ageColour = ageDays === null ? 'var(--grey-mid)'
+      : ageDays < 30  ? '#3ECF8E'   // green
+      : ageDays < 60  ? '#F0B429'   // amber
+      : '#FF6B4A';                   // red
+    const ageLabel = ageDays === null ? '' : ageDays === 0 ? 'Today' : `${ageDays}d`;
+
     const card = document.createElement('div');
     card.className = 'opp-card';
     card.style.animationDelay = `${i * 0.07}s`;
@@ -943,6 +969,7 @@ function renderNowLane(jobs) {
       <div class="opp-stage-row">
         <div class="stage-pill stage-proposal">${j.jobOppCurrentStatus || '—'}</div>
         ${handler ? `<div class="opp-age" title="${handler}">${initials}</div>` : ''}
+        ${ageLabel ? `<div class="opp-age" style="color:${ageColour};border-color:${ageColour};background:${ageColour}18" title="Days since 1st response">${ageLabel}</div>` : ''}
       </div>
     `;
     container.appendChild(card);
@@ -964,6 +991,9 @@ function renderLane(containerId, deals, colorVar) {
     const val = formatValue(p.amount);
     const age = daysSince(p.createdate);
     const nextStep = p.hs_next_step || p.description || 'No next step recorded';
+    const ageDaysHS = parseInt(age);
+    const ageColourHS = isNaN(ageDaysHS) ? 'var(--grey-mid)'
+      : ageDaysHS < 30 ? '#3ECF8E' : ageDaysHS < 60 ? '#F0B429' : '#FF6B4A';
     card.innerHTML = `
       <div class="opp-top">
         <div class="opp-company">${p.dealname || 'Unnamed Deal'}</div>
@@ -971,7 +1001,7 @@ function renderLane(containerId, deals, colorVar) {
       </div>
       <div class="opp-stage-row">
         <div class="stage-pill ${stagePillClass(p.dealstage)}">${stageLabel(p.dealstage)}</div>
-        <div class="opp-age">${age} in stage</div>
+        <div class="opp-age" style="color:${ageColourHS};border-color:${ageColourHS};background:${ageColourHS}18">${age} in stage</div>
       </div>
       <div class="opp-next">
         <div class="opp-next-label">Next action</div>
