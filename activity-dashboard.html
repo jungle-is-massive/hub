@@ -787,63 +787,86 @@ async function loadLinkedInConnections() {
 }
 
 // ─────────────────────────────────────────────
-// FUNNEL STAGES — from Supabase + HubSpot counts
+// FUNNEL STAGES — Supabase structure + live HubSpot counts
+// Lifecycle counts (row 1) via hs-proxy; deal stage counts (row 2) from dashboardData + direct queries
 // ─────────────────────────────────────────────
+
+// Maps our stage names to HubSpot identifiers (no HubSpot config changes needed)
+const LIFECYCLE_MAP = {
+  'Lead':        'lead',
+  'MQL':         'marketingqualifiedlead',
+  'SQL':         'salesqualifiedlead',
+  'Opportunity': 'opportunity',
+  'Customer':    'customer',
+};
+const DEAL_STAGE_MAP = {
+  'Opportunities': '3846843579',  // Qualified in HubSpot
+  'Pitches':       '3846843580',  // Pitch / Proposal in HubSpot
+  'Won':           '3846843581',  // Contracts in HubSpot
+  'Lost':          '3846843582',  // Closed Lost in HubSpot
+};
+
 async function loadFunnelStages() {
   try {
-    // Fetch stages from Supabase
-    const res = await fetch(
+    // 1. Fetch stage definitions from Supabase
+    const sbRes = await fetch(
       `${SUPABASE_URL}/rest/v1/funnel_stages?select=*&order=stage_order.asc`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
-    if (!res.ok) throw new Error(`Supabase ${res.status}`);
-    const stages = await res.json();
+    if (!sbRes.ok) throw new Error(`Supabase ${sbRes.status}`);
+    const stages = await sbRes.json();
 
-    // Fetch HubSpot lifecycle stage counts in parallel
-    let hsCounts = {};
+    // 2. Lifecycle counts via hs-proxy — one request per stage in parallel
+    const lifecycleCounts = {};
     try {
-      const hsRes = await hsPost('/crm/v3/objects/contacts/search', {
-        filterGroups: [],
-        properties: ['lifecyclestage'],
-        limit: 0,
-        aggregations: [{
-          aggregationType: 'COUNT',
-          propertyName: 'lifecyclestage'
-        }]
-      });
-      // HubSpot search v3 doesn't do server-side aggregations — use facets approach instead
-      throw new Error('use facets');
-    } catch {
-      // Use HubSpot's property aggregation endpoint via individual counts
-      try {
-        const hsLifecycle = await hsPost('/crm/v3/objects/contacts/search', {
-          filterGroups: [],
-          properties: ['lifecyclestage'],
-          limit: 1
-        });
-        // Get total and then fetch per-stage counts using filter groups
-        const hsStages = stages.filter(s => s.hubspot_internal_name);
-        const countRes = await Promise.all(hsStages.map(s =>
-          hsPost('/crm/v3/objects/contacts/search', {
-            filterGroups: [{ filters: [{ propertyName: 'lifecyclestage', operator: 'EQ', value: s.hubspot_internal_name }] }],
+      const results = await Promise.all(Object.keys(LIFECYCLE_MAP).map(name =>
+        fetch(HS_PROXY, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'x-proxy-target': 'hubspot',
+            'x-hs-path': '/crm/v3/objects/contacts/search',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            filterGroups: [{ filters: [{ propertyName: 'lifecyclestage', operator: 'EQ', value: LIFECYCLE_MAP[name] }] }],
             properties: ['lifecyclestage'],
             limit: 1
-          }).then(r => ({ name: s.hubspot_internal_name, count: r.total || 0 }))
-          .catch(() => ({ name: s.hubspot_internal_name, count: null }))
-        ));
-        countRes.forEach(r => { hsCounts[r.name] = r.count; });
-      } catch(e2) {
-        console.warn('HS lifecycle counts failed:', e2);
-      }
-    }
+          })
+        }).then(r => r.json()).then(d => ({ name, count: d.total ?? null })).catch(() => ({ name, count: null }))
+      ));
+      results.forEach(r => { lifecycleCounts[r.name] = r.count; });
+    } catch(e) { console.warn('Lifecycle counts failed:', e); }
 
-    const row1El = document.getElementById('funnel-row-1');
-    const row2El = document.getElementById('funnel-row-2');
-    const fmt = n => n < 10 ? '0' + n : String(n);
-    const fmtCount = n => n === null ? '—' : n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/,'') + 'k' : String(n);
+    // 3. Deal stage counts — active deals from dashboardData for Opps + Pitches;
+    //    separate queries for Won (Contracts) + Lost (Closed Lost) which are excluded from the active filter
+    const dealCounts = {};
+    try {
+      const allDeals = dashboardData.deals || [];
+      dealCounts['Opportunities'] = allDeals.filter(d => d.properties?.dealstage === DEAL_STAGE_MAP['Opportunities']).length;
+      dealCounts['Pitches']       = allDeals.filter(d => d.properties?.dealstage === DEAL_STAGE_MAP['Pitches']).length;
+
+      const [wonRes, lostRes] = await Promise.all(['Won', 'Lost'].map(name =>
+        fetch(HS_PROXY, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/deals/search', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filterGroups: [{ filters: [{ propertyName: 'dealstage', operator: 'EQ', value: DEAL_STAGE_MAP[name] }] }], properties: ['dealstage'], limit: 1 })
+        }).then(r => r.json()).then(d => ({ name, count: d.total ?? null })).catch(() => ({ name, count: null }))
+      ));
+      dealCounts['Won']  = wonRes.count;
+      dealCounts['Lost'] = lostRes.count;
+    } catch(e) { console.warn('Deal stage counts failed:', e); }
+
+    // 4. Render boxes
+    const row1El   = document.getElementById('funnel-row-1');
+    const row2El   = document.getElementById('funnel-row-2');
+    const fmt      = n => n < 10 ? '0' + n : String(n);
+    const fmtCount = n => n === null || n === undefined ? '—' : n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
 
     stages.forEach((s, i) => {
-      const count = s.hubspot_internal_name != null ? hsCounts[s.hubspot_internal_name] : null;
+      const isLifecycle = s.stage_order <= 6;
+      const rawCount    = isLifecycle ? lifecycleCounts[s.name] : dealCounts[s.name];
+      const hasCount    = rawCount !== null && rawCount !== undefined;
       const box = document.createElement('div');
       box.className = `funnel-box${s.is_mql ? ' is-mql' : ''}${s.is_sql ? ' is-sql' : ''}`;
       box.style.animationDelay = (0.04 + i * 0.03) + 's';
@@ -851,8 +874,8 @@ async function loadFunnelStages() {
       box.innerHTML = `
         <div class="funnel-box-num">${fmt(s.stage_order)}</div>
         <div class="funnel-box-name">${s.name}</div>
-        <div class="funnel-box-count${count !== null && count !== undefined ? ' live' : ''}">${fmtCount(count ?? null)}</div>`;
-      (s.stage_order <= 6 ? row1El : row2El).appendChild(box);
+        <div class="funnel-box-count${hasCount ? ' live' : ''}">${fmtCount(rawCount)}</div>`;
+      (isLifecycle ? row1El : row2El).appendChild(box);
     });
   } catch(e) {
     console.error('Funnel stages error:', e);
