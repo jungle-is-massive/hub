@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle — Dashboard Wiki</title>
+<link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --cream-soft: #EFE9DF;
+  --black: #0E0E0E;
+  --green: #87FB66;
+  --green-dim: #65C247;
+  --grey: #C8C3B8;
+  --grey-mid: #8A8880;
+  --grey-light: #E8E3DA;
+  --white: #FFFFFF;
+  --header-h: 64px;
+  --blue: #4a90d9;
+  --amber: #F0B429;
+  --coral: #FF6B4A;
+  --teal: #3ECF8E;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--cream); color: var(--black); font-family: 'DM Sans', system-ui, sans-serif; min-height: 100%; -webkit-font-smoothing: antialiased; }
+
+/* TOPBAR */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--header-h); background: var(--black);
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; padding: 0 28px;
+}
+.wordmark { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; color: var(--cream); cursor: pointer; }
+.wordmark span { color: var(--green); }
+.hub-tag { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey); padding: 6px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; }
+.topbar-right { display: flex; justify-content: flex-end; }
+.back-btn { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey); padding: 6px 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; background: transparent; cursor: pointer; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
+.back-btn:hover { color: var(--green); border-color: var(--green); }
+
+/* MAIN */
+main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-width: 900px; margin: 0 auto; padding-left: 32px; padding-right: 32px; }
+
+/* PAGE HEADER */
+.page-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 10px; }
+.page-title { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 10px; }
+.page-sub { font-size: 14px; color: var(--grey-mid); line-height: 1.6; max-width: 600px; margin-bottom: 48px; }
+
+/* TOC */
+.toc { background: var(--black); border-radius: 14px; padding: 24px 28px; margin-bottom: 48px; }
+.toc-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 14px; }
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.toc-list a { font-size: 13px; font-weight: 600; color: var(--grey); text-decoration: none; transition: color 0.15s; display: flex; align-items: center; gap: 10px; }
+.toc-list a:hover { color: var(--green); }
+.toc-num { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); width: 18px; }
+
+/* SECTIONS */
+.wiki-section { margin-bottom: 56px; }
+.section-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
+.section-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 14px; }
+.section-body { font-size: 14px; line-height: 1.7; color: #3a3830; margin-bottom: 20px; }
+.section-body p { margin-bottom: 12px; }
+.section-body p:last-child { margin-bottom: 0; }
+.section-divider { height: 1px; background: var(--grey-light); margin-bottom: 56px; }
+
+/* SOURCE CARDS */
+.source-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.source-card { background: var(--white); border: 1.5px solid var(--grey-light); border-radius: 12px; padding: 18px 20px; }
+.source-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.source-card-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.source-tag { font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; }
+.tag-hubspot  { background: rgba(255,107,74,0.12); color: #8a2400; }
+.tag-supabase { background: rgba(62,207,142,0.12); color: #1a6644; }
+.tag-synergist { background: rgba(74,144,217,0.12); color: #1a3d6e; }
+.source-card-body { font-size: 13px; color: var(--grey-mid); line-height: 1.6; }
+.source-card-body strong { color: var(--black); font-weight: 600; }
+
+/* BOX TABLE */
+.box-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+.box-table th { font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); text-align: left; padding: 8px 12px; border-bottom: 1.5px solid var(--grey-light); }
+.box-table td { padding: 12px 12px; border-bottom: 1px solid var(--grey-light); vertical-align: top; line-height: 1.5; }
+.box-table tr:last-child td { border-bottom: none; }
+.box-table td:first-child { font-weight: 700; white-space: nowrap; }
+.box-table td .mono { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--grey-mid); display: block; margin-top: 2px; }
+.pill { display: inline-block; font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; }
+.pill-hs   { background: rgba(255,107,74,0.12); color: #8a2400; }
+.pill-sb   { background: rgba(62,207,142,0.12); color: #1a6644; }
+.pill-dash { background: rgba(138,136,128,0.12); color: var(--grey-mid); }
+
+/* CALLOUT */
+.callout { background: var(--black); border-radius: 12px; padding: 18px 22px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-body { font-size: 13px; color: var(--grey); line-height: 1.6; }
+.callout-body strong { color: var(--green); }
+
+/* KNOWN GAPS */
+.gap-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.gap-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: #3a3830; }
+.gap-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; margin-top: 6px; }
+.gap-dot.green { background: var(--green); }
+.gap-dot.grey { background: var(--grey-light); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="wordmark" onclick="location.href='index.html'">Jungle <span>Hub</span></div>
+  <div style="display:flex;justify-content:center"><div class="hub-tag">Dashboard Wiki</div></div>
+  <div class="topbar-right">
+    <a class="back-btn" href="activity-dashboard.html">← Dashboard</a>
+  </div>
+</div>
+
+<main>
+  <div class="page-eyebrow">Data documentation · April 2026</div>
+  <div class="page-title">How the dashboard<br>is wired up.</div>
+  <div class="page-sub">A plain-English guide to where every number on the activity dashboard comes from — which system it pulls from, what filters are applied, and what the known gaps are. Updated as the setup evolves.</div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-label">Contents</div>
+    <ul class="toc-list">
+      <li><a href="#sources"><span class="toc-num">01</span>Data sources</a></li>
+      <li><a href="#stat-cards"><span class="toc-num">02</span>The four stat cards</a></li>
+      <li><a href="#opp-tracking"><span class="toc-num">03</span>Deal Opportunity Tracking</a></li>
+      <li><a href="#funnel-stages"><span class="toc-num">04</span>Prospect Funnel Stages</a></li>
+      <li><a href="#gaps"><span class="toc-num">05</span>Known gaps &amp; next steps</a></li>
+    </ul>
+  </div>
+
+  <!-- 01 DATA SOURCES -->
+  <div class="wiki-section" id="sources">
+    <div class="section-eyebrow">01</div>
+    <div class="section-title">Data sources</div>
+    <div class="section-body">
+      <p>The dashboard pulls from three systems. Each one owns a specific part of the picture — they are not duplicates of each other.</p>
+    </div>
+    <div class="source-grid">
+      <div class="source-card">
+        <div class="source-card-header">
+          <div class="source-card-title">HubSpot</div>
+          <span class="source-tag tag-hubspot">CRM</span>
+        </div>
+        <div class="source-card-body">
+          The primary source for <strong>contacts, lifecycle stages, and deals</strong>. The dashboard queries HubSpot via a Supabase edge function proxy (<code>hs-proxy</code>) to avoid CORS issues. Two object types are used: <strong>Contacts</strong> (for Prospect Funnel Stages) and <strong>Deals</strong> (for Deal Opportunity Tracking). All deal queries are scoped to the <strong>Agency Pipeline</strong> only.
+        </div>
+      </div>
+      <div class="source-card">
+        <div class="source-card-header">
+          <div class="source-card-title">Synergist</div>
+          <span class="source-tag tag-synergist">Project System</span>
+        </div>
+        <div class="source-card-body">
+          Jungle's internal project management system. Used for the <strong>Open Deals stat card</strong> — specifically the "live" count of active opportunities being handled by Kitty Lewis-Williams, Jade Raad, or Coris Leachman. Queried via the same <code>hs-proxy</code> edge function using a separate Synergist target.
+        </div>
+      </div>
+      <div class="source-card">
+        <div class="source-card-header">
+          <div class="source-card-title">Supabase</div>
+          <span class="source-tag tag-supabase">Database</span>
+        </div>
+        <div class="source-card-body">
+          Jungle's own database. Used to store the <strong>funnel stage definitions</strong> — the list of boxes, their labels, order, and metadata (e.g. which is MQL, which is SQL). This means the funnel structure can be updated without touching code. Supabase also stores contacts imported from Dripify.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 02 STAT CARDS -->
+  <div class="wiki-section" id="stat-cards">
+    <div class="section-eyebrow">02</div>
+    <div class="section-title">The four stat cards</div>
+    <div class="section-body">
+      <p>The large black cards at the top of the dashboard. Each one is a headline number with a different source.</p>
+    </div>
+    <table class="box-table">
+      <thead>
+        <tr>
+          <th>Card</th>
+          <th>Source</th>
+          <th>What it counts</th>
+          <th>Filter</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Open Deals<span class="mono">stat-deals</span></td>
+          <td><span class="pill pill-sb">Synergist + HubSpot</span></td>
+          <td>Combined count of live Synergist opps + active HubSpot deals in Agency Pipeline</td>
+          <td>Synergist: Open status, active stages, handled by Kitty/Jade/Coris. HubSpot: Agency Pipeline, not Closed Lost.</td>
+        </tr>
+        <tr>
+          <td>Fresh Inquiries<span class="mono">stat-inquiries</span></td>
+          <td><span class="pill pill-hs">HubSpot</span></td>
+          <td>Contacts recently created in HubSpot that have been flagged as BD interest</td>
+          <td>Recency filter applied. Intended to surface net-new inbound.</td>
+        </tr>
+        <tr>
+          <td>Active Pipeline<span class="mono">stat-pipeline</span></td>
+          <td><span class="pill pill-hs">HubSpot + Synergist</span></td>
+          <td>Total £ value of active deals, measured against a £6m pipeline target (3:1 on £2m revenue target)</td>
+          <td>Same as Open Deals. Progress bar shows % of £6m target covered.</td>
+        </tr>
+        <tr>
+          <td>Meetings<span class="mono">stat-meetings</span></td>
+          <td><span class="pill pill-dash">Google Calendar</span></td>
+          <td>Upcoming meetings (next 30 days) and attended meetings (last 30 days) tagged #nbm or #netm in calendar</td>
+          <td>Requires Google Calendar to be connected. Tags must be in event title.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 03 DEAL OPPORTUNITY TRACKING -->
+  <div class="wiki-section" id="opp-tracking">
+    <div class="section-eyebrow">03</div>
+    <div class="section-title">Deal Opportunity Tracking</div>
+    <div class="section-body">
+      <p>The five boxes immediately below the stat cards. These count <strong>deals</strong> in HubSpot — specifically in the <strong>Agency Pipeline</strong>. Each box maps to one or more deal stages in that pipeline.</p>
+      <p>Opportunities and Pitches pull from the active deals already loaded for the stat cards. Won and Lost run separate queries because closed stages are excluded from the main active deals fetch.</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>Agency Pipeline only.</strong> There are four pipelines in HubSpot (Jungle Sales Pipeline, Agency Pipeline, Partnerships, IP Sponsorship). This section deliberately shows Agency Pipeline only — the one Coris is actively managing BD in. The others are not counted here.</div>
+    </div>
+
+    <table class="box-table">
+      <thead>
+        <tr>
+          <th>Box</th>
+          <th>HubSpot stage(s)</th>
+          <th>Stage ID(s)</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>07 · Opportunities</td>
+          <td>Cold outreach, Response, Warm, Qualified</td>
+          <td><span class="mono">3846842616, 3846842617, 3846843578, 3846843579</span></td>
+          <td>All active pre-pitch stages. Includes deals at any early stage of the Agency Pipeline.</td>
+        </tr>
+        <tr>
+          <td>08 · Pitches</td>
+          <td>Pitch / Proposal, Contracts</td>
+          <td><span class="mono">3846843580, 3846843581</span></td>
+          <td>Active pitches and deals in contract stage.</td>
+        </tr>
+        <tr>
+          <td>09 · Won</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Agency Pipeline has no Closed Won stage. Shows — until a Won stage is added in HubSpot or mapped to another pipeline.</td>
+        </tr>
+        <tr>
+          <td>10 · Lost</td>
+          <td>Closed Lost</td>
+          <td><span class="mono">3846843582</span></td>
+          <td>Separate query — this stage is excluded from the active deals fetch so it runs independently.</td>
+        </tr>
+        <tr>
+          <td>11 · Declined</td>
+          <td>—</td>
+          <td>—</td>
+          <td>No HubSpot equivalent yet. Placeholder for when a Declined stage is added to the pipeline.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 04 PROSPECT FUNNEL STAGES -->
+  <div class="wiki-section" id="funnel-stages">
+    <div class="section-eyebrow">04</div>
+    <div class="section-title">Prospect Funnel Stages</div>
+    <div class="section-body">
+      <p>The six boxes in the bottom row. These count <strong>contacts</strong> in HubSpot by their lifecycle stage — not deals. A contact's lifecycle stage is a separate property to what pipeline their deal sits in.</p>
+      <p>The stage structure is defined in Supabase (the <code>funnel_stages</code> table) and the counts are fetched live from HubSpot on each page load, one request per stage in parallel.</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body"><strong>Contacts, not deals.</strong> A contact tagged as Opportunity lifecycle stage (45 currently) is not the same as 45 deals in the Opportunity deal stage. Lifecycle stage tracks where a person is in the relationship — deals track active commercial conversations. Both matter, but they answer different questions.</div>
+    </div>
+
+    <table class="box-table">
+      <thead>
+        <tr>
+          <th>Box</th>
+          <th>HubSpot lifecycle stage</th>
+          <th>Internal name</th>
+          <th>Live count (Apr 2026)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>01 · Lead</td>
+          <td>Lead</td>
+          <td><span class="mono">lead</span></td>
+          <td>~9,131</td>
+        </tr>
+        <tr>
+          <td>02 · MQL</td>
+          <td>Marketing Qualified Lead</td>
+          <td><span class="mono">marketingqualifiedlead</span></td>
+          <td>~126</td>
+        </tr>
+        <tr>
+          <td>03 · SQL</td>
+          <td>Sales Qualified Lead</td>
+          <td><span class="mono">salesqualifiedlead</span></td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <td>04 · Opportunity</td>
+          <td>Opportunity</td>
+          <td><span class="mono">opportunity</span></td>
+          <td>~45–67 (fluctuates)</td>
+        </tr>
+        <tr>
+          <td>05 · Customer</td>
+          <td>Customer</td>
+          <td><span class="mono">customer</span></td>
+          <td>~2–4</td>
+        </tr>
+        <tr>
+          <td>06 · Nurturing</td>
+          <td>—</td>
+          <td>—</td>
+          <td>No HubSpot lifecycle stage mapped yet. Shows — until a custom Nurturing stage is created in HubSpot Contacts settings.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 05 KNOWN GAPS -->
+  <div class="wiki-section" id="gaps">
+    <div class="section-eyebrow">05</div>
+    <div class="section-title">Known gaps &amp; next steps</div>
+    <div class="section-body">
+      <p>Things that are intentionally deferred, pending a decision, or blocked on HubSpot configuration access.</p>
+    </div>
+    <ul class="gap-list">
+      <li>
+        <div class="gap-dot"></div>
+        <div><strong>Won (box 09) always shows —</strong> — Agency Pipeline has no Closed Won stage. Options: add one in HubSpot (Settings → Objects → Deals → Pipelines → Agency Pipeline → Add stage), or map Won to pull from a different pipeline. Needs a decision on which is right for the business.</div>
+      </li>
+      <li>
+        <div class="gap-dot"></div>
+        <div><strong>Declined (box 11) always shows —</strong> — No equivalent stage exists in HubSpot yet. To be added to Agency Pipeline when the team is ready to track this separately from Lost.</div>
+      </li>
+      <li>
+        <div class="gap-dot"></div>
+        <div><strong>Nurturing (box 06) always shows —</strong> — HubSpot's lifecycle stage list doesn't have a Nurturing option by default. Can be added as a custom lifecycle stage in HubSpot (Settings → Objects → Contacts → Lifecycle Stage). Confirmed that HubSpot does allow custom lifecycle stages.</div>
+      </li>
+      <li>
+        <div class="gap-dot"></div>
+        <div><strong>SQL (box 03) shows 0</strong> — There are currently zero contacts tagged as Sales Qualified Lead in HubSpot. This is accurate data, not a bug — SQL criteria and the process for moving contacts from MQL to SQL hasn't been defined yet.</div>
+      </li>
+      <li>
+        <div class="gap-dot grey"></div>
+        <div><strong>Jungle Sales Pipeline not currently tracked</strong> — There are 21 deals in the Jungle Sales Pipeline (the default pipeline) which are not shown anywhere on this dashboard. This was a deliberate decision as of April 2026 — Coris is focused on Agency Pipeline. To be revisited once there is clarity on which pipeline the team considers primary.</div>
+      </li>
+      <li>
+        <div class="gap-dot green"></div>
+        <div><strong>Data source documentation per box</strong> — A slide-in panel explaining the source for each box is planned for the dashboard. Deferred until the numbers are confirmed as correct and stable.</div>
+      </li>
+    </ul>
+  </div>
+
+  <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);letter-spacing:0.08em;padding-top:12px;border-top:1px solid var(--grey-light)">
+    Last updated: April 2026 · Maintained by Coris Leachman
+  </div>
+
+</main>
+
+</body>
+</html>
