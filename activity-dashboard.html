@@ -858,22 +858,24 @@ async function loadFunnelStages() {
       dealCounts['Opportunities'] = allDeals.filter(d => DEAL_STAGE_MAP['Opportunities'].includes(d.properties?.dealstage)).length;
       dealCounts['Pitches']       = allDeals.filter(d => DEAL_STAGE_MAP['Pitches'].includes(d.properties?.dealstage)).length;
 
-      // Won + Lost need separate queries (excluded from active deals filter)
-      const closedResults = await Promise.all(['Won', 'Lost'].map(name => {
-        if (!DEAL_STAGE_MAP[name] || DEAL_STAGE_MAP[name].length === 0) return Promise.resolve({ name, count: null });
-        return fetch(HS_PROXY, {
+      // Lost needs a separate query — excluded from active deals filter (NEQ closedlost)
+      // Won stays null — Agency Pipeline has no Closed Won stage
+      dealCounts['Won'] = null;
+      try {
+        const lostRes = await fetch(HS_PROXY, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/deals/search', 'Content-Type': 'application/json' },
           body: JSON.stringify({
             filterGroups: [{ filters: [
               { propertyName: 'pipeline',  operator: 'EQ', value: AGENCY_PIPELINE },
-              { propertyName: 'dealstage', operator: 'EQ', value: DEAL_STAGE_MAP[name][0] }
+              { propertyName: 'dealstage', operator: 'EQ', value: '3846843582' }
             ]}],
             properties: ['dealstage'], limit: 1
           })
-        }).then(r => r.json()).then(d => ({ name, count: d.total ?? null })).catch(() => ({ name, count: null }));
-      }));
-      closedResults.forEach(r => { dealCounts[r.name] = r.count; });
+        });
+        const lostData = await lostRes.json();
+        dealCounts['Lost'] = lostData.total ?? null;
+      } catch(e) { console.warn('Lost count failed:', e); dealCounts['Lost'] = null; }
     } catch(e) { console.warn('Deal stage counts failed:', e); }
 
     // 4. Render boxes
