@@ -879,6 +879,8 @@ async function loadFunnelStages() {
     // 4. Render boxes
     const row1El   = document.getElementById('funnel-row-1');
     const row2El   = document.getElementById('funnel-row-2');
+    row1El.innerHTML = '';  // clear before re-render to prevent duplicates on refresh
+    row2El.innerHTML = '';
     const fmt      = n => n < 10 ? '0' + n : String(n);
     const fmtCount = n => n === null || n === undefined ? '—' : n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
 
@@ -905,7 +907,8 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadFunnelStages()]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData()]);
+    await loadFunnelStages(); // must run after loadDeals so dashboardData.deals is populated
   } catch(e) { console.error(e); }
   btn.classList.remove('spinning');
 }
