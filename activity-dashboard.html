@@ -864,12 +864,10 @@ async function loadFunnelStages() {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/deals/search', 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            filterGroups: DEAL_STAGE_MAP[name].map(stageId => ({
-              filters: [
-                { propertyName: 'pipeline',  operator: 'EQ', value: SALES_PIPELINE },
-                { propertyName: 'dealstage', operator: 'EQ', value: stageId }
-              ]
-            })),
+            filterGroups: [{ filters: [
+              { propertyName: 'pipeline',  operator: 'EQ', value: SALES_PIPELINE },
+              { propertyName: 'dealstage', operator: 'EQ', value: DEAL_STAGE_MAP[name][0] }
+            ]}],
             properties: ['dealstage'], limit: 1
           })
         }).then(r => r.json()).then(d => ({ name, count: d.total ?? null })).catch(() => ({ name, count: null }))
@@ -1119,8 +1117,9 @@ async function loadDeals() {
         },
         body: JSON.stringify({
           filterGroups: [{ filters: [
-            { propertyName: 'pipeline',  operator: 'EQ',     value: SALES_PIPELINE },
-            { propertyName: 'dealstage', operator: 'NOT_IN', values: EXCL_STAGES }
+            { propertyName: 'pipeline',  operator: 'EQ',  value: SALES_PIPELINE },
+            { propertyName: 'dealstage', operator: 'NEQ', value: 'closedwon' },
+            { propertyName: 'dealstage', operator: 'NEQ', value: 'closedlost' }
           ]}],
           properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
           sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
