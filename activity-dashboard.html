@@ -732,24 +732,32 @@ const HUBSPOT_TOKEN = (window.JUNGLE_CONFIG||{}).HS_TOKEN||'';
 const SUPABASE_URL = (window.JUNGLE_CONFIG||{}).SB_URL||'';
 const SUPABASE_KEY = (window.JUNGLE_CONFIG||{}).SB_KEY||'';
 
-// Deal stage → horizon mapping (customize to match your HubSpot pipeline stages)
-const // Agency Pipeline (id: 2808364263)
-NOW_STAGES  = ['3846843581'];              // Contracts
-const NEXT_STAGES  = ['3846843579','3846843580'];  // Qualified, Pitch/Proposal
-const EXCL_STAGES  = ['3846843582'];       // Closed Lost
+// ── Jungle Sales Pipeline (id: default) ──────────────────────────
+const SALES_PIPELINE = 'default';
+const STAGE_LABELS = {
+  '3461833917':        'Nurture Ops',
+  'appointmentscheduled': 'Ingen Ops',
+  '3461833918':        'Website Ops',
+  '2118438124':        'MQL',
+  'qualifiedtobuy':    'Intro & Creds',
+  'presentationscheduled': 'RFP Brief',
+  'decisionmakerboughtin': 'RFP Qualification',
+  '1745854675':        'RFP Response',
+  'contractsent':      'Negotiation',
+  'closedwon':         'Closed Won',
+  'closedlost':        'Closed Lost',
+  '2118008022':        'Hold',
+};
+// Stages that map to deal pipeline horizon lanes
+const NOW_STAGES  = ['1745854675', 'contractsent'];              // RFP Response + Negotiation (active pitches)
+const NEXT_STAGES = ['qualifiedtobuy','presentationscheduled','decisionmakerboughtin']; // Intro/RFP stages
+const EXCL_STAGES = ['closedwon','closedlost'];                  // Closed stages
+
+// Legacy Agency Pipeline constant kept for reference — no longer used for counts
 const AGENCY_PIPELINE = '2808364263';
 const HS_PROXY   = `${SUPABASE_URL}/functions/v1/hs-proxy`;
 const GCAL_TOKEN = (window.JUNGLE_CONFIG||{}).GCAL_TOKEN||'';
 const GCAL_CLIENT_ID = '161148155885-jmk24mva9i9akjknkes29kso7n1c9bgl.apps.googleusercontent.com';
-const STAGE_LABELS = {
-  '3846842616': 'Cold Outreach',
-  '3846842617': 'Response',
-  '3846843578': 'Warm',
-  '3846843579': 'Qualified',
-  '3846843580': 'Pitch / Proposal',
-  '3846843581': 'Contracts',
-  '3846843582': 'Closed Lost'
-};
 
 // ─────────────────────────────────────────────
 // STATE
@@ -799,11 +807,14 @@ const LIFECYCLE_MAP = {
   'Opportunity': 'opportunity',
   'Customer':    'customer',
 };
+// Maps funnel box names to Jungle Sales Pipeline stage IDs
 const DEAL_STAGE_MAP = {
-  'Opportunities': '3846843579',  // Qualified in HubSpot
-  'Pitches':       '3846843580',  // Pitch / Proposal in HubSpot
-  'Won':           '3846843581',  // Contracts in HubSpot
-  'Lost':          '3846843582',  // Closed Lost in HubSpot
+  // Opportunities = Intro & Creds + RFP Brief + RFP Qualification
+  'Opportunities': ['qualifiedtobuy','presentationscheduled','decisionmakerboughtin'],
+  // Pitches = RFP Response + Negotiation
+  'Pitches':       ['1745854675','contractsent'],
+  'Won':           ['closedwon'],
+  'Lost':          ['closedlost'],
 };
 
 async function loadFunnelStages() {
@@ -842,19 +853,28 @@ async function loadFunnelStages() {
     //    separate queries for Won (Contracts) + Lost (Closed Lost) which are excluded from the active filter
     const dealCounts = {};
     try {
+      // Count from already-loaded active deals for Opportunities + Pitches
       const allDeals = dashboardData.deals || [];
-      dealCounts['Opportunities'] = allDeals.filter(d => d.properties?.dealstage === DEAL_STAGE_MAP['Opportunities']).length;
-      dealCounts['Pitches']       = allDeals.filter(d => d.properties?.dealstage === DEAL_STAGE_MAP['Pitches']).length;
+      dealCounts['Opportunities'] = allDeals.filter(d => DEAL_STAGE_MAP['Opportunities'].includes(d.properties?.dealstage)).length;
+      dealCounts['Pitches']       = allDeals.filter(d => DEAL_STAGE_MAP['Pitches'].includes(d.properties?.dealstage)).length;
 
-      const [wonRes, lostRes] = await Promise.all(['Won', 'Lost'].map(name =>
+      // Won + Lost need separate queries (excluded from active deals filter)
+      const closedResults = await Promise.all(['Won', 'Lost'].map(name =>
         fetch(HS_PROXY, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/deals/search', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filterGroups: [{ filters: [{ propertyName: 'dealstage', operator: 'EQ', value: DEAL_STAGE_MAP[name] }] }], properties: ['dealstage'], limit: 1 })
+          body: JSON.stringify({
+            filterGroups: DEAL_STAGE_MAP[name].map(stageId => ({
+              filters: [
+                { propertyName: 'pipeline',  operator: 'EQ', value: SALES_PIPELINE },
+                { propertyName: 'dealstage', operator: 'EQ', value: stageId }
+              ]
+            })),
+            properties: ['dealstage'], limit: 1
+          })
         }).then(r => r.json()).then(d => ({ name, count: d.total ?? null })).catch(() => ({ name, count: null }))
       ));
-      dealCounts['Won']  = wonRes.count;
-      dealCounts['Lost'] = lostRes.count;
+      closedResults.forEach(r => { dealCounts[r.name] = r.count; });
     } catch(e) { console.warn('Deal stage counts failed:', e); }
 
     // 4. Render boxes
@@ -1099,8 +1119,8 @@ async function loadDeals() {
         },
         body: JSON.stringify({
           filterGroups: [{ filters: [
-            { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
-            { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' }
+            { propertyName: 'pipeline',  operator: 'EQ',     value: SALES_PIPELINE },
+            { propertyName: 'dealstage', operator: 'NOT_IN', values: EXCL_STAGES }
           ]}],
           properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
           sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
