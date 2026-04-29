@@ -87,6 +87,22 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .stat-loading { width: 48px; height: 34px; background: rgba(255,255,255,0.06); border-radius: 6px; animation: pulse 1.2s ease infinite; }
 @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
+/* FUNNEL STAGES */
+#funnel-bar { margin-bottom: 28px; }
+.funnel-bar-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
+.funnel-rows { display: flex; flex-direction: column; gap: 4px; }
+.funnel-bar-row { display: grid; gap: 4px; }
+.funnel-bar-row.row-1 { grid-template-columns: repeat(6, 1fr); }
+.funnel-bar-row.row-2 { grid-template-columns: repeat(5, 1fr); }
+@media(max-width:900px) { .funnel-bar-row.row-1, .funnel-bar-row.row-2 { grid-template-columns: repeat(3, 1fr); } }
+@media(max-width:560px) { .funnel-bar-row.row-1, .funnel-bar-row.row-2 { grid-template-columns: repeat(2, 1fr); } }
+.funnel-box { background: var(--black); border-radius: 10px; padding: 12px 10px; text-align: center; border: 1.5px solid rgba(255,255,255,0.06); animation: fadeUp 0.4s ease both; }
+.funnel-box.is-mql { border-color: var(--green); }
+.funnel-box.is-sql { border-color: #4a90d9; }
+.funnel-box-num { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--grey-mid); letter-spacing: 0.12em; }
+.funnel-box-name { font-size: 11px; font-weight: 700; letter-spacing: -0.01em; color: var(--white); margin-top: 3px; }
+.funnel-box-count { font-size: 16px; font-weight: 800; font-family: 'DM Mono', monospace; color: var(--grey-mid); margin-top: 5px; }
+
 /* SECTION HEADERS */
 .section-head {
   display: flex; align-items: center; gap: 12px;
@@ -536,6 +552,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
     </div>
   </div>
 
+  <!-- FUNNEL STAGES -->
+  <div id="funnel-bar">
+    <div class="funnel-bar-label">Funnel stages</div>
+    <div class="funnel-rows" id="funnel-rows-el">
+      <div class="funnel-bar-row row-1" id="funnel-row-1"></div>
+      <div class="funnel-bar-row row-2" id="funnel-row-2"></div>
+    </div>
+  </div>
+
   <!-- GCAL CONNECT BAR -->
   <div id="gcal-connect-bar">
     <div>
@@ -757,11 +782,41 @@ async function loadLinkedInConnections() {
   }
 }
 
+// ─────────────────────────────────────────────
+// FUNNEL STAGES — from Supabase
+// ─────────────────────────────────────────────
+async function loadFunnelStages() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/funnel_stages?select=*&order=stage_order.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!res.ok) throw new Error(`Supabase ${res.status}`);
+    const stages = await res.json();
+    const row1El = document.getElementById('funnel-row-1');
+    const row2El = document.getElementById('funnel-row-2');
+    const fmt = n => n < 10 ? '0' + n : String(n);
+    stages.forEach((s, i) => {
+      const box = document.createElement('div');
+      box.className = `funnel-box${s.is_mql ? ' is-mql' : ''}${s.is_sql ? ' is-sql' : ''}`;
+      box.style.animationDelay = (0.04 + i * 0.03) + 's';
+      box.title = s.description || '';
+      box.innerHTML = `
+        <div class="funnel-box-num">${fmt(s.stage_order)}</div>
+        <div class="funnel-box-name">${s.name}</div>
+        <div class="funnel-box-count">—</div>`;
+      (s.stage_order <= 6 ? row1El : row2El).appendChild(box);
+    });
+  } catch(e) {
+    console.error('Funnel stages error:', e);
+  }
+}
+
 async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData()]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadFunnelStages()]);
   } catch(e) { console.error(e); }
   btn.classList.remove('spinning');
 }
