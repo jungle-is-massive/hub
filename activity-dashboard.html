@@ -840,7 +840,6 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 <div id="toast"></div>
 
 <script src="https://jungle-is-massive.github.io/hub/config.js"></script>
-<script src="https://jungle-is-massive.github.io/hub/config.js"></script>
 <script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
 <script>
 // ─────────────────────────────────────────────
@@ -2163,35 +2162,6 @@ function updateGcalUI() {
     `;
   }
 }
-</script>
-
-<!-- ── DEAL BOARD DRAWER ────────────────────────────────────── -->
-<div id="deal-drawer-overlay" onclick="closeDealDrawer()"></div>
-<div id="deal-drawer" role="dialog" aria-label="Agency Pipeline Deal Board">
-  <div id="deal-drawer-head">
-    <div>
-      <div class="drawer-title">Agency Pipeline</div>
-      <div class="drawer-subtitle" id="drawer-subtitle">All deals · loading…</div>
-    </div>
-    <button class="drawer-close" onclick="closeDealDrawer()" aria-label="Close">✕</button>
-  </div>
-  <div id="deal-drawer-filter">
-    <button class="drawer-filter-btn active" data-stage="all" onclick="filterDrawer('all',this)">All stages</button>
-    <button class="drawer-filter-btn" data-stage="3846842616" onclick="filterDrawer('3846842616',this)">Cold outreach</button>
-    <button class="drawer-filter-btn" data-stage="3846842617" onclick="filterDrawer('3846842617',this)">Response</button>
-    <button class="drawer-filter-btn" data-stage="3846843578" onclick="filterDrawer('3846843578',this)">Warm</button>
-    <button class="drawer-filter-btn" data-stage="3846843579" onclick="filterDrawer('3846843579',this)">Qualified</button>
-    <button class="drawer-filter-btn" data-stage="3846843580" onclick="filterDrawer('3846843580',this)">Pitch / Proposal</button>
-    <button class="drawer-filter-btn" data-stage="3846843581" onclick="filterDrawer('3846843581',this)">Contracts</button>
-    <button class="drawer-filter-btn" data-stage="3846843582" onclick="filterDrawer('3846843582',this)">Closed Lost</button>
-  </div>
-  <div id="deal-board"></div>
-  <div id="deal-drawer-footer">
-    <div class="drawer-footer-note" id="drawer-total-note">—</div>
-    <a class="drawer-hs-link" href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board?noprefetch=" target="_blank" rel="noopener">Open in HubSpot ↗</a>
-  </div>
-</div>
-
 
 // ── DEAL BOARD DRAWER ────────────────────────────────────────────────────
 const AGENCY_STAGE_CONFIG = [
@@ -2370,6 +2340,36 @@ function closeDealDrawer() {
 
 // Keyboard escape
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDrawer(); });
+
+</script>
+
+<!-- ── DEAL BOARD DRAWER ────────────────────────────────────── -->
+<div id="deal-drawer-overlay" onclick="closeDealDrawer()"></div>
+<div id="deal-drawer" role="dialog" aria-label="Agency Pipeline Deal Board">
+  <div id="deal-drawer-head">
+    <div>
+      <div class="drawer-title">Agency Pipeline</div>
+      <div class="drawer-subtitle" id="drawer-subtitle">All deals · loading…</div>
+    </div>
+    <button class="drawer-close" onclick="closeDealDrawer()" aria-label="Close">✕</button>
+  </div>
+  <div id="deal-drawer-filter">
+    <button class="drawer-filter-btn active" data-stage="all" onclick="filterDrawer('all',this)">All stages</button>
+    <button class="drawer-filter-btn" data-stage="3846842616" onclick="filterDrawer('3846842616',this)">Cold outreach</button>
+    <button class="drawer-filter-btn" data-stage="3846842617" onclick="filterDrawer('3846842617',this)">Response</button>
+    <button class="drawer-filter-btn" data-stage="3846843578" onclick="filterDrawer('3846843578',this)">Warm</button>
+    <button class="drawer-filter-btn" data-stage="3846843579" onclick="filterDrawer('3846843579',this)">Qualified</button>
+    <button class="drawer-filter-btn" data-stage="3846843580" onclick="filterDrawer('3846843580',this)">Pitch / Proposal</button>
+    <button class="drawer-filter-btn" data-stage="3846843581" onclick="filterDrawer('3846843581',this)">Contracts</button>
+    <button class="drawer-filter-btn" data-stage="3846843582" onclick="filterDrawer('3846843582',this)">Closed Lost</button>
+  </div>
+  <div id="deal-board"></div>
+  <div id="deal-drawer-footer">
+    <div class="drawer-footer-note" id="drawer-total-note">—</div>
+    <a class="drawer-hs-link" href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board?noprefetch=" target="_blank" rel="noopener">Open in HubSpot ↗</a>
+  </div>
+</div>
+
 
 </body>
 </html>
