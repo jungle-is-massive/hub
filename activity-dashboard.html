@@ -481,6 +481,121 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   font-size: 11px; cursor: pointer; transition: border-color 0.15s;
 }
 #gcal-disconnect-btn:hover { border-color: var(--grey); color: var(--cream); }
+
+/* ── DEAL BOARD DRAWER ─────────────────────────────────────── */
+#deal-drawer-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+#deal-drawer-overlay.open { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+#deal-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
+  width: min(1100px, 92vw);
+  background: var(--cream);
+  box-shadow: -8px 0 48px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+}
+#deal-drawer.open { transform: translateX(0); }
+
+#deal-drawer-head {
+  background: var(--black); padding: 20px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.drawer-title { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; color: var(--white); }
+.drawer-subtitle { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid); margin-top: 3px; }
+.drawer-close {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08);
+  border: none; cursor: pointer; color: var(--grey); font-size: 18px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s; flex-shrink: 0;
+}
+.drawer-close:hover { background: rgba(255,255,255,0.15); color: var(--white); }
+
+#deal-drawer-filter {
+  background: var(--black); padding: 0 24px 16px;
+  display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.drawer-filter-btn {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.12);
+  background: transparent; color: var(--grey-mid); cursor: pointer; transition: all 0.15s;
+}
+.drawer-filter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--grey); }
+.drawer-filter-btn.active { background: var(--green); border-color: var(--green); color: var(--black); }
+
+#deal-board {
+  display: flex; gap: 0; overflow-x: auto; flex: 1; min-height: 0;
+  padding: 20px 16px 24px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+#deal-board::-webkit-scrollbar { height: 4px; }
+#deal-board::-webkit-scrollbar-track { background: transparent; }
+#deal-board::-webkit-scrollbar-thumb { background: var(--grey-light); border-radius: 2px; }
+
+.deal-col {
+  flex-shrink: 0; width: 230px; display: flex; flex-direction: column; gap: 8px;
+  scroll-snap-align: start; padding: 0 8px;
+}
+.deal-col-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 10px; border-bottom: 2px solid var(--col-accent, var(--grey-light));
+  margin-bottom: 4px; flex-shrink: 0;
+}
+.deal-col-name {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--black);
+}
+.deal-col-count {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700;
+  color: var(--col-accent, var(--grey-mid));
+  background: color-mix(in srgb, var(--col-accent, #ccc) 12%, transparent);
+  padding: 1px 7px; border-radius: 100px;
+}
+.deal-col-total { font-size: 10px; color: var(--grey-mid); margin-top: 2px; }
+
+.deal-card {
+  background: var(--white); border: 1.5px solid var(--grey-light);
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  transition: box-shadow 0.15s, transform 0.15s;
+  animation: cardIn 0.25s ease both;
+}
+.deal-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.deal-card.highlighted { border-color: var(--green); box-shadow: 0 0 0 3px rgba(135,251,102,0.15); }
+.deal-card.dimmed { opacity: 0.35; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.deal-card-name { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--black); line-height: 1.3; }
+.deal-card-amount { font-size: 18px; font-weight: 800; letter-spacing: -0.03em; color: var(--black); }
+.deal-card-meta { display: flex; flex-direction: column; gap: 3px; margin-top: 2px; }
+.deal-card-meta-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--grey-mid); }
+.deal-card-meta-row svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+.deal-card-activity { font-size: 10px; color: var(--grey-mid); padding-top: 8px; border-top: 1px solid var(--grey-light); margin-top: 4px; font-family: 'DM Mono', monospace; letter-spacing: 0.04em; }
+.deal-card-owner-pill {
+  display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: 0.04em;
+  padding: 2px 8px; border-radius: 100px; background: var(--cream-soft); color: var(--grey-mid);
+  align-self: flex-start;
+}
+.deal-card-owner-pill.owner-coris { background: rgba(135,251,102,0.15); color: #2a6600; }
+
+.deal-col-empty { font-size: 11px; color: var(--grey-light); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; padding: 16px 0; }
+
+#deal-drawer-footer {
+  background: var(--black); padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; border-top: 1px solid rgba(255,255,255,0.06);
+}
+.drawer-footer-note { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); letter-spacing: 0.1em; }
+.drawer-hs-link { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); letter-spacing: 0.1em; text-decoration: none; transition: color 0.15s; }
+.drawer-hs-link:hover { color: var(--green); }
 </style>
 </head>
 <body>
@@ -898,9 +1013,27 @@ async function loadFunnelStages() {
       box.className = `funnel-box${s.is_mql ? ' is-mql' : ''}${s.is_sql ? ' is-sql' : ''}`;
       box.style.animationDelay = (0.04 + i * 0.03) + 's';
       box.title = s.description || '';
+
+      // Map row 2 box names to Agency Pipeline stage IDs for drawer filtering
+      const DRAWER_STAGE_MAP = {
+        'Opportunities': 'all',        // shows all active pre-pitch stages
+        'Pitches':       '3846843580', // Pitch / Proposal
+        'Won':           null,
+        'Lost':          '3846843582',
+        'Declined':      null,
+      };
+      const drawerStage = !isLifecycle ? DRAWER_STAGE_MAP[s.name] : undefined;
+      const isClickable = drawerStage !== undefined && drawerStage !== null;
+
+      if (isClickable) {
+        box.style.cursor = 'pointer';
+        box.title = 'Click to view deals';
+        box.addEventListener('click', () => openDealDrawer(drawerStage === 'all' ? null : drawerStage));
+      }
+
       box.innerHTML = `
         <div class="funnel-box-num">${fmt(s.stage_order)}</div>
-        <div class="funnel-box-name">${s.name}</div>
+        <div class="funnel-box-name">${s.name}${isClickable ? '<span style="font-size:8px;opacity:0.5;margin-left:4px">↗</span>' : ''}</div>
         <div class="funnel-box-count${hasCount ? ' live' : ''}">${fmtCount(rawCount)}</div>`;
       (isLifecycle ? row1El : row2El).appendChild(box);
     });
@@ -2028,5 +2161,212 @@ function updateGcalUI() {
   }
 }
 </script>
+
+<!-- ── DEAL BOARD DRAWER ────────────────────────────────────── -->
+<div id="deal-drawer-overlay" onclick="closeDealDrawer()"></div>
+<div id="deal-drawer" role="dialog" aria-label="Agency Pipeline Deal Board">
+  <div id="deal-drawer-head">
+    <div>
+      <div class="drawer-title">Agency Pipeline</div>
+      <div class="drawer-subtitle" id="drawer-subtitle">All deals · loading…</div>
+    </div>
+    <button class="drawer-close" onclick="closeDealDrawer()" aria-label="Close">✕</button>
+  </div>
+  <div id="deal-drawer-filter">
+    <button class="drawer-filter-btn active" data-stage="all" onclick="filterDrawer('all',this)">All stages</button>
+    <button class="drawer-filter-btn" data-stage="3846842616" onclick="filterDrawer('3846842616',this)">Cold outreach</button>
+    <button class="drawer-filter-btn" data-stage="3846842617" onclick="filterDrawer('3846842617',this)">Response</button>
+    <button class="drawer-filter-btn" data-stage="3846843578" onclick="filterDrawer('3846843578',this)">Warm</button>
+    <button class="drawer-filter-btn" data-stage="3846843579" onclick="filterDrawer('3846843579',this)">Qualified</button>
+    <button class="drawer-filter-btn" data-stage="3846843580" onclick="filterDrawer('3846843580',this)">Pitch / Proposal</button>
+    <button class="drawer-filter-btn" data-stage="3846843581" onclick="filterDrawer('3846843581',this)">Contracts</button>
+    <button class="drawer-filter-btn" data-stage="3846843582" onclick="filterDrawer('3846843582',this)">Closed Lost</button>
+  </div>
+  <div id="deal-board"></div>
+  <div id="deal-drawer-footer">
+    <div class="drawer-footer-note" id="drawer-total-note">—</div>
+    <a class="drawer-hs-link" href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board?noprefetch=" target="_blank" rel="noopener">Open in HubSpot ↗</a>
+  </div>
+</div>
+
+
+// ── DEAL BOARD DRAWER ────────────────────────────────────────────────────
+const AGENCY_STAGE_CONFIG = [
+  { id: '3846842616', label: 'Cold outreach',   accent: '#8A8880', prob: '0%'  },
+  { id: '3846842617', label: 'Response',         accent: '#4a90d9', prob: '1%'  },
+  { id: '3846843578', label: 'Warm',             accent: '#F0B429', prob: '2%'  },
+  { id: '3846843579', label: 'Qualified',        accent: '#3ECF8E', prob: '20%' },
+  { id: '3846843580', label: 'Pitch / Proposal', accent: '#FF6B4A', prob: '40%' },
+  { id: '3846843581', label: 'Contracts',        accent: '#87FB66', prob: '90%' },
+  { id: '3846843582', label: 'Closed Lost',      accent: '#555',    prob: '0%'  },
+];
+
+// Owner ID → name (resolved from known deal data; owners API requires extra scope)
+const OWNER_NAMES = {
+  '30816281': 'Ed Knights',
+  '32990686': 'Coris Leachman',
+};
+
+let allBoardDeals = [];
+let drawerLoaded = false;
+let activeDrawerStage = 'all';
+
+async function loadDealBoard() {
+  if (drawerLoaded) return;
+  try {
+    const res = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/deals/search', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filterGroups: [{ filters: [{ propertyName: 'pipeline', operator: 'EQ', value: AGENCY_PIPELINE }] }],
+        properties: ['dealname','dealstage','amount','hubspot_owner_id','createdate','hs_lastmodifieddate','closedate'],
+        sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
+        limit: 100
+      })
+    });
+    const data = await res.json();
+    allBoardDeals = data.results || [];
+    drawerLoaded = true;
+  } catch(e) {
+    console.error('Deal board load failed:', e);
+  }
+}
+
+function fmtAmount(val) {
+  if (!val || val === '0') return '—';
+  const n = parseInt(val, 10);
+  if (isNaN(n)) return '—';
+  if (n >= 1000000) return '£' + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'm';
+  if (n >= 1000) return '£' + (n/1000).toFixed(0) + 'k';
+  return '£' + n.toLocaleString('en-GB');
+}
+
+function fmtDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function timeAgo(iso) {
+  if (!iso) return null;
+  const diff = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 30) return days + ' days ago';
+  if (days < 60) return 'A month ago';
+  return Math.floor(days/30) + ' months ago';
+}
+
+function renderDealBoard(filterStage) {
+  const board = document.getElementById('deal-board');
+  board.innerHTML = '';
+
+  const stagesToShow = filterStage === 'all'
+    ? AGENCY_STAGE_CONFIG
+    : AGENCY_STAGE_CONFIG.filter(s => s.id === filterStage);
+
+  let totalValue = 0;
+  let totalDeals = 0;
+
+  stagesToShow.forEach((stage, si) => {
+    const stageDeals = allBoardDeals.filter(d => d.properties.dealstage === stage.id);
+    stageDeals.forEach(d => {
+      const v = parseInt(d.properties.amount || '0', 10);
+      if (!isNaN(v)) totalValue += v;
+    });
+    totalDeals += stageDeals.length;
+
+    const col = document.createElement('div');
+    col.className = 'deal-col';
+    col.style.setProperty('--col-accent', stage.accent);
+
+    const stageTotal = stageDeals.reduce((s, d) => s + (parseInt(d.properties.amount||'0',10)||0), 0);
+
+    col.innerHTML = `
+      <div class="deal-col-head">
+        <div>
+          <div class="deal-col-name">${stage.label}</div>
+          ${stageTotal > 0 ? `<div class="deal-col-total">${fmtAmount(String(stageTotal))}</div>` : ''}
+        </div>
+        <span class="deal-col-count">${stageDeals.length}</span>
+      </div>`;
+
+    if (stageDeals.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'deal-col-empty';
+      empty.textContent = 'No deals';
+      col.appendChild(empty);
+    } else {
+      stageDeals.forEach((deal, di) => {
+        const p = deal.properties;
+        const ownerName = OWNER_NAMES[p.hubspot_owner_id] || 'Unknown';
+        const isCoris = p.hubspot_owner_id === '32990686';
+        const card = document.createElement('div');
+        card.className = 'deal-card';
+        if (filterStage !== 'all') card.classList.add('highlighted');
+        card.style.animationDelay = (si * 0.04 + di * 0.03) + 's';
+        card.innerHTML = `
+          <div class="deal-card-name">${p.dealname || 'Untitled'}</div>
+          <div class="deal-card-amount">${fmtAmount(p.amount)}</div>
+          <div class="deal-card-meta">
+            <div class="deal-card-meta-row">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              <span class="deal-card-owner-pill ${isCoris ? 'owner-coris' : ''}">${ownerName}</span>
+            </div>
+            <div class="deal-card-meta-row">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              ${fmtDate(p.createdate)}
+            </div>
+            ${p.closedate ? `<div class="deal-card-meta-row">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Close: ${fmtDate(p.closedate)}
+            </div>` : ''}
+          </div>
+          <div class="deal-card-activity">Last activity: ${timeAgo(p.hs_lastmodifieddate)}</div>`;
+        col.appendChild(card);
+      });
+    }
+    board.appendChild(col);
+  });
+
+  // Update footer
+  const totalNote = document.getElementById('drawer-total-note');
+  const subtitle = document.getElementById('drawer-subtitle');
+  totalNote.textContent = `${totalDeals} deal${totalDeals !== 1 ? 's' : ''} · ${fmtAmount(String(totalValue))} total`;
+  subtitle.textContent = filterStage === 'all'
+    ? `All stages · ${totalDeals} deals`
+    : `${AGENCY_STAGE_CONFIG.find(s=>s.id===filterStage)?.label} · ${totalDeals} deals`;
+}
+
+function filterDrawer(stageId, btn) {
+  activeDrawerStage = stageId;
+  document.querySelectorAll('.drawer-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderDealBoard(stageId);
+}
+
+async function openDealDrawer(stageId) {
+  document.getElementById('deal-drawer-overlay').classList.add('open');
+  document.getElementById('deal-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  await loadDealBoard();
+
+  // Activate the right filter button
+  const targetStage = stageId || 'all';
+  const btn = document.querySelector(`.drawer-filter-btn[data-stage="${targetStage}"]`);
+  filterDrawer(targetStage, btn);
+}
+
+function closeDealDrawer() {
+  document.getElementById('deal-drawer-overlay').classList.remove('open');
+  document.getElementById('deal-drawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Keyboard escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDrawer(); });
+
 </body>
 </html>
