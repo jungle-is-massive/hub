@@ -913,6 +913,15 @@ async function loadLinkedInConnections() {
   }
 }
 
+// Row 2 box name → drawer stage filter (module-level to avoid re-declaration in forEach)
+const BOX_DRAWER_MAP = {
+  'Opportunities': 'all',
+  'Pitches':       '3846843580',
+  'Won':           null,
+  'Lost':          '3846843582',
+  'Declined':      null,
+};
+
 // ─────────────────────────────────────────────
 // FUNNEL STAGES — Supabase structure + live HubSpot counts
 // Lifecycle counts (row 1) via hs-proxy; deal stage counts (row 2) from dashboardData + direct queries
@@ -1014,27 +1023,21 @@ async function loadFunnelStages() {
       box.style.animationDelay = (0.04 + i * 0.03) + 's';
       box.title = s.description || '';
 
-      // Map row 2 box names to Agency Pipeline stage IDs for drawer filtering
-      const DRAWER_STAGE_MAP = {
-        'Opportunities': 'all',        // shows all active pre-pitch stages
-        'Pitches':       '3846843580', // Pitch / Proposal
-        'Won':           null,
-        'Lost':          '3846843582',
-        'Declined':      null,
-      };
-      const drawerStage = !isLifecycle ? DRAWER_STAGE_MAP[s.name] : undefined;
+      // Map row 2 box names to Agency Pipeline stage IDs for drawer
+      // Defined outside forEach to avoid const re-declaration error
+      const drawerStage = !isLifecycle ? BOX_DRAWER_MAP[s.name] : undefined;
       const isClickable = drawerStage !== undefined && drawerStage !== null;
+
+      box.innerHTML = `
+        <div class="funnel-box-num">${fmt(s.stage_order)}</div>
+        <div class="funnel-box-name">${s.name}${isClickable ? '<span style="font-size:8px;opacity:0.4;margin-left:4px">↗</span>' : ''}</div>
+        <div class="funnel-box-count${hasCount ? ' live' : ''}">${fmtCount(rawCount)}</div>`;
 
       if (isClickable) {
         box.style.cursor = 'pointer';
         box.title = 'Click to view deals';
         box.addEventListener('click', () => openDealDrawer(drawerStage === 'all' ? null : drawerStage));
       }
-
-      box.innerHTML = `
-        <div class="funnel-box-num">${fmt(s.stage_order)}</div>
-        <div class="funnel-box-name">${s.name}${isClickable ? '<span style="font-size:8px;opacity:0.5;margin-left:4px">↗</span>' : ''}</div>
-        <div class="funnel-box-count${hasCount ? ' live' : ''}">${fmtCount(rawCount)}</div>`;
       (isLifecycle ? row1El : row2El).appendChild(box);
     });
   } catch(e) {
