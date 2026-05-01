@@ -853,23 +853,18 @@ const SUPABASE_KEY = (window.JUNGLE_CONFIG||{}).SB_KEY||'';
 // ── Jungle Sales Pipeline (id: default) ──────────────────────────
 const SALES_PIPELINE = 'default';
 const STAGE_LABELS = {
-  '3461833917':        'Nurture Ops',
-  'appointmentscheduled': 'Ingen Ops',
-  '3461833918':        'Website Ops',
-  '2118438124':        'MQL',
-  'qualifiedtobuy':    'Intro & Creds',
-  'presentationscheduled': 'RFP Brief',
-  'decisionmakerboughtin': 'RFP Qualification',
-  '1745854675':        'RFP Response',
-  'contractsent':      'Negotiation',
-  'closedwon':         'Closed Won',
-  'closedlost':        'Closed Lost',
-  '2118008022':        'Hold',
+  '3846842616': 'Cold Outreach',
+  '3846842617': 'Opportunity',
+  '3846843578': 'Warm',
+  '3846843579': 'Qualified',
+  '3846843580': 'Pitch / Proposal',
+  '3846843581': 'Contracts',
+  '3846843582': 'Closed Lost',
 };
-// Stages that map to deal pipeline horizon lanes
-const NOW_STAGES  = ['1745854675', 'contractsent'];              // RFP Response + Negotiation (active pitches)
-const NEXT_STAGES = ['qualifiedtobuy','presentationscheduled','decisionmakerboughtin']; // Intro/RFP stages
-const EXCL_STAGES = ['closedwon','closedlost'];                  // Closed stages
+// Agency Pipeline — horizon lane mapping
+const NOW_STAGES  = ['3846843580', '3846843581'];   // Pitch/Proposal + Contracts (active pitches)
+const NEXT_STAGES = ['3846842617', '3846843578', '3846843579']; // Opportunity + Warm + Qualified
+const EXCL_STAGES = ['3846843582'];                 // Closed Lost
 
 // Legacy Agency Pipeline constant kept for reference — no longer used for counts
 const AGENCY_PIPELINE = '2808364263';
@@ -1218,9 +1213,8 @@ async function loadDeals() {
       },
       body: JSON.stringify({
         filterGroups: [{ filters: [
-          { propertyName: 'pipeline',  operator: 'EQ',  value: SALES_PIPELINE },
-          { propertyName: 'dealstage', operator: 'NEQ', value: 'closedwon' },
-          { propertyName: 'dealstage', operator: 'NEQ', value: 'closedlost' }
+          { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
+          { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' }
         ]}],
         properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
         sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
