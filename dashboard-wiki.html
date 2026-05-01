@@ -118,7 +118,7 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
 </div>
 
 <main>
-  <div class="page-eyebrow">Data documentation · April 2026</div>
+  <div class="page-eyebrow">Data documentation · May 2026</div>
   <div class="page-title">How the dashboard<br>is wired up.</div>
   <div class="page-sub">A plain-English guide to where every number on the activity dashboard comes from — which system it pulls from, what filters are applied, and what the known gaps are. Updated as the setup evolves.</div>
 
@@ -129,8 +129,10 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
       <li><a href="#sources"><span class="toc-num">01</span>Data sources</a></li>
       <li><a href="#stat-cards"><span class="toc-num">02</span>The four stat cards</a></li>
       <li><a href="#opp-tracking"><span class="toc-num">03</span>Deal Opportunity Tracking</a></li>
-      <li><a href="#funnel-stages"><span class="toc-num">04</span>Prospect Funnel Stages</a></li>
-      <li><a href="#gaps"><span class="toc-num">05</span>Known gaps &amp; next steps</a></li>
+      <li><a href="#deal-source"><span class="toc-num">04</span>Deal Source &amp; Intermediary breakdown</a></li>
+      <li><a href="#funnel-stages"><span class="toc-num">05</span>Prospect Funnel Stages</a></li>
+      <li><a href="#hubspot-properties"><span class="toc-num">06</span>HubSpot deal properties reference</a></li>
+      <li><a href="#gaps"><span class="toc-num">07</span>Known gaps &amp; next steps</a></li>
     </ul>
   </div>
 
@@ -139,25 +141,16 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
     <div class="section-eyebrow">01</div>
     <div class="section-title">Data sources</div>
     <div class="section-body">
-      <p>The dashboard pulls from three systems. Each one owns a specific part of the picture — they are not duplicates of each other.</p>
+      <p>The dashboard pulls from two systems. HubSpot is the authoritative source for all pipeline and deal data. Synergist was previously used for the Now lane and deal counts but has been removed — it was causing double-counting. Any opportunity worth tracking must now be logged in HubSpot first.</p>
     </div>
     <div class="source-grid">
       <div class="source-card">
         <div class="source-card-header">
           <div class="source-card-title">HubSpot</div>
-          <span class="source-tag tag-hubspot">CRM</span>
+          <span class="source-tag tag-hubspot">CRM · Primary source</span>
         </div>
         <div class="source-card-body">
-          The primary source for <strong>contacts, lifecycle stages, and deals</strong>. The dashboard queries HubSpot via a Supabase edge function proxy (<code>hs-proxy</code>) to avoid CORS issues. Two object types are used: <strong>Contacts</strong> (for Prospect Funnel Stages) and <strong>Deals</strong> (for Deal Opportunity Tracking). All deal queries are scoped to the <strong>Agency Pipeline</strong> only.
-        </div>
-      </div>
-      <div class="source-card">
-        <div class="source-card-header">
-          <div class="source-card-title">Synergist</div>
-          <span class="source-tag tag-synergist">Project System</span>
-        </div>
-        <div class="source-card-body">
-          Jungle's internal project management system. Used for the <strong>Open Deals stat card</strong> — specifically the "live" count of active opportunities being handled by Kitty Lewis-Williams, Jade Raad, or Coris Leachman. Queried via the same <code>hs-proxy</code> edge function using a separate Synergist target.
+          The sole source of truth for <strong>contacts, lifecycle stages, and deals</strong>. The dashboard queries HubSpot via a Supabase edge function proxy (<code>hs-proxy</code>) to avoid CORS issues. Two object types are used: <strong>Contacts</strong> (for Prospect Funnel Stages) and <strong>Deals</strong> (for all pipeline data). All deal queries — including the Now/Next/Future lanes, the pipeline value stat, and the deal source breakdown — are scoped to the <strong>Agency Pipeline</strong> only (<code>2808364263</code>).
         </div>
       </div>
       <div class="source-card">
@@ -166,9 +159,14 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
           <span class="source-tag tag-supabase">Database</span>
         </div>
         <div class="source-card-body">
-          Jungle's own database. Used to store the <strong>funnel stage definitions</strong> — the list of boxes, their labels, order, and metadata (e.g. which is MQL, which is SQL). This means the funnel structure can be updated without touching code. Supabase also stores contacts imported from Dripify.
+          Jungle's own database. Stores the <strong>funnel stage definitions</strong> — the list of boxes, their labels, order, and metadata (e.g. which maps to MQL, which to SQL). This means the funnel structure can be updated without touching code. Supabase also stores contacts imported from Dripify, and serves as the proxy layer that the dashboard's edge function routes through.
         </div>
       </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-icon">📌</div>
+      <div class="callout-body"><strong>The discipline:</strong> if an opportunity isn't logged in HubSpot, it won't appear on the dashboard. That's intentional. HubSpot is the forcing function — every deal needs to move through Opportunity → Pitch → Won or Declined within the Agency Pipeline for the numbers to be accurate.</div>
     </div>
   </div>
   <div class="section-divider"></div>
@@ -192,27 +190,27 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
       <tbody>
         <tr>
           <td>Open Deals<span class="mono">stat-deals</span></td>
-          <td><span class="pill pill-sb">Synergist + HubSpot</span></td>
-          <td>Combined count of live Synergist opps + active HubSpot deals in Agency Pipeline</td>
-          <td>Synergist: Open status, active stages, handled by Kitty/Jade/Coris. HubSpot: Agency Pipeline, not Closed Lost.</td>
+          <td><span class="pill pill-hs">HubSpot</span></td>
+          <td>Total open deals in the Agency Pipeline — excludes Closed Lost, Closed Won, and Declined</td>
+          <td>Agency Pipeline only. All three closed stages excluded via separate NEQ filters.</td>
+        </tr>
+        <tr>
+          <td>Active Pipeline<span class="mono">stat-pipeline</span></td>
+          <td><span class="pill pill-hs">HubSpot</span></td>
+          <td>Total £ value of open Agency Pipeline deals, measured against a £6m target (3:1 on £2m revenue target)</td>
+          <td>Same deal set as Open Deals. Progress bar shows % of £6m target covered. Cover ratio shown as X:1 against £2m.</td>
         </tr>
         <tr>
           <td>Fresh Inquiries<span class="mono">stat-inquiries</span></td>
           <td><span class="pill pill-hs">HubSpot</span></td>
-          <td>Contacts recently created in HubSpot that have been flagged as BD interest</td>
-          <td>Recency filter applied. Intended to surface net-new inbound.</td>
-        </tr>
-        <tr>
-          <td>Active Pipeline<span class="mono">stat-pipeline</span></td>
-          <td><span class="pill pill-hs">HubSpot + Synergist</span></td>
-          <td>Total £ value of active deals, measured against a £6m pipeline target (3:1 on £2m revenue target)</td>
-          <td>Same as Open Deals. Progress bar shows % of £6m target covered.</td>
+          <td>Contacts recently created in HubSpot that have been BD-flagged</td>
+          <td>Flagged via the BD star in the Fresh Enquiries tab of the opportunities dashboard.</td>
         </tr>
         <tr>
           <td>Meetings<span class="mono">stat-meetings</span></td>
           <td><span class="pill pill-dash">Google Calendar</span></td>
           <td>Upcoming meetings (next 30 days) and attended meetings (last 30 days) tagged #nbm or #netm in calendar</td>
-          <td>Requires Google Calendar to be connected. Tags must be in event title.</td>
+          <td>Requires Google Calendar to be connected. Tags must appear in the event title.</td>
         </tr>
       </tbody>
     </table>
@@ -225,12 +223,13 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
     <div class="section-title">Deal Opportunity Tracking</div>
     <div class="section-body">
       <p>The five boxes immediately below the stat cards. These count <strong>deals</strong> in HubSpot — specifically in the <strong>Agency Pipeline</strong>. Each box maps to one or more deal stages in that pipeline.</p>
-      <p>Opportunities and Pitches pull from the active deals already loaded for the stat cards. Won and Lost run separate queries because closed stages are excluded from the main active deals fetch.</p>
+      <p>Opportunities and Pitches pull from the active deals already loaded for the stat cards. Won, Lost, and Declined run separate parallel queries because all three closed stages are excluded from the main active deals fetch to keep pipeline numbers clean.</p>
+      <p>Below the boxes, the <strong>Now / Next / Future lanes</strong> break open deals into three horizons. All three pull from the same Agency Pipeline dataset — no other source is used.</p>
     </div>
 
     <div class="callout">
       <div class="callout-icon">⚠️</div>
-      <div class="callout-body"><strong>Agency Pipeline only.</strong> There are four pipelines in HubSpot (Jungle Sales Pipeline, Agency Pipeline, Partnerships, IP Sponsorship). This section deliberately shows Agency Pipeline only — the one Coris is actively managing BD in. The others are not counted here.</div>
+      <div class="callout-body"><strong>Agency Pipeline only.</strong> There are multiple pipelines in HubSpot (Jungle Sales Pipeline, Agency Pipeline, Partnerships, IP Sponsorship). This section deliberately shows Agency Pipeline only (<code>2808364263</code>) — the one Coris is actively managing BD in. The others are not counted here.</div>
     </div>
 
     <table class="box-table">
@@ -247,40 +246,85 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
           <td>07 · Opportunities</td>
           <td>Cold outreach, Response, Warm, Qualified</td>
           <td><span class="mono">3846842616, 3846842617, 3846843578, 3846843579</span></td>
-          <td>All active pre-pitch stages. Includes deals at any early stage of the Agency Pipeline.</td>
+          <td>All active pre-pitch stages. Also maps to the <strong>Next</strong> and <strong>Future</strong> lanes in the open deals view.</td>
         </tr>
         <tr>
           <td>08 · Pitches</td>
           <td>Pitch / Proposal, Contracts</td>
           <td><span class="mono">3846843580, 3846843581</span></td>
-          <td>Active pitches and deals in contract stage.</td>
+          <td>Active pitches and deals in contract stage. Maps to the <strong>Now</strong> lane in the open deals view.</td>
         </tr>
         <tr>
           <td>09 · Won</td>
-          <td>—</td>
-          <td>—</td>
-          <td>Agency Pipeline has no Closed Won stage. Shows — until a Won stage is added in HubSpot or mapped to another pipeline.</td>
+          <td>Closed Won</td>
+          <td><span class="mono">5277858030</span></td>
+          <td>Added to Agency Pipeline on 1 May 2026. Runs as a separate query. Excluded from active pipeline value and open deal count.</td>
         </tr>
         <tr>
           <td>10 · Lost</td>
           <td>Closed Lost</td>
           <td><span class="mono">3846843582</span></td>
-          <td>Separate query — this stage is excluded from the active deals fetch so it runs independently.</td>
+          <td>Separate query — excluded from the active deals fetch so it doesn't inflate pipeline value.</td>
         </tr>
         <tr>
           <td>11 · Declined</td>
-          <td>—</td>
-          <td>—</td>
-          <td>No HubSpot equivalent yet. Placeholder for when a Declined stage is added to the pipeline.</td>
+          <td>Declined</td>
+          <td><span class="mono">5277854954</span></td>
+          <td>Added to Agency Pipeline on 1 May 2026. Separate from Lost — for deals where the prospect declined rather than Jungle losing competitively. Runs as a separate query.</td>
         </tr>
       </tbody>
     </table>
   </div>
   <div class="section-divider"></div>
 
-  <!-- 04 PROSPECT FUNNEL STAGES -->
-  <div class="wiki-section" id="funnel-stages">
+  <!-- 04 DEAL SOURCE & INTERMEDIARY BREAKDOWN -->
+  <div class="wiki-section" id="deal-source">
     <div class="section-eyebrow">04</div>
+    <div class="section-title">Deal Source &amp; Intermediary breakdown</div>
+    <div class="section-body">
+      <p>Two HubSpot deal properties added on 1 May 2026 to enable channel-level attribution across the pipeline. Both appear on deal cards in the Now/Next/Future lanes and in the deal drawer.</p>
+    </div>
+
+    <table class="box-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Internal name</th>
+          <th>Type</th>
+          <th>Values</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Deal Source<span class="mono">deal_source</span></td>
+          <td><span class="mono">deal_source</span></td>
+          <td>Dropdown (single)</td>
+          <td>Cold Inbound, Client Referral, Staff Referral, Intermediary, Owned event, Speaking event, Paid/SEO, Organic social, PR</td>
+        </tr>
+        <tr>
+          <td>Intermediaries<span class="mono">intermediaries</span></td>
+          <td><span class="mono">intermediaries</span></td>
+          <td>Dropdown (single) — conditional</td>
+          <td>AAR, Ingenuity+, Creativebrief, Oystercatchers, Observatory International, Tuffon Hall, Auditstar, Individual Consultants, Masterclassing, The GO Network, Advertising Association</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body"><strong>Conditional logic:</strong> the Intermediaries field is hidden in HubSpot unless Deal Source = Intermediary. This is enforced via HubSpot's conditional logic (Properties → Conditional Logic), created 1 May 2026. It prevents the field being filled in for non-intermediary deals, keeping attribution clean.</div>
+    </div>
+
+    <div class="section-body" style="margin-top:20px">
+      <p><strong>Deal Source breakdown bar</strong> — sits between the Deal Opportunity Tracking boxes and the Prospect Funnel Stages. Shows colour-coded pills, one per source, with a live deal count. Deals with no source tagged show as "Untagged" at reduced opacity. The <strong>Intermediary pill is clickable</strong> — tapping it slides open the Intermediary Pipeline comparison table below it.</p>
+      <p><strong>Intermediary Pipeline — Actual vs Estimated</strong> — a table comparing actual intermediary-sourced deal value (from HubSpot) against the projected pipeline figures set in the intermediary plan. Estimated figures use the same 30% conversion rate as the intermediary plan dashboard. Each row shows a dual-layer progress bar: the grey layer is the estimate, the coloured layer is actual (green ≥100%, amber ≥50%, coral below). This section is collapsed by default and expands when the Intermediary source pill is clicked.</p>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 05 PROSPECT FUNNEL STAGES -->
+  <div class="wiki-section" id="funnel-stages">
+    <div class="section-eyebrow">05</div>
     <div class="section-title">Prospect Funnel Stages</div>
     <div class="section-body">
       <p>The six boxes in the bottom row. These count <strong>contacts</strong> in HubSpot by their lifecycle stage — not deals. A contact's lifecycle stage is a separate property to what pipeline their deal sits in.</p>
@@ -289,7 +333,7 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
 
     <div class="callout">
       <div class="callout-icon">ℹ️</div>
-      <div class="callout-body"><strong>Contacts, not deals.</strong> A contact tagged as Opportunity lifecycle stage (45 currently) is not the same as 45 deals in the Opportunity deal stage. Lifecycle stage tracks where a person is in the relationship — deals track active commercial conversations. Both matter, but they answer different questions.</div>
+      <div class="callout-body"><strong>Contacts, not deals.</strong> A contact tagged as Opportunity lifecycle stage is not the same as a deal in the Opportunity deal stage. Lifecycle stage tracks where a person is in the relationship — deals track active commercial conversations. Both matter, but they answer different questions.</div>
     </div>
 
     <table class="box-table">
@@ -298,7 +342,7 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
           <th>Box</th>
           <th>HubSpot lifecycle stage</th>
           <th>Internal name</th>
-          <th>Live count (Apr 2026)</th>
+          <th>Notes</th>
         </tr>
       </thead>
       <tbody>
@@ -306,80 +350,143 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
           <td>01 · Lead</td>
           <td>Lead</td>
           <td><span class="mono">lead</span></td>
-          <td>~9,131</td>
+          <td>All contacts at the earliest lifecycle stage.</td>
         </tr>
         <tr>
           <td>02 · MQL</td>
           <td>Marketing Qualified Lead</td>
           <td><span class="mono">marketingqualifiedlead</span></td>
-          <td>~126</td>
+          <td>Contacts who have met the MQL criteria (3+ content touches, 2+ email opens, fits ICP).</td>
         </tr>
         <tr>
           <td>03 · SQL</td>
           <td>Sales Qualified Lead</td>
           <td><span class="mono">salesqualifiedlead</span></td>
-          <td>0</td>
+          <td>Currently shows 0 — SQL criteria and the MQL→SQL process have not been defined yet. Accurate data, not a bug.</td>
         </tr>
         <tr>
           <td>04 · Opportunity</td>
           <td>Opportunity</td>
           <td><span class="mono">opportunity</span></td>
-          <td>~45–67 (fluctuates)</td>
+          <td>Contacts with an active commercial conversation.</td>
         </tr>
         <tr>
           <td>05 · Customer</td>
           <td>Customer</td>
           <td><span class="mono">customer</span></td>
-          <td>~2–4</td>
+          <td>Contacts whose deal has been won.</td>
         </tr>
         <tr>
           <td>06 · Nurturing</td>
           <td>—</td>
           <td>—</td>
-          <td>No HubSpot lifecycle stage mapped yet. Shows — until a custom Nurturing stage is created in HubSpot Contacts settings.</td>
+          <td>No HubSpot lifecycle stage mapped yet. HubSpot does support custom lifecycle stages — can be added in Settings → Objects → Contacts → Lifecycle Stage when ready.</td>
         </tr>
       </tbody>
     </table>
   </div>
   <div class="section-divider"></div>
 
-  <!-- 05 KNOWN GAPS -->
+  <!-- 06 HUBSPOT PROPERTIES REFERENCE -->
+  <div class="wiki-section" id="hubspot-properties">
+    <div class="section-eyebrow">06</div>
+    <div class="section-title">HubSpot deal properties reference</div>
+    <div class="section-body">
+      <p>A reference of all custom deal properties the dashboard reads from HubSpot. Standard HubSpot properties (dealname, amount, closedate etc.) are not listed.</p>
+    </div>
+    <table class="box-table">
+      <thead>
+        <tr>
+          <th>Property label</th>
+          <th>Internal name</th>
+          <th>Added</th>
+          <th>Used for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Deal Source</td>
+          <td><span class="mono">deal_source</span></td>
+          <td>1 May 2026</td>
+          <td>Deal Source breakdown pills. Channel attribution on deal cards and in the deal drawer.</td>
+        </tr>
+        <tr>
+          <td>Intermediaries</td>
+          <td><span class="mono">intermediaries</span></td>
+          <td>1 May 2026</td>
+          <td>Intermediary Pipeline comparison table. Only populated when Deal Source = Intermediary (conditional logic enforced in HubSpot). Used to map actual deal value against estimated pipeline per intermediary.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-body" style="margin-top:20px">
+      <p><strong>Agency Pipeline stages — full reference</strong></p>
+    </div>
+    <table class="box-table">
+      <thead>
+        <tr>
+          <th>Stage label</th>
+          <th>Stage ID</th>
+          <th>Active / Closed</th>
+          <th>Dashboard lane</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Cold outreach</td><td><span class="mono">3846842616</span></td><td>Active</td><td>Future</td></tr>
+        <tr><td>Response (Opportunity)</td><td><span class="mono">3846842617</span></td><td>Active</td><td>Next</td></tr>
+        <tr><td>Warm</td><td><span class="mono">3846843578</span></td><td>Active</td><td>Next</td></tr>
+        <tr><td>Qualified</td><td><span class="mono">3846843579</span></td><td>Active</td><td>Next</td></tr>
+        <tr><td>Pitch / Proposal</td><td><span class="mono">3846843580</span></td><td>Active</td><td>Now</td></tr>
+        <tr><td>Contracts</td><td><span class="mono">3846843581</span></td><td>Active</td><td>Now</td></tr>
+        <tr><td>Closed Lost</td><td><span class="mono">3846843582</span></td><td>Closed</td><td>Excluded</td></tr>
+        <tr><td>Closed Won</td><td><span class="mono">5277858030</span></td><td>Closed</td><td>Excluded — added 1 May 2026</td></tr>
+        <tr><td>Declined</td><td><span class="mono">5277854954</span></td><td>Closed</td><td>Excluded — added 1 May 2026</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 07 KNOWN GAPS -->
   <div class="wiki-section" id="gaps">
-    <div class="section-eyebrow">05</div>
+    <div class="section-eyebrow">07</div>
     <div class="section-title">Known gaps &amp; next steps</div>
     <div class="section-body">
-      <p>Things that are intentionally deferred, pending a decision, or blocked on HubSpot configuration access.</p>
+      <p>Things that are intentionally deferred, pending a decision, or blocked on configuration.</p>
     </div>
     <ul class="gap-list">
       <li>
         <div class="gap-dot"></div>
-        <div><strong>Won (box 09) always shows —</strong> — Agency Pipeline has no Closed Won stage. Options: add one in HubSpot (Settings → Objects → Deals → Pipelines → Agency Pipeline → Add stage), or map Won to pull from a different pipeline. Needs a decision on which is right for the business.</div>
+        <div><strong>SQL (box 03) shows 0</strong> — There are currently no contacts tagged as Sales Qualified Lead in HubSpot. This is accurate — the criteria and process for moving contacts from MQL to SQL hasn't been defined yet. Needs a working definition before the number will move.</div>
       </li>
       <li>
         <div class="gap-dot"></div>
-        <div><strong>Declined (box 11) always shows —</strong> — No equivalent stage exists in HubSpot yet. To be added to Agency Pipeline when the team is ready to track this separately from Lost.</div>
+        <div><strong>Nurturing (box 06) always shows —</strong> — No HubSpot lifecycle stage mapped yet. Can be added as a custom lifecycle stage in HubSpot (Settings → Objects → Contacts → Lifecycle Stage) when the team is ready to start tracking this cohort separately.</div>
       </li>
       <li>
         <div class="gap-dot"></div>
-        <div><strong>Nurturing (box 06) always shows —</strong> — HubSpot's lifecycle stage list doesn't have a Nurturing option by default. Can be added as a custom lifecycle stage in HubSpot (Settings → Objects → Contacts → Lifecycle Stage). Confirmed that HubSpot does allow custom lifecycle stages.</div>
-      </li>
-      <li>
-        <div class="gap-dot"></div>
-        <div><strong>SQL (box 03) shows 0</strong> — There are currently zero contacts tagged as Sales Qualified Lead in HubSpot. This is accurate data, not a bug — SQL criteria and the process for moving contacts from MQL to SQL hasn't been defined yet.</div>
+        <div><strong>Deal Source not yet tagged on all open deals</strong> — As of 1 May 2026, 1 of 4 open deals has no Deal Source set (shows as "Untagged" on the dashboard). Needs to be completed in HubSpot for the source breakdown to be accurate.</div>
       </li>
       <li>
         <div class="gap-dot grey"></div>
-        <div><strong>Jungle Sales Pipeline not currently tracked</strong> — There are 21 deals in the Jungle Sales Pipeline (the default pipeline) which are not shown anywhere on this dashboard. This was a deliberate decision as of April 2026 — Coris is focused on Agency Pipeline. To be revisited once there is clarity on which pipeline the team considers primary.</div>
+        <div><strong>Jungle Sales Pipeline not tracked</strong> — There are deals in the default Jungle Sales Pipeline which are not shown anywhere on this dashboard. Deliberate decision as of May 2026 — Coris is focused on Agency Pipeline. To be revisited once there is clarity on which pipeline is primary.</div>
       </li>
       <li>
         <div class="gap-dot green"></div>
-        <div><strong>Data source documentation per box</strong> — A slide-in panel explaining the source for each box is planned for the dashboard. Deferred until the numbers are confirmed as correct and stable.</div>
+        <div><strong>Won (box 09) — resolved</strong> — Closed Won stage added to Agency Pipeline on 1 May 2026 (ID: <code>5277858030</code>). Now shows a live count from HubSpot.</div>
+      </li>
+      <li>
+        <div class="gap-dot green"></div>
+        <div><strong>Declined (box 11) — resolved</strong> — Declined stage added to Agency Pipeline on 1 May 2026 (ID: <code>5277854954</code>). Runs as a separate query alongside Lost.</div>
+      </li>
+      <li>
+        <div class="gap-dot green"></div>
+        <div><strong>Double-counting in pipeline value — resolved</strong> — Dashboard previously pulled open deals from both Synergist (Now lane) and HubSpot (Next/Future lanes), causing inflated pipeline value. All deal data now comes exclusively from HubSpot Agency Pipeline.</div>
       </li>
     </ul>
   </div>
 
   <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);letter-spacing:0.08em;padding-top:12px;border-top:1px solid var(--grey-light)">
-    Last updated: April 2026 · Maintained by Coris Leachman
+    Last updated: May 2026 · Maintained by Coris Leachman
   </div>
 
 </main>
