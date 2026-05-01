@@ -860,11 +860,13 @@ const STAGE_LABELS = {
   '3846843580': 'Pitch / Proposal',
   '3846843581': 'Contracts',
   '3846843582': 'Closed Lost',
+  '5277858030': 'Closed Won',
+  '5277854954': 'Declined',
 };
 // Agency Pipeline — horizon lane mapping
 const NOW_STAGES  = ['3846843580', '3846843581'];   // Pitch/Proposal + Contracts (active pitches)
 const NEXT_STAGES = ['3846842617', '3846843578', '3846843579']; // Opportunity + Warm + Qualified
-const EXCL_STAGES = ['3846843582'];                 // Closed Lost
+const EXCL_STAGES = ['3846843582', '5277858030', '5277854954']; // Closed Lost + Won + Declined
 
 // Legacy Agency Pipeline constant kept for reference — no longer used for counts
 const AGENCY_PIPELINE = '2808364263';
@@ -911,9 +913,9 @@ async function loadLinkedInConnections() {
 const BOX_DRAWER_MAP = {
   'Opportunities': 'all',
   'Pitches':       '3846843580',
-  'Won':           null,
+  'Won':           '5277858030',
   'Lost':          '3846843582',
-  'Declined':      null,
+  'Declined':      '5277854954',
 };
 
 // ─────────────────────────────────────────────
@@ -935,8 +937,9 @@ const DEAL_STAGE_MAP = {
   'Opportunities': ['3846842616','3846842617','3846843578','3846843579'],
   // Pitches = Pitch / Proposal + Contracts
   'Pitches':       ['3846843580','3846843581'],
-  'Won':           [],  // No Closed Won stage in Agency Pipeline
+  'Won':           ['5277858030'],
   'Lost':          ['3846843582'],
+  'Declined':      ['5277854954'],
 };
 
 async function loadFunnelStages() {
@@ -980,24 +983,29 @@ async function loadFunnelStages() {
       dealCounts['Opportunities'] = allDeals.filter(d => DEAL_STAGE_MAP['Opportunities'].includes(d.properties?.dealstage)).length;
       dealCounts['Pitches']       = allDeals.filter(d => DEAL_STAGE_MAP['Pitches'].includes(d.properties?.dealstage)).length;
 
-      // Lost needs a separate query — excluded from active deals filter (NEQ closedlost)
-      // Won stays null — Agency Pipeline has no Closed Won stage
-      dealCounts['Won'] = null;
-      try {
-        const lostRes = await fetch(HS_PROXY, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/deals/search', 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filterGroups: [{ filters: [
-              { propertyName: 'pipeline',  operator: 'EQ', value: AGENCY_PIPELINE },
-              { propertyName: 'dealstage', operator: 'EQ', value: '3846843582' }
-            ]}],
-            properties: ['dealstage'], limit: 1
-          })
-        });
-        const lostData = await lostRes.json();
-        dealCounts['Lost'] = lostData.total ?? null;
-      } catch(e) { console.warn('Lost count failed:', e); dealCounts['Lost'] = null; }
+      // Won, Lost, Declined — separate queries as these are excluded from the active deals filter
+      const closedStageQueries = [
+        { key: 'Won',      stage: '5277858030' },
+        { key: 'Lost',     stage: '3846843582' },
+        { key: 'Declined', stage: '5277854954' },
+      ];
+      await Promise.all(closedStageQueries.map(async ({ key, stage }) => {
+        try {
+          const res = await fetch(HS_PROXY, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/deals/search', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filterGroups: [{ filters: [
+                { propertyName: 'pipeline',  operator: 'EQ', value: AGENCY_PIPELINE },
+                { propertyName: 'dealstage', operator: 'EQ', value: stage }
+              ]}],
+              properties: ['dealstage'], limit: 1
+            })
+          });
+          const data = await res.json();
+          dealCounts[key] = data.total ?? null;
+        } catch(e) { console.warn(`${key} count failed:`, e); dealCounts[key] = null; }
+      }));
     } catch(e) { console.warn('Deal stage counts failed:', e); }
 
     // 4. Render boxes
@@ -1214,7 +1222,9 @@ async function loadDeals() {
       body: JSON.stringify({
         filterGroups: [{ filters: [
           { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
-          { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' }
+          { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' },
+          { propertyName: 'dealstage', operator: 'NEQ', value: '5277858030' },
+          { propertyName: 'dealstage', operator: 'NEQ', value: '5277854954' }
         ]}],
         properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
         sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
@@ -2088,6 +2098,8 @@ const AGENCY_STAGE_CONFIG = [
   { id: '3846843580', label: 'Pitch / Proposal', accent: '#FF6B4A', prob: '40%' },
   { id: '3846843581', label: 'Contracts',        accent: '#87FB66', prob: '90%' },
   { id: '3846843582', label: 'Closed Lost',      accent: '#555',    prob: '0%'  },
+  { id: '5277858030', label: 'Closed Won',       accent: '#3ECF8E', prob: '100%'},
+  { id: '5277854954', label: 'Declined',         accent: '#FF6B4A', prob: '0%'  },
 ];
 
 // Owner ID → name (resolved from known deal data; owners API requires extra scope)
@@ -2278,6 +2290,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
     <button class="drawer-filter-btn" data-stage="3846843580" onclick="filterDrawer('3846843580',this)">Pitch / Proposal</button>
     <button class="drawer-filter-btn" data-stage="3846843581" onclick="filterDrawer('3846843581',this)">Contracts</button>
     <button class="drawer-filter-btn" data-stage="3846843582" onclick="filterDrawer('3846843582',this)">Closed Lost</button>
+    <button class="drawer-filter-btn" data-stage="5277858030" onclick="filterDrawer('5277858030',this)">Closed Won</button>
+    <button class="drawer-filter-btn" data-stage="5277854954" onclick="filterDrawer('5277854954',this)">Declined</button>
   </div>
   <div id="deal-board"></div>
   <div id="deal-drawer-footer">
