@@ -1199,92 +1199,44 @@ function renderMeetings(tab) {
 }
 
 // ─────────────────────────────────────────────
-// DEALS — NOW from Synergist, NEXT+FUTURE from HubSpot Agency Pipeline
+// DEALS — all from HubSpot (source of truth for pipeline)
+// NOW = RFP Response + Negotiation
+// NEXT = Intro / RFP stages
+// FUTURE = everything else (excl. Closed)
 // ─────────────────────────────────────────────
-
-// NOW lane — Synergist active opp stages
-// Exactly matches OPP_ACTIVE_STAGES in the playground Live Opportunities tab
-const SYN_NOW_STAGES = new Set([
-  'RTB','RTB & Pitch','RFI (Request for Info)',
-  'Further Development Req','Nurture/Future Opportunity',
-  'Headline Proposal','Negotiation/Feedback Loop',
-  'Presented & Awaiting Feedback'
-]);
-
-async function loadNowFromSynergist() {
-  // Paginate through all Synergist opps to find active ones
-  let all = [], page = 1, total = null;
-  while (true) {
-    const res = await fetch(HS_PROXY, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'x-proxy-target': 'synergist',
-        'x-syn-params': JSON.stringify({ endpoint: 'jobs.json', modelstructure: 'opportunitylist', rows: '200', page: String(page) })
-      }
-    });
-    if (!res.ok) throw new Error(`Synergist ${res.status}`);
-    const d = await res.json();
-    all = all.concat(d.data || []);
-    if (total === null) total = parseInt(d.totalrows || '0');
-    if (all.length >= total || !d.data?.length) break;
-    page++;
-    if (page > 10) break; // safety cap
-  }
-  // Deduplicate by jobNumber (Synergist repeats rows across pages in opportunitylist)
-  const seen = new Set();
-  const deduped = all.filter(j => {
-    if (seen.has(j.jobNumber)) return false;
-    seen.add(j.jobNumber);
-    return true;
-  });
-  // Exact same filter as the Live Opportunities tab on the playground dashboard
-  const OPP_HANDLERS = new Set(['Kitty Lewis-Williams','Jade Raad','Coris Leachman']);
-  return deduped.filter(j =>
-    (j.jobSalesStatus || '').startsWith('Open') &&
-    SYN_NOW_STAGES.has(j.jobOppCurrentStatus || '') &&
-    OPP_HANDLERS.has(j.jobHandlerFullName || '')
-  );
-}
 
 async function loadDeals() {
   try {
-    // Run Synergist (NOW) and HubSpot (NEXT+FUTURE) in parallel
-    const [nowJobs, hubspotRes] = await Promise.all([
-      loadNowFromSynergist(),
-      fetch(HS_PROXY, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'x-proxy-target': 'hubspot',
-          'x-hs-path': '/crm/v3/objects/deals/search',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          filterGroups: [{ filters: [
-            { propertyName: 'pipeline',  operator: 'EQ',  value: AGENCY_PIPELINE },
-            { propertyName: 'dealstage', operator: 'NEQ', value: '3846843582' }
-          ]}],
-          properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
-          sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
-          limit: 100
-        })
+    // All pipeline data from HubSpot — single source of truth
+    const hubspotRes = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/deals/search',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filterGroups: [{ filters: [
+          { propertyName: 'pipeline',  operator: 'EQ',  value: SALES_PIPELINE },
+          { propertyName: 'dealstage', operator: 'NOT_IN', values: ['closedwon','closedlost'] }
+        ]}],
+        properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
+        sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
+        limit: 100
       })
-    ]);
+    });
 
     if (!hubspotRes.ok) throw new Error(`HubSpot ${hubspotRes.status}`);
     const hubData = await hubspotRes.json();
     const hsDeals = hubData.results || [];
 
-    // Store separately
-    dashboardData.nowJobs = nowJobs;
+    dashboardData.nowJobs = []; // no longer used; kept for email snapshot compatibility
     dashboardData.deals   = hsDeals;
 
-    // Summary stats — combine both sources
-    const hsValue  = hsDeals.reduce((s, d) => s + (parseFloat(d.properties.amount) || 0), 0);
-    const synValue = nowJobs.reduce((s, j) => s + (j.jobQuotedPrice || 0), 0);
-    const totalValue = hsValue + synValue;
-    const totalCount = nowJobs.length + hsDeals.length;
+    // Summary stats — HubSpot only
+    const totalValue = hsDeals.reduce((s, d) => s + (parseFloat(d.properties.amount) || 0), 0);
+    const totalCount = hsDeals.length;
 
     const PIPELINE_TARGET = 6000000; // £6m = 3:1 on £2m revenue target
     document.getElementById('stat-pipeline').textContent = totalValue >= 1000000
@@ -1297,10 +1249,10 @@ async function loadDeals() {
     document.getElementById('stat-pipeline-bar').style.width = `${pct}%`;
     document.getElementById('stat-pipeline-bar').style.background = pct >= 100 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--coral)';
     document.getElementById('stat-deals').textContent = totalCount;
-    document.getElementById('stat-deals-sub').textContent = `${nowJobs.length} live · ${hsDeals.length} pipeline`;
+    document.getElementById('stat-deals-sub').textContent = `${totalCount} open deal${totalCount !== 1 ? 's' : ''} · HubSpot`;
     document.getElementById('opps-count').textContent = totalCount;
 
-    renderOpportunities(nowJobs, hsDeals);
+    renderOpportunities(hsDeals);
 
   } catch(e) {
     console.error('Deals error:', e);
@@ -1399,57 +1351,17 @@ function renderInquiries(inquiries) {
   });
 }
 
-function renderOpportunities(nowJobs, hsDeals) {
+function renderOpportunities(hsDeals) {
+  const nowDeals    = hsDeals.filter(d => NOW_STAGES.includes(d.properties.dealstage));
   const nextDeals   = hsDeals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
-  const futureDeals = hsDeals.filter(d => !NEXT_STAGES.includes(d.properties.dealstage));
-  renderNowLane(nowJobs);
+  const futureDeals = hsDeals.filter(d =>
+    !NOW_STAGES.includes(d.properties.dealstage) &&
+    !NEXT_STAGES.includes(d.properties.dealstage) &&
+    !EXCL_STAGES.includes(d.properties.dealstage)
+  );
+  renderLane('lane-now',    nowDeals,    '--now');
   renderLane('lane-next',   nextDeals,   '--next');
   renderLane('lane-future', futureDeals, '--future');
-}
-
-function renderNowLane(jobs) {
-  const container = document.getElementById('lane-now');
-  if (!jobs.length) {
-    container.innerHTML = '<div class="empty-state">No live pitches or active briefs in Synergist right now.</div>';
-    return;
-  }
-  container.innerHTML = '';
-  jobs.forEach((j, i) => {
-    const val      = j.jobQuotedPrice > 0
-      ? (j.jobQuotedPrice >= 1000000 ? `£${(j.jobQuotedPrice/1000000).toFixed(1)}m` : `£${Math.round(j.jobQuotedPrice/1000)}k`)
-      : null;
-    const handler  = j.jobHandlerFullName || '';
-    const initials = handler.split(' ').map(p => p[0]).join('').substring(0,2).toUpperCase();
-    const brief    = j.jobDescription1stLine || '';
-    // Deal ageing — use jobCustomField18 (1st Response date) or fall back to today
-    const responseDate = j.jobCustomField18 ? new Date(j.jobCustomField18) : null;
-    const ageDays = responseDate ? Math.floor((Date.now() - responseDate.getTime()) / 86400000) : null;
-    const ageColour = ageDays === null ? 'var(--grey-mid)'
-      : ageDays < 30  ? '#3ECF8E'   // green
-      : ageDays < 60  ? '#F0B429'   // amber
-      : '#FF6B4A';                   // red
-    const ageLabel = ageDays === null ? '' : ageDays === 0 ? 'Today' : `${ageDays}d`;
-
-    const card = document.createElement('div');
-    card.className = 'opp-card';
-    card.style.animationDelay = `${i * 0.07}s`;
-    card.style.marginBottom = '14px';
-    card.innerHTML = `
-      <div class="opp-top">
-        <div class="opp-company">${j.jobClientName || 'Unknown'}${brief ? `<span style="font-weight:400;color:var(--grey-mid)"> — ${brief}</span>` : ''}</div>
-        ${val ? `<div class="opp-value">${val}</div>` : ''}
-      </div>
-      <div class="opp-stage-row">
-        <div class="stage-pill stage-proposal">${j.jobOppCurrentStatus || '—'}</div>
-        ${handler ? `<div class="opp-age" title="${handler}">${initials}</div>` : ''}
-        ${ageLabel ? `<div class="opp-age" style="color:${ageColour};border-color:${ageColour};background:${ageColour}18" title="Days since 1st response">${ageLabel}</div>` : ''}
-      </div>
-      <button class="opp-add-task" onclick="quickAddTask(this.dataset.co)" data-co="">+ Add task</button>
-    `;
-    // Set company data attr after innerHTML (can't interpolate onclick safely in template)
-    card.querySelector('.opp-add-task').dataset.co = j.jobClientName || '';
-    container.appendChild(card);
-  });
 }
 
 function renderLane(containerId, deals, colorVar) {
@@ -1621,17 +1533,18 @@ function togglePill(el) {
 function buildSnapshotEmail() {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const { meetings, events } = dashboardData;
-  const nowJobs     = dashboardData.nowJobs     || [];
   const hsDeals     = dashboardData.deals       || [];
   const inquiries   = dashboardData.inquiries   || [];
   const connections = dashboardData.linkedinConnections || [];
   const nextDeals   = hsDeals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
-  const futureDeals = hsDeals.filter(d => !NEXT_STAGES.includes(d.properties.dealstage));
+  const futureDeals = hsDeals.filter(d =>
+    !NOW_STAGES.includes(d.properties.dealstage) &&
+    !NEXT_STAGES.includes(d.properties.dealstage) &&
+    !EXCL_STAGES.includes(d.properties.dealstage)
+  );
 
-  const synVal   = nowJobs.reduce((s,j) => s + (j.jobQuotedPrice||0), 0);
-  const hsVal    = hsDeals.reduce((s,d) => s + (parseFloat(d.properties.amount)||0), 0);
-  const totalVal = synVal + hsVal;
-  const valStr   = totalVal >= 1000000 ? `\u00a3${(totalVal/1000000).toFixed(1)}m` : `\u00a3${Math.round(totalVal/1000)}k`;
+  const totalVal = hsDeals.reduce((s,d) => s + (parseFloat(d.properties.amount)||0), 0);
+  const valStr   = totalVal >= 1000000 ? `£${(totalVal/1000000).toFixed(1)}m` : `£${Math.round(totalVal/1000)}k`;
 
   const now60 = new Date(); now60.setDate(now60.getDate() + 60);
   const upcomingEvents = (events||[]).filter(ev => {
@@ -1654,7 +1567,7 @@ function buildSnapshotEmail() {
 
   // Summary
   body += section('Summary', ul([
-    li(`Active pipeline: <b>${valStr}</b> (${nowJobs.length} live pitches + ${hsDeals.length} in pipeline)`),
+    li(`Active pipeline: <b>${valStr}</b> (${hsDeals.length} open deals in HubSpot)`),
     li(`BD-flagged inquiries: <b>${inquiries.length}</b>`),
     li(`Upcoming BD meetings: <b>${(meetings||[]).length}</b> &nbsp;|&nbsp; Attended (30 days): <b>${(dashboardData.attendedMeetings||[]).length}</b>`),
     li(`Upcoming events (60 days): <b>${upcomingEvents.length}</b>`),
@@ -1675,23 +1588,29 @@ function buildSnapshotEmail() {
   body += `<p style="margin:18px 0 4px 0"><b>Active Opportunities</b></p>`;
 
   // NOW
-  const nowItems = nowJobs.map(j => {
-    const val  = j.jobQuotedPrice > 0 ? ` &mdash; <b>\u00a3${Math.round(j.jobQuotedPrice/1000)}k</b>` : '';
-    const desc = j.jobDescription1stLine ? ` &mdash; ${j.jobDescription1stLine}` : '';
-    return li(`${j.jobClientName}${desc}${val} <span style="color:#888">[${j.jobOppCurrentStatus}]</span>`);
+  const nowDeals = (dashboardData.deals || []).filter(d => NOW_STAGES.includes(d.properties?.dealstage));
+  const nextDeals   = (dashboardData.deals || []).filter(d => NEXT_STAGES.includes(d.properties?.dealstage));
+  const futureDeals = (dashboardData.deals || []).filter(d =>
+    !NOW_STAGES.includes(d.properties?.dealstage) &&
+    !NEXT_STAGES.includes(d.properties?.dealstage) &&
+    !EXCL_STAGES.includes(d.properties?.dealstage)
+  );
+  const nowItems = nowDeals.map(d => {
+    const p   = d.properties;
+    const val = p.amount > 0 ? ` &mdash; <b>£${Math.round(p.amount/1000)}k</b>` : '';
+    const next = p.hs_next_step ? `<br><span style="color:#666;font-size:13px">Next: ${p.hs_next_step.substring(0,120)}</span>` : '';
+    return li(`${p.dealname}${val} <span style="color:#888">[${stageLabel(p.dealstage)}]</span>${next}`);
   });
-  body += subhead('NOW &mdash; Live Pitches (Synergist)');
+  body += subhead('NOW &mdash; Active pitches & negotiations');
   body += ul(nowItems);
 
   // NEXT
-  const nextItems = nextDeals.map(d => {
     const p   = d.properties;
     const val = p.amount > 0 ? ` &mdash; <b>\u00a3${Math.round(p.amount/1000)}k</b>` : '';
     const next = p.hs_next_step ? `<br><span style="color:#666;font-size:13px">Next: ${p.hs_next_step.substring(0,120)}</span>` : '';
     return li(`${p.dealname}${val} <span style="color:#888">[${stageLabel(p.dealstage)}]</span>${next}`);
   });
   body += subhead('NEXT &mdash; Nurtured, moving toward SQL');
-  body += ul(nextItems);
 
   // FUTURE
   const futureItems = futureDeals.map(d => {
