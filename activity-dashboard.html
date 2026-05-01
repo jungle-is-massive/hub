@@ -95,14 +95,16 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .icomp-row { display: grid; grid-template-columns: 160px 1fr 90px 80px 80px; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--grey-light); }
 .icomp-row:last-child { border-bottom: none; }
 .icomp-header { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); padding-bottom: 6px; border-bottom: 1px solid var(--grey-light); }
-.icomp-name { font-size: 12px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.icomp-bar-wrap { position: relative; height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: visible; }
-.icomp-bar-est { position: absolute; top: 0; left: 0; height: 100%; border-radius: 3px; background: rgba(255,255,255,0.15); }
+.icomp-name { font-size: 12px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icomp-bar-wrap { position: relative; height: 6px; background: rgba(0,0,0,0.08); border-radius: 3px; overflow: visible; }
+.icomp-bar-est { position: absolute; top: 0; left: 0; height: 100%; border-radius: 3px; background: rgba(0,0,0,0.12); }
 .icomp-bar-act { position: absolute; top: 0; left: 0; height: 100%; border-radius: 3px; transition: width 0.6s ease; }
 .icomp-est { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey-mid); text-align: right; }
 .icomp-act { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-align: right; }
 .icomp-pct { font-family: 'DM Mono', monospace; font-size: 10px; text-align: right; }
 @media(max-width:700px) { .icomp-row { grid-template-columns: 120px 1fr 70px 60px; } .icomp-pct { display: none; } }
+#intermediary-comparison-bar { overflow: hidden; max-height: 0; transition: max-height 0.35s ease, margin-bottom 0.35s ease; margin-bottom: 0; }
+#intermediary-comparison-bar.open { max-height: 800px; margin-bottom: 12px; }
 .funnel-bar-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
 .funnel-bar-row { display: grid; gap: 4px; }
 .funnel-bar-row.row-1 { grid-template-columns: repeat(6, 1fr); }
@@ -110,11 +112,14 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 @media(max-width:900px) { .funnel-bar-row.row-1, .funnel-bar-row.row-opp { grid-template-columns: repeat(3, 1fr); } }
 @media(max-width:560px) { .funnel-bar-row.row-1, .funnel-bar-row.row-opp { grid-template-columns: repeat(2, 1fr); } }
 #source-breakdown-pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.source-pill { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: var(--grey-light); border: 1px solid rgba(255,255,255,0.06); font-size: 12px; font-weight: 600; color: var(--white); cursor: default; transition: opacity 0.15s; }
+.source-pill { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.08); font-size: 12px; font-weight: 600; color: var(--black); cursor: default; transition: opacity 0.15s, background 0.15s; }
 .source-pill:hover { opacity: 0.8; }
+.source-pill.clickable { cursor: pointer; }
+.source-pill.clickable:hover { background: rgba(0,0,0,0.1); }
+.source-pill.clickable.active { background: rgba(0,0,0,0.12); border-color: rgba(0,0,0,0.2); }
 .source-pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .source-pill-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey-mid); margin-left: 2px; }
-.source-pill-loading { width: 200px; height: 28px; background: rgba(255,255,255,0.05); border-radius: 20px; animation: pulse 1.2s ease infinite; }
+.source-pill-loading { width: 200px; height: 28px; background: rgba(0,0,0,0.06); border-radius: 20px; animation: pulse 1.2s ease infinite; }
 .funnel-box { background: var(--black); border-radius: 10px; padding: 12px 10px; text-align: center; border: 1.5px solid rgba(255,255,255,0.06); animation: fadeUp 0.4s ease both; }
 .funnel-box.is-mql { border-color: var(--green); }
 .funnel-box.is-sql { border-color: #4a90d9; }
@@ -1570,11 +1575,15 @@ function renderDealSource(deals) {
   sorted.forEach(([src, count]) => {
     const colour = SOURCE_COLOURS[src] || '#8A8880';
     const pct = Math.round((count / total) * 100);
+    const isIntermediary = src === 'Intermediary';
     html += `
-      <div class="source-pill" title="${count} deal${count !== 1 ? 's' : ''} · ${pct}% of open pipeline">
+      <div class="source-pill${isIntermediary ? ' clickable' : ''}"
+           title="${count} deal${count !== 1 ? 's' : ''} · ${pct}% of open pipeline${isIntermediary ? ' — click to expand breakdown' : ''}"
+           ${isIntermediary ? 'onclick="toggleIntermediaryBreakdown(this)"' : ''}>
         <div class="source-pill-dot" style="background:${colour}"></div>
         ${src}
         <span class="source-pill-count">${count}</span>
+        ${isIntermediary ? '<span style="font-size:9px;opacity:0.5;margin-left:2px">▾</span>' : ''}
       </div>`;
   });
 
@@ -1588,6 +1597,16 @@ function renderDealSource(deals) {
   }
 
   container.innerHTML = html;
+}
+
+function toggleIntermediaryBreakdown(pill) {
+  const bar = document.getElementById('intermediary-comparison-bar');
+  if (!bar) return;
+  const isOpen = bar.classList.toggle('open');
+  pill.classList.toggle('active', isOpen);
+  // Flip the chevron
+  const chevron = pill.querySelector('span[style*="opacity"]');
+  if (chevron) chevron.textContent = isOpen ? '▴' : '▾';
 }
 
 function renderLane(containerId, deals, colorVar) {
@@ -1617,7 +1636,7 @@ function renderLane(containerId, deals, colorVar) {
       </div>
       <div class="opp-stage-row">
         <div class="stage-pill ${stagePillClass(p.dealstage)}">${stageLabel(p.dealstage)}</div>
-        ${source ? `<div class="source-pill" style="padding:2px 7px;font-size:10px;gap:4px"><div class="source-pill-dot" style="background:${srcColour}"></div>${source}</div>` : ''}
+        ${source ? `<div class="source-pill" style="padding:2px 7px;font-size:10px;gap:4px;background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.08);color:var(--black)"><div class="source-pill-dot" style="background:${srcColour}"></div>${source}</div>` : ''}
         <div class="opp-age" style="color:${ageColourHS};border-color:${ageColourHS};background:${ageColourHS}18">${age} in stage</div>
       </div>
       <div class="opp-next">
