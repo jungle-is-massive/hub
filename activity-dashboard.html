@@ -1537,8 +1537,8 @@ function buildSnapshotEmail() {
   const hsDeals     = dashboardData.deals       || [];
   const inquiries   = dashboardData.inquiries   || [];
   const connections = dashboardData.linkedinConnections || [];
-  const nextDeals   = hsDeals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
-  const futureDeals = hsDeals.filter(d =>
+  const emailNextDeals   = hsDeals.filter(d => NEXT_STAGES.includes(d.properties.dealstage));
+  const emailFutureDeals = hsDeals.filter(d =>
     !NOW_STAGES.includes(d.properties.dealstage) &&
     !NEXT_STAGES.includes(d.properties.dealstage) &&
     !EXCL_STAGES.includes(d.properties.dealstage)
@@ -1589,14 +1589,14 @@ function buildSnapshotEmail() {
   body += `<p style="margin:18px 0 4px 0"><b>Active Opportunities</b></p>`;
 
   // NOW
-  const nowDeals = (dashboardData.deals || []).filter(d => NOW_STAGES.includes(d.properties?.dealstage));
-  const nextDeals   = (dashboardData.deals || []).filter(d => NEXT_STAGES.includes(d.properties?.dealstage));
-  const futureDeals = (dashboardData.deals || []).filter(d =>
+  const emailNowDeals    = (dashboardData.deals || []).filter(d => NOW_STAGES.includes(d.properties?.dealstage));
+  const emailNextDeals2  = (dashboardData.deals || []).filter(d => NEXT_STAGES.includes(d.properties?.dealstage));
+  const emailFutureDeals2 = (dashboardData.deals || []).filter(d =>
     !NOW_STAGES.includes(d.properties?.dealstage) &&
     !NEXT_STAGES.includes(d.properties?.dealstage) &&
     !EXCL_STAGES.includes(d.properties?.dealstage)
   );
-  const nowItems = nowDeals.map(d => {
+  const nowItems = emailNowDeals.map(d => {
     const p   = d.properties;
     const val = p.amount > 0 ? ` &mdash; <b>£${Math.round(p.amount/1000)}k</b>` : '';
     const next = p.hs_next_step ? `<br><span style="color:#666;font-size:13px">Next: ${p.hs_next_step.substring(0,120)}</span>` : '';
@@ -1606,15 +1606,17 @@ function buildSnapshotEmail() {
   body += ul(nowItems);
 
   // NEXT
+  const nextItems = emailNextDeals2.map(d => {
     const p   = d.properties;
-    const val = p.amount > 0 ? ` &mdash; <b>\u00a3${Math.round(p.amount/1000)}k</b>` : '';
+    const val = p.amount > 0 ? ` &mdash; <b>£${Math.round(p.amount/1000)}k</b>` : '';
     const next = p.hs_next_step ? `<br><span style="color:#666;font-size:13px">Next: ${p.hs_next_step.substring(0,120)}</span>` : '';
     return li(`${p.dealname}${val} <span style="color:#888">[${stageLabel(p.dealstage)}]</span>${next}`);
   });
   body += subhead('NEXT &mdash; Nurtured, moving toward SQL');
+  body += ul(nextItems);
 
   // FUTURE
-  const futureItems = futureDeals.map(d => {
+  const futureItems = emailFutureDeals2.map(d => {
     const p = d.properties;
     return li(`${p.dealname} <span style="color:#888">[${stageLabel(p.dealstage)}]</span>`);
   });
