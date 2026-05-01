@@ -1219,7 +1219,8 @@ async function loadDeals() {
       body: JSON.stringify({
         filterGroups: [{ filters: [
           { propertyName: 'pipeline',  operator: 'EQ',  value: SALES_PIPELINE },
-          { propertyName: 'dealstage', operator: 'NOT_IN', values: ['closedwon','closedlost'] }
+          { propertyName: 'dealstage', operator: 'NEQ', value: 'closedwon' },
+          { propertyName: 'dealstage', operator: 'NEQ', value: 'closedlost' }
         ]}],
         properties: ['dealname','dealstage','amount','closedate','createdate','hs_next_step','hs_lastmodifieddate'],
         sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
