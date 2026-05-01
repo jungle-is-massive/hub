@@ -90,7 +90,19 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 /* FUNNEL STAGES */
 #opp-tracking-bar { margin-bottom: 12px; }
 #source-breakdown-bar { margin-bottom: 12px; }
-#funnel-bar { margin-bottom: 28px; }
+#intermediary-comparison-bar { margin-bottom: 28px; }
+#intermediary-comparison-table { width: 100%; }
+.icomp-row { display: grid; grid-template-columns: 160px 1fr 90px 80px 80px; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--grey-light); }
+.icomp-row:last-child { border-bottom: none; }
+.icomp-header { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); padding-bottom: 6px; border-bottom: 1px solid var(--grey-light); }
+.icomp-name { font-size: 12px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icomp-bar-wrap { position: relative; height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: visible; }
+.icomp-bar-est { position: absolute; top: 0; left: 0; height: 100%; border-radius: 3px; background: rgba(255,255,255,0.15); }
+.icomp-bar-act { position: absolute; top: 0; left: 0; height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.icomp-est { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey-mid); text-align: right; }
+.icomp-act { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-align: right; }
+.icomp-pct { font-family: 'DM Mono', monospace; font-size: 10px; text-align: right; }
+@media(max-width:700px) { .icomp-row { grid-template-columns: 120px 1fr 70px 60px; } .icomp-pct { display: none; } }
 .funnel-bar-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
 .funnel-bar-row { display: grid; gap: 4px; }
 .funnel-bar-row.row-1 { grid-template-columns: repeat(6, 1fr); }
@@ -691,6 +703,12 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
     <div id="source-breakdown-pills"><div class="source-pill-loading"></div></div>
   </div>
 
+  <!-- INTERMEDIARY PERFORMANCE vs ESTIMATE -->
+  <div id="intermediary-comparison-bar">
+    <div class="funnel-bar-label">Intermediary Pipeline — Actual vs Estimated</div>
+    <div id="intermediary-comparison-table"><div class="source-pill-loading"></div></div>
+  </div>
+
   <!-- FUNNEL STAGES -->
   <div id="funnel-bar">
     <div class="funnel-bar-label">Prospect Funnel Stages</div>
@@ -1064,7 +1082,7 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData()]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison()]);
     await loadFunnelStages(); // must run after loadDeals so dashboardData.deals is populated
   } catch(e) { console.error(e); }
   btn.classList.remove('spinning');
@@ -1383,7 +1401,133 @@ function renderOpportunities(hsDeals) {
   renderLane('lane-future', futureDeals, '--future');
 }
 
-// Source colours — one per deal_source option
+// ─────────────────────────────────────────────
+// INTERMEDIARY COMPARISON — Actual vs Estimated
+// Estimated figures mirror intermediary-plan/index.html INTERMEDIARIES array
+// ─────────────────────────────────────────────
+const INTERMEDIARY_ESTIMATES = [
+  { id:'aar',           name:'AAR',                      pitches_expected:4, avg_value:280000 },
+  { id:'ingenuity',     name:'Ingenuity+',               pitches_expected:3, avg_value:250000 },
+  { id:'creativebrief', name:'Creativebrief',            pitches_expected:5, avg_value:150000 },
+  { id:'oystercatchers',name:'Oystercatchers',           pitches_expected:3, avg_value:320000 },
+  { id:'observatory',   name:'Observatory International',pitches_expected:2, avg_value:200000 },
+  { id:'tuffon',        name:'Tuffon Hall',              pitches_expected:1, avg_value:180000 },
+  { id:'auditstar',     name:'Auditstar',                pitches_expected:1, avg_value:150000 },
+  { id:'individuals',   name:'Individual Consultants',   pitches_expected:2, avg_value:175000 },
+  { id:'masterclassing',name:'Masterclassing',           pitches_expected:2, avg_value:100000 },
+  { id:'gonetwork',     name:'The GO Network',           pitches_expected:2, avg_value:175000 },
+  { id:'adassoc',       name:'Advertising Association',  pitches_expected:1, avg_value:200000 },
+];
+
+// Maps HubSpot intermediaries field values → INTERMEDIARY_ESTIMATES names
+// (HubSpot may return slightly different strings — normalise here)
+const INTERMEDIARY_NAME_MAP = {
+  'AAR':                       'AAR',
+  'Ingenuity':                 'Ingenuity+',
+  'Ingenuity+':                'Ingenuity+',
+  'Creativebrief':             'Creativebrief',
+  'Oystercatchers':            'Oystercatchers',
+  'Observatory International': 'Observatory International',
+  'Tuffon Hall':               'Tuffon Hall',
+  'Auditstar':                 'Auditstar',
+  'Individual Consultants':    'Individual Consultants',
+  'Masterclassing':            'Masterclassing',
+  'The GO Network':            'The GO Network',
+  'Advertising Association':   'Advertising Association',
+};
+
+const CONVERSION_RATE = 0.30; // 30% — matches intermediary plan default
+
+async function loadIntermediaryComparison() {
+  try {
+    // Fetch all Agency Pipeline deals with intermediaries field
+    const res = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/deals/search',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filterGroups: [{ filters: [
+          { propertyName: 'pipeline',    operator: 'EQ', value: AGENCY_PIPELINE },
+          { propertyName: 'deal_source', operator: 'EQ', value: 'Intermediary' }
+        ]}],
+        properties: ['dealname','dealstage','amount','deal_source','intermediaries'],
+        limit: 100
+      })
+    });
+    const data = await res.json();
+    const deals = data.results || [];
+
+    // Group deals by normalised intermediary name
+    const actuals = {}; // name → { count, value }
+    deals.forEach(d => {
+      const raw  = d.properties?.intermediaries;
+      const name = INTERMEDIARY_NAME_MAP[raw] || raw;
+      if (!name) return;
+      if (!actuals[name]) actuals[name] = { count: 0, value: 0 };
+      actuals[name].count++;
+      actuals[name].value += parseFloat(d.properties?.amount || 0);
+    });
+
+    renderIntermediaryComparison(actuals);
+  } catch(e) {
+    console.error('Intermediary comparison error:', e);
+    document.getElementById('intermediary-comparison-table').innerHTML =
+      '<div class="empty-state">Unable to load intermediary data</div>';
+  }
+}
+
+function renderIntermediaryComparison(actuals) {
+  const container = document.getElementById('intermediary-comparison-table');
+  if (!container) return;
+
+  // Max estimated projected revenue for bar scaling
+  const maxEst = Math.max(...INTERMEDIARY_ESTIMATES.map(i => i.pitches_expected * i.avg_value * CONVERSION_RATE));
+
+  let html = `
+    <div class="icomp-row icomp-header">
+      <div>Intermediary</div>
+      <div>Pipeline progress</div>
+      <div style="text-align:right">Estimated</div>
+      <div style="text-align:right">Actual</div>
+      <div style="text-align:right">vs est.</div>
+    </div>`;
+
+  INTERMEDIARY_ESTIMATES.forEach(inter => {
+    const est     = inter.pitches_expected * inter.avg_value * CONVERSION_RATE;
+    const actual  = actuals[inter.name];
+    const actVal  = actual ? actual.value : 0;
+    const actCount= actual ? actual.count : 0;
+    const pct     = est > 0 ? Math.round((actVal / est) * 100) : 0;
+    const estPct  = Math.min(100, (est / maxEst) * 100);
+    const actPct  = Math.min(100, (actVal / maxEst) * 100);
+
+    const actColour = pct >= 100 ? 'var(--green)' : pct >= 50 ? '#F0B429' : actVal > 0 ? '#FF6B4A' : 'var(--grey-mid)';
+    const pctLabel  = actVal > 0 ? `${pct}%` : '—';
+    const actLabel  = actVal > 0
+      ? (actVal >= 1000000 ? `£${(actVal/1000000).toFixed(1)}m` : `£${Math.round(actVal/1000)}k`)
+      : '—';
+    const estLabel  = est >= 1000000 ? `£${(est/1000000).toFixed(1)}m` : `£${Math.round(est/1000)}k`;
+    const dealNote  = actCount > 0 ? ` · ${actCount} deal${actCount !== 1 ? 's' : ''}` : '';
+
+    html += `
+      <div class="icomp-row" title="${inter.name}${dealNote}">
+        <div class="icomp-name">${inter.name}</div>
+        <div class="icomp-bar-wrap">
+          <div class="icomp-bar-est" style="width:${estPct}%"></div>
+          <div class="icomp-bar-act" style="width:${actPct}%;background:${actColour}"></div>
+        </div>
+        <div class="icomp-est">${estLabel}</div>
+        <div class="icomp-act" style="color:${actColour}">${actLabel}</div>
+        <div class="icomp-pct" style="color:${actColour}">${pctLabel}</div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
 const SOURCE_COLOURS = {
   'Cold Inbound':    '#4ABFFF',
   'Client Referral': '#3ECF8E',
