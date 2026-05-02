@@ -3,624 +3,313 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Advertising Association — Should Jungle Join? · Internal Brief</title>
+<title>AA Membership Brief · Jungle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --cream:   #F5F2EB;
-  --black:   #111110;
-  --green:   #8BFF57;
-  --green-d: #5acc30;
-  --green-x: #3a8c1c;
-  --white:   #FAFAF7;
-  --gl:      #ECEAE3;
-  --grey:    #C8C4BB;
-  --gm:      #888580;
-  --border:  rgba(255,255,255,0.08);
-  --red:     #E05C5C;
-  --amber:   #F5A623;
-  --blue:    #5B9BF0;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--black);
-  color: var(--cream);
-  font-size: 15px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-}
-body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: 0.4;
-}
-main { position: relative; z-index: 1; }
-
-/* HEADER */
-header {
-  padding: 48px 0 0;
-  border-bottom: 1px solid var(--border);
-}
-.header-inner {
-  max-width: 1040px; margin: 0 auto; padding: 0 40px 40px;
-  display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end;
-}
-@media(max-width:680px) { .header-inner { grid-template-columns: 1fr; gap: 20px; } }
-.doc-eyebrow {
-  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--gm);
-  margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
-}
-.doc-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--gm); }
-.doc-title {
-  font-size: clamp(34px, 5vw, 62px); font-weight: 800;
-  letter-spacing: -0.04em; line-height: 1.0; color: var(--cream);
-}
-.doc-title em { color: var(--green); font-style: normal; }
-.doc-subtitle {
-  font-size: 16px; color: rgba(255,255,255,0.4); margin-top: 14px; line-height: 1.5;
-}
-.verdict-card {
-  background: rgba(139,255,87,0.08); border: 1.5px solid rgba(139,255,87,0.25);
-  border-radius: 14px; padding: 20px 22px; min-width: 220px; text-align: center;
-}
-.verdict-label {
-  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--green); margin-bottom: 8px;
-}
-.verdict-value { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: var(--cream); }
-.verdict-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
-
-/* LAYOUT */
-.content { max-width: 1040px; margin: 0 auto; padding: 48px 40px 80px; }
-@media(max-width:680px) { .content { padding: 32px 20px 60px; } }
-
-/* SECTION TITLES */
-.section-label {
-  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em;
-  text-transform: uppercase; color: var(--gm); margin-bottom: 20px;
-  display: flex; align-items: center; gap: 10px;
-}
-.section-label::before { content: ''; width: 16px; height: 1px; background: var(--gm); }
-
-/* ALERT / FRAMING BOX */
-.framing-box {
-  background: rgba(139,255,87,0.06);
-  border: 1px solid rgba(139,255,87,0.18);
-  border-radius: 14px;
-  padding: 24px 28px;
-  margin-bottom: 48px;
-}
-.framing-box p { font-size: 15px; line-height: 1.65; color: rgba(255,255,255,0.75); }
-.framing-box p + p { margin-top: 10px; }
-.framing-box strong { color: var(--cream); font-weight: 600; }
-
-/* MEMBERSHIP CARDS */
-.membership-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
-}
-.membership-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  display: flex;
-  flex-direction: column;
-}
-.membership-card.highlight {
-  border-color: rgba(139,255,87,0.3);
-  background: rgba(139,255,87,0.04);
-}
-.card-badge {
-  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em;
-  text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
-  display: inline-block; margin-bottom: 16px; width: fit-content;
-}
-.badge-uk { background: rgba(91,155,240,0.15); color: var(--blue); }
-.badge-intl { background: rgba(139,255,87,0.12); color: var(--green); }
-.card-title { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
-.card-lead { font-size: 12px; color: var(--gm); margin-bottom: 16px; }
-.card-desc { font-size: 14px; line-height: 1.65; color: rgba(255,255,255,0.6); margin-bottom: 20px; flex: 1; }
-.card-pricing {
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
-}
-.price-row {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-bottom: 6px; font-size: 13px;
-}
-.price-label { color: var(--gm); }
-.price-val { font-weight: 600; color: var(--cream); }
-.price-val.strike { text-decoration: line-through; color: var(--gm); font-weight: 400; }
-.price-val.highlight-val { color: var(--green); }
-
-/* BUNDLE PANEL */
-.bundle-panel {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  margin-bottom: 48px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 24px;
-  align-items: center;
-}
-@media(max-width:680px) { .bundle-panel { grid-template-columns: 1fr; } }
-.bundle-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
-.bundle-desc { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; }
-.bundle-stats { display: flex; gap: 20px; }
-.bstat { text-align: center; }
-.bstat-val { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: var(--green); }
-.bstat-label { font-size: 11px; color: var(--gm); margin-top: 2px; }
-
-/* BENEFITS TABLE */
-.benefits-section { margin-bottom: 48px; }
-.benefits-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-}
-.benefit-item {
-  border-left: 2px solid rgba(139,255,87,0.4);
-  padding: 4px 0 4px 14px;
-}
-.benefit-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; color: var(--cream); }
-.benefit-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-
-/* EVENTS TIMELINE */
-.events-section { margin-bottom: 48px; }
-.events-list { display: flex; flex-direction: column; gap: 0; }
-.event-row {
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 20px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
-  align-items: start;
-}
-.event-row:first-child { border-top: 1px solid var(--border); }
-.event-month {
-  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--gm); padding-top: 2px;
-}
-.event-name { font-size: 14px; font-weight: 600; color: var(--cream); margin-bottom: 3px; }
-.event-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-.event-tag {
-  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em;
-  text-transform: uppercase; padding: 3px 8px; border-radius: 10px;
-  display: inline-block; margin-top: 6px;
-}
-.tag-ukaeg { background: rgba(139,255,87,0.1); color: var(--green); }
-.tag-ff { background: rgba(91,155,240,0.12); color: var(--blue); }
-.tag-both { background: rgba(245,166,35,0.12); color: var(--amber); }
-
-/* FRONT FOOT DETAIL */
-.ff-benefits {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 48px;
-}
-.ff-cat {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-}
-.ff-cat-title {
-  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--blue); margin-bottom: 12px;
-}
-.ff-item { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.55; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.ff-item:last-child { border-bottom: none; padding-bottom: 0; }
-
-/* EXPECTATION */
-.expectation-box {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 28px;
-  margin-bottom: 48px;
-}
-.expectation-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; }
-.expectation-box p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; }
-.expectation-box p + p { margin-top: 10px; }
-
-/* CONTACTS */
-.contacts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-  margin-bottom: 48px;
-}
-.contact-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-}
-.contact-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-.contact-role { font-size: 12px; color: var(--gm); margin-bottom: 8px; }
-.contact-email { font-size: 12px; color: var(--blue); }
-.contact-scope { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 6px; line-height: 1.4; }
-
-/* BACK LINK */
-.back-link {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em;
-  text-transform: uppercase; color: var(--gm); text-decoration: none;
-  margin-bottom: 32px; transition: color 0.2s;
-}
-.back-link:hover { color: var(--cream); }
-.back-link svg { width: 12px; height: 12px; }
-
-/* DIVIDER */
-.divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
-
-/* GATE */
-#gate-overlay {
-  position: fixed; inset: 0; z-index: 9999;
-  background: var(--black);
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 20px;
-  transition: opacity 0.3s;
-}
-#gate-overlay.hidden { opacity: 0; pointer-events: none; }
-.gate-wordmark {
-  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em;
-  text-transform: uppercase; color: var(--gm); margin-bottom: 8px;
-}
-.gate-prompt { font-size: 13px; color: rgba(255,255,255,0.35); }
-.gate-input-wrap { display: flex; gap: 0; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; overflow: hidden; }
-#gate-input {
-  background: rgba(255,255,255,0.05); border: none; outline: none;
-  padding: 12px 16px; font-family: 'DM Mono', monospace; font-size: 13px;
-  color: var(--cream); width: 200px; letter-spacing: 0.05em;
-  transition: background 0.2s;
-}
-#gate-input.error { background: rgba(224,92,92,0.15); }
-#gate-input::placeholder { color: rgba(255,255,255,0.2); }
-#gate-btn {
-  background: rgba(139,255,87,0.15); border: none; padding: 12px 20px;
-  color: var(--green); font-family: 'DM Mono', monospace; font-size: 11px;
-  letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
-  transition: background 0.2s;
-}
-#gate-btn:hover { background: rgba(139,255,87,0.25); }
-#gate-error { font-size: 11px; color: var(--red); height: 16px; font-family: 'DM Mono', monospace; }
+:root{--black:#111110;--cream:#F5F2EB;--green:#8BFF57;--gm:#888580;--border:rgba(255,255,255,0.08);--blue:#5B9BF0;--amber:#F5A623;--red:#E05C5C;--panel:rgba(255,255,255,0.03);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--cream);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");opacity:0.4;}
+.shell{position:relative;z-index:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr;height:100vh;}
+.topbar{grid-column:1/-1;padding:18px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.topbar-wordmark{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gm);}
+.topbar-sep{width:1px;height:14px;background:var(--border);}
+.topbar-title{font-size:13px;font-weight:600;color:var(--cream);}
+.topbar-back{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gm);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+.topbar-back:hover{color:var(--cream);}
+.topbar-back svg{width:10px;height:10px;}
+.sidebar{border-right:1px solid var(--border);padding:24px 0;overflow-y:auto;}
+.sidebar-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gm);padding:0 20px 10px;}
+.tab{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;border-left:2px solid transparent;transition:background 0.15s,border-color 0.15s;font-size:13px;color:rgba(255,255,255,0.45);}
+.tab:hover{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.7);}
+.tab.active{border-left-color:var(--green);background:rgba(139,255,87,0.06);color:var(--cream);}
+.tab-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--gm);min-width:16px;}
+.tab.active .tab-num{color:var(--green);}
+.sdiv{height:1px;background:var(--border);margin:12px 20px;}
+.panel-wrap{overflow-y:auto;padding:48px 56px;}
+.panel{display:none;max-width:680px;}
+.panel.active{display:block;}
+.eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gm);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.eyebrow::before{content:'';width:16px;height:1px;background:var(--gm);}
+.ptitle{font-size:clamp(26px,4vw,42px);font-weight:800;letter-spacing:-0.03em;line-height:1.1;margin-bottom:16px;}
+.ptitle em{color:var(--green);font-style:normal;}
+.pbody{font-size:15px;color:rgba(255,255,255,0.6);line-height:1.7;}
+.pbody p+p{margin-top:12px;}
+.pbody strong{color:var(--cream);font-weight:600;}
+.hbox{background:rgba(139,255,87,0.06);border:1px solid rgba(139,255,87,0.2);border-radius:12px;padding:20px 24px;margin-top:24px;}
+.hbox p{font-size:14px;color:rgba(255,255,255,0.65);line-height:1.7;}
+.hbox p strong{color:var(--cream);}
+.stat-row{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;}
+.stat-box{flex:1;min-width:130px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;text-align:center;}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-0.03em;color:var(--green);}
+.stat-label{font-size:11px;color:var(--gm);margin-top:3px;}
+.mem-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;}
+.mem-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;}
+.mem-card.hl{border-color:rgba(139,255,87,0.3);background:rgba(139,255,87,0.04);}
+.mem-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:14px;}
+.badge-uk{background:rgba(91,155,240,0.15);color:var(--blue);}
+.badge-intl{background:rgba(139,255,87,0.12);color:var(--green);}
+.mem-name{font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:3px;}
+.mem-lead{font-size:11px;color:var(--gm);margin-bottom:12px;}
+.mem-desc{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.6;margin-bottom:16px;}
+.mem-price{border-top:1px solid var(--border);padding-top:14px;}
+.prow{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+.pl{color:var(--gm);}
+.pv{font-weight:600;}
+.strike{text-decoration:line-through;color:var(--gm);font-weight:400;}
+.pvg{color:var(--green);font-weight:700;}
+.blist{margin-top:24px;display:flex;flex-direction:column;}
+.brow{display:grid;grid-template-columns:180px 1fr;gap:20px;padding:14px 0;border-bottom:1px solid var(--border);align-items:start;}
+.brow:first-child{border-top:1px solid var(--border);}
+.bkey{font-size:13px;font-weight:600;color:var(--cream);padding-top:1px;}
+.bval{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.6;}
+.elist{margin-top:24px;display:flex;flex-direction:column;}
+.erow{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--border);align-items:start;}
+.erow:first-child{border-top:1px solid var(--border);}
+.emonth{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gm);padding-top:3px;}
+.ename{font-size:14px;font-weight:600;color:var(--cream);margin-bottom:4px;}
+.edesc{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.55;}
+.etag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:3px 8px;border-radius:10px;display:inline-block;margin-top:6px;}
+.tu{background:rgba(139,255,87,0.1);color:var(--green);}
+.tf{background:rgba(91,155,240,0.12);color:var(--blue);}
+.tb{background:rgba(245,166,35,0.1);color:var(--amber);}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:28px;}
+.ccard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+.cname{font-size:15px;font-weight:700;margin-bottom:2px;}
+.crole{font-size:11px;color:var(--gm);margin-bottom:8px;}
+.cemail{font-size:12px;color:var(--blue);margin-bottom:8px;}
+.cnote{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.5;}
+.pnav{margin-top:40px;display:flex;justify-content:flex-end;}
+.nbtn{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:10px 18px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gm);transition:all 0.2s;}
+.nbtn:hover{background:rgba(255,255,255,0.08);color:var(--cream);border-color:rgba(255,255,255,0.15);}
+.nbtn svg{width:10px;height:10px;}
+#gate-overlay{position:fixed;inset:0;z-index:9999;background:var(--black);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity 0.3s;}
+#gate-overlay.hidden{opacity:0;pointer-events:none;}
+.gwm{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gm);}
+.gpr{font-size:13px;color:rgba(255,255,255,0.35);}
+.gwrap{display:flex;border:1px solid rgba(255,255,255,0.15);border-radius:10px;overflow:hidden;}
+#gate-input{background:rgba(255,255,255,0.05);border:none;outline:none;padding:12px 16px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);width:200px;letter-spacing:0.05em;}
+#gate-input.error{background:rgba(224,92,92,0.15);}
+#gate-input::placeholder{color:rgba(255,255,255,0.2);}
+#gate-btn{background:rgba(139,255,87,0.15);border:none;padding:12px 20px;color:var(--green);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background 0.2s;}
+#gate-btn:hover{background:rgba(139,255,87,0.25);}
+#gate-error{font-size:11px;color:var(--red);height:16px;font-family:'DM Mono',monospace;}
+@media(max-width:700px){body{overflow:auto;}.shell{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;height:auto;}.sidebar{border-right:none;border-bottom:1px solid var(--border);padding:12px 0;display:flex;overflow-x:auto;}.sidebar-label{display:none;}.sdiv{display:none;}.tab{border-left:none;border-bottom:2px solid transparent;white-space:nowrap;padding:8px 16px;}.tab.active{border-left-color:transparent;border-bottom-color:var(--green);}.panel-wrap{padding:28px 20px;}.mem-cards{grid-template-columns:1fr;}.brow{grid-template-columns:1fr;gap:4px;}.erow{grid-template-columns:80px 1fr;}}
 </style>
 </head>
 <body>
 
 <div id="gate-overlay">
-  <div class="gate-wordmark">Jungle Creations</div>
-  <div class="gate-prompt">Enter password to continue</div>
-  <div class="gate-input-wrap">
+  <div class="gwm">Jungle Creations</div>
+  <div class="gpr">Enter password to continue</div>
+  <div class="gwrap">
     <input type="password" id="gate-input" placeholder="password" onkeydown="if(event.key==='Enter')checkGate()">
     <button id="gate-btn" onclick="checkGate()">Enter</button>
   </div>
   <div id="gate-error"></div>
 </div>
 
-<main>
-  <header>
-    <div class="header-inner">
-      <div>
-        <div class="doc-eyebrow">Internal Brief · BD &amp; Marcomms</div>
-        <h1 class="doc-title">Should Jungle join the <em>Advertising Association?</em></h1>
-        <p class="doc-subtitle">Two membership options, different value propositions. What each costs, what each unlocks, and how they fit our growth strategy.</p>
-      </div>
-      <div class="verdict-card">
-        <div class="verdict-label">Bundle cost</div>
-        <div class="verdict-value">£8,000</div>
-        <div class="verdict-sub">+ VAT · both memberships</div>
-      </div>
+<div class="shell">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-wordmark">Jungle</span>
+      <div class="topbar-sep"></div>
+      <span class="topbar-title">AA Membership Brief</span>
     </div>
+    <a href="https://jungle-is-massive.github.io/hub/" class="topbar-back">
+      <svg viewBox="0 0 10 10" fill="none"><path d="M7 1L3 5l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Hub
+    </a>
   </header>
 
-  <div class="content">
+  <nav class="sidebar">
+    <div class="sidebar-label">Overview</div>
+    <div class="tab active" onclick="show(0)"><span class="tab-num">01</span>What is the AA?</div>
+    <div class="tab" onclick="show(1)"><span class="tab-num">02</span>What this isn't</div>
+    <div class="sdiv"></div>
+    <div class="sidebar-label">The options</div>
+    <div class="tab" onclick="show(2)"><span class="tab-num">03</span>Front Foot (UK)</div>
+    <div class="tab" onclick="show(3)"><span class="tab-num">04</span>UKAEG (International)</div>
+    <div class="tab" onclick="show(4)"><span class="tab-num">05</span>Pricing &amp; bundle</div>
+    <div class="sdiv"></div>
+    <div class="sidebar-label">Detail</div>
+    <div class="tab" onclick="show(5)"><span class="tab-num">06</span>Events calendar</div>
+    <div class="tab" onclick="show(6)"><span class="tab-num">07</span>What it unlocks</div>
+    <div class="tab" onclick="show(7)"><span class="tab-num">08</span>Contacts</div>
+  </nav>
 
-    <a href="https://jungle-is-massive.github.io/hub/" class="back-link">
-      <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1L3 6l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Back to Hub
-    </a>
+  <div class="panel-wrap">
 
-    <!-- FRAMING -->
-    <div class="framing-box">
-      <p><strong>This is not an intermediary play.</strong> The AA will not send Jungle pitches or put us in agency consideration sets. That distinction matters for how we evaluate it.</p>
-      <p>What it does is give Jungle structured access to rooms we don't currently get into — senior brand leaders, C-suite agency peers, Government receptions, and curated international moments. The value is relationship infrastructure and thought leadership platform, both of which run parallel to intermediary engagement rather than replacing it.</p>
+    <div class="panel active" id="p0">
+      <div class="eyebrow">Overview</div>
+      <h1 class="ptitle">The Advertising <em>Association.</em></h1>
+      <div class="pbody">
+        <p>The Advertising Association has represented the UK advertising and marketing industry since 1926. Its council spans the major trade bodies — IPA, ISBA, IAB — alongside broadcasters and tech platforms. It functions as the industry's collective voice to Government, produces research through its think tank Credos, and leads on long-term initiatives around responsibility, trust, and growth.</p>
+        <p>Two membership products are relevant to Jungle. <strong>Front Foot</strong> is the AA's senior leader network for UK market access and industry positioning. <strong>UKAEG</strong> (UK Advertising Export Group) is the international arm — structured missions to global events with curated brand and partner introductions.</p>
+        <p>They can be taken individually or as a bundle at a reduced combined rate.</p>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val">100+</div><div class="stat-label">Front Foot member businesses</div></div>
+        <div class="stat-box"><div class="stat-val">£17.9bn</div><div class="stat-label">UK ad exports in 2024</div></div>
+        <div class="stat-box"><div class="stat-val">£40M</div><div class="stat-label">New biz via UKAEG in 2025</div></div>
+      </div>
+      <div class="pnav"><button class="nbtn" onclick="show(1)">Next <svg viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     </div>
 
-    <!-- TWO MEMBERSHIPS -->
-    <div class="section-label">The two options</div>
-    <div class="membership-grid">
-
-      <div class="membership-card">
-        <span class="card-badge badge-uk">UK focus</span>
-        <div class="card-title">Front Foot</div>
-        <div class="card-lead">Led by Sarah Virani, Head of Membership</div>
-        <p class="card-desc">The AA's senior leader network: 100+ member businesses spanning advertisers, agencies, media owners and tech platforms. Access to C-suite events, Government receptions, policy briefings, Credos research, and cross-industry working groups covering AI, talent, and trust. Good for UK market credibility and peer-level positioning.</p>
-        <div class="card-pricing">
-          <div class="price-row">
-            <span class="price-label">Standard agency rate</span>
-            <span class="price-val strike">£6,000 + VAT</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">Offered to Jungle</span>
-            <span class="price-val">£4,000 + VAT</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">With UKAEG bundle</span>
-            <span class="price-val highlight-val">£4,000 + VAT</span>
-          </div>
-        </div>
+    <div class="panel" id="p1">
+      <div class="eyebrow">Managing expectations</div>
+      <h1 class="ptitle">What this <em>isn't.</em></h1>
+      <div class="pbody">
+        <p>The AA is not an intermediary. Joining does not put Jungle in pitch consideration sets, generate direct briefs, or replicate what Ingenuity+, AAR, or Oystercatchers do. That distinction matters for how we evaluate it.</p>
+        <p>This is <strong>relationship infrastructure</strong> — structured access to senior brand leaders, agency peers, and Government contacts we don't currently reach through existing channels. The value compounds over time and runs parallel to intermediary engagement, not instead of it.</p>
+        <p>The question is whether the access it provides — at key industry moments, at the right seniority level — is worth £4–8k per year at this stage of Jungle's growth.</p>
       </div>
-
-      <div class="membership-card highlight">
-        <span class="card-badge badge-intl">International focus</span>
-        <div class="card-title">UKAEG</div>
-        <div class="card-lead">Led by Aisling Conlon, International Director</div>
-        <p class="card-desc">The UK Advertising Export Group. Structured missions to Cannes Lions, Advertising Week NY, Athar (Saudi Arabia), and SXSW Austin. Market briefings, speaker bootcamps, brand introductions, and a collective UK presence at global events. In 2025, members reported £40M in new business opportunities generated through the programme.</p>
-        <div class="card-pricing">
-          <div class="price-row">
-            <span class="price-label">Standard rate</span>
-            <span class="price-val">£4,500 + VAT</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">With Front Foot bundle</span>
-            <span class="price-val highlight-val">£4,000 + VAT</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">Membership year</span>
-            <span class="price-val">June 2026 – May 2027</span>
-          </div>
-        </div>
+      <div class="hbox">
+        <p><strong>What it does do:</strong> puts Jungle in rooms with senior brand and agency leaders at curated events, gives us a platform to show up as a thought leader rather than a vendor, and provides supporting credibility with intermediaries who already know these networks well.</p>
       </div>
-
+      <div class="pnav"><button class="nbtn" onclick="show(2)">Next <svg viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     </div>
 
-    <!-- BUNDLE -->
-    <div class="bundle-panel">
-      <div>
-        <div class="bundle-title">Bundle: both memberships together</div>
-        <p class="bundle-desc">Taking both reduces UKAEG from £4,500 to £4,000. Total cost is £8,000 + VAT — a £500 saving on UKAEG alone, plus Front Foot discounted from £6,000 standard to £4,000. On joining Front Foot, Sarah and the AA's Commercial Director meet Jungle's SLT in person to map the right events and opportunities against our priorities.</p>
+    <div class="panel" id="p2">
+      <div class="eyebrow">Option one · UK focus</div>
+      <h1 class="ptitle"><em>Front Foot.</em></h1>
+      <div class="pbody">
+        <p>The AA's senior leader membership network. Over 100 member businesses spanning advertisers, agencies, media owners, and tech platforms — AMV BBDO, Ogilvy, Dentsu, Meta, TikTok, Sky Media, The Guardian, and more.</p>
+        <p>Led by <strong>Sarah Virani</strong> (Head of Membership). On joining, she and the AA's Commercial Director run an in-person induction with Jungle's SLT to map the right events and opportunities against our priorities.</p>
       </div>
-      <div class="bundle-stats">
-        <div class="bstat">
-          <div class="bstat-val">£8k</div>
-          <div class="bstat-label">total + VAT</div>
-        </div>
-        <div class="bstat">
-          <div class="bstat-val">£1k</div>
-          <div class="bstat-label">vs. separate</div>
-        </div>
+      <div class="blist">
+        <div class="brow"><div class="bkey">C-suite events</div><div class="bval">Front Foot Breakfasts, annual Leadership Dinner (60+ attendees), President's Reception hosted by Andria Vidler (CEO, Allwyn).</div></div>
+        <div class="brow"><div class="bkey">Government access</div><div class="bval">Parliamentary Receptions and dinners with key politicians. Regular dialogue with DCMS and DBT. Member insights feed directly into consultations.</div></div>
+        <div class="brow"><div class="bkey">Policy intelligence</div><div class="bval">Early briefings on LHF, AI regulation, data and gambling — useful context for client conversations and Jungle's own positioning.</div></div>
+        <div class="brow"><div class="bkey">Credos research</div><div class="bval">AA/WARC adspend data, AdPays reports, Value of Trust Tracker, and exclusive member-only insights from the industry's think tank.</div></div>
+        <div class="brow"><div class="bkey">Working groups</div><div class="bval">AI Taskforce, Skills &amp; Growth, Talent &amp; Inclusion — input into industry direction at a policy and strategy level.</div></div>
+        <div class="brow"><div class="bkey">Speaker &amp; profile</div><div class="bval">Priority access to speaking opportunities across AA outputs, co-hosting opportunities with other FF members, features in the Ad Matters bulletin.</div></div>
       </div>
+      <div class="pnav"><button class="nbtn" onclick="show(3)">Next <svg viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     </div>
 
-    <!-- WHAT IT UNLOCKS -->
-    <div class="section-label">What this realistically unlocks for Jungle</div>
-    <div class="benefits-grid" style="margin-bottom: 48px;">
-      <div class="benefit-item">
-        <div class="benefit-title">Room access</div>
-        <div class="benefit-desc">Senior brand and agency leaders at curated events, receptions, and roundtables we'd otherwise have no route into.</div>
+    <div class="panel" id="p3">
+      <div class="eyebrow">Option two · International focus</div>
+      <h1 class="ptitle"><em>UKAEG.</em></h1>
+      <div class="pbody">
+        <p>The UK Advertising Export Group. Designed for UK agencies looking to grow internationally — structured missions to major global events with curated brand and partner introductions, market briefings, and collective UK presence.</p>
+        <p>Led by <strong>Aisling Conlon</strong> (International Director). In 2025, members reported £40M in new business opportunities generated across the programme, with 30+ senior connections per mission.</p>
+        <p>The programme runs three core pillars: <strong>Inspire</strong> (market intelligence), <strong>Grow</strong> (event and market access), and <strong>Market</strong> (global visibility and PR).</p>
       </div>
-      <div class="benefit-item">
-        <div class="benefit-title">Speaking platform</div>
-        <div class="benefit-desc">Speaker bootcamps and submission support for Cannes, SXSW, and Athar — practical help getting Jungle voices on panels at events that matter.</div>
+      <div class="blist">
+        <div class="brow"><div class="bkey">Cannes Lions</div><div class="bval">Pre-Cannes London briefing, CMO breakfast with international brand leaders, UK Advertising reception, curated roundtables.</div></div>
+        <div class="brow"><div class="bkey">Advertising Week NY</div><div class="bval">Leadership reception at the British Residence, new UK House pop-up space, opportunity to bring clients and prospects.</div></div>
+        <div class="brow"><div class="bkey">Athar, Saudi Arabia</div><div class="bval">British Embassy reception, VIP invite-only lunch, CMO session with regional brand leaders, UK table at Athar Awards.</div></div>
+        <div class="brow"><div class="bkey">SXSW Austin</div><div class="bval">Speaker bootcamp for main stage submissions, curated networking across the SXSW programme, UK House speaker support.</div></div>
+        <div class="brow"><div class="bkey">Market briefings</div><div class="bval">Pre- and post-mission briefings, "How to Win" playbooks for key markets, in-market insight from Embassies and local partners.</div></div>
+        <div class="brow"><div class="bkey">UK Export Report</div><div class="bval">Case study inclusion in the annual export report launched at SXSW London. Government-facing, broadly distributed.</div></div>
       </div>
-      <div class="benefit-item">
-        <div class="benefit-title">Credibility signal</div>
-        <div class="benefit-desc">AA membership carries weight with intermediaries. Useful supporting context while we're building those relationships in parallel.</div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-title">International market access</div>
-        <div class="benefit-desc">Structured briefings and brand introductions across priority markets. Relevant if Jungle has international growth ambitions.</div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-title">Policy intelligence</div>
-        <div class="benefit-desc">Early sight of regulatory developments (LHF, AI, data, gambling). Useful context for client conversations and positioning.</div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-title">Research access</div>
-        <div class="benefit-desc">Credos reports, AA/WARC adspend data, and the Trust Tracker — industry data that can inform our own thought leadership work.</div>
-      </div>
+      <div class="pnav"><button class="nbtn" onclick="show(4)">Next <svg viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     </div>
 
-    <hr class="divider">
-
-    <!-- EVENTS CALENDAR -->
-    <div class="section-label">Key events across the year</div>
-    <div class="events-section">
-      <div class="events-list">
-
-        <div class="event-row">
-          <div class="event-month">June 2026</div>
-          <div>
-            <div class="event-name">SXSW London</div>
-            <div class="event-desc">Launch of the UK Advertising Export Report. Curated roundtable, access to invite-only UK House events. International guests brought into the UK market.</div>
-            <span class="event-tag tag-ukaeg">UKAEG</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">June 2026</div>
-          <div>
-            <div class="event-name">Cannes Lions — 22–26 June</div>
-            <div class="event-desc">The anchor global moment. Pre-Cannes London briefing, CMO breakfast with international brand leaders, UK Advertising reception, curated roundtables. 30+ senior connections per mission based on member-reported data.</div>
-            <span class="event-tag tag-ukaeg">UKAEG</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">July 2026</div>
-          <div>
-            <div class="event-name">Front Foot(ball) — Global Sports Marketing Insight Session</div>
-            <div class="event-desc">Insight session on global sports marketing coverage and the winning formula. Open to Front Foot members.</div>
-            <span class="event-tag tag-ff">Front Foot</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">July 2026</div>
-          <div>
-            <div class="event-name">SXSW Speaker Bootcamp — London</div>
-            <div class="event-desc">Support for strong, competitive submissions for SXSW Austin 2027 main stage. Dedicated bootcamp to shape propositions.</div>
-            <span class="event-tag tag-ukaeg">UKAEG</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">July 2026</div>
-          <div>
-            <div class="event-name">AA Parliamentary Reception</div>
-            <div class="event-desc">Industry leaders with key politicians. Government-facing engagement at Westminster.</div>
-            <span class="event-tag tag-ff">Front Foot</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">October 2026</div>
-          <div>
-            <div class="event-name">Advertising Week New York — 5–8 Oct</div>
-            <div class="event-desc">Leadership reception at the British Residence. UK House pop-up with dedicated roundtables and networking. Opportunity to bring clients and prospects. The UK's largest export market.</div>
-            <span class="event-tag tag-ukaeg">UKAEG</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">November 2026</div>
-          <div>
-            <div class="event-name">Athar Festival — Saudi Arabia</div>
-            <div class="event-desc">Leadership Reception at British Embassy, VIP invite-only lunch, CMO session with regional brand leaders, UK table at Athar Awards. High-growth market with long-term relationship potential.</div>
-            <span class="event-tag tag-ukaeg">UKAEG</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">Year-round</div>
-          <div>
-            <div class="event-name">Front Foot Breakfasts, Dinners &amp; Quarterly Roundtables</div>
-            <div class="event-desc">Regular senior-level gatherings across the Front Foot network. Policy briefings, AI taskforce, talent and inclusion working groups, LEAD industry summit access.</div>
-            <span class="event-tag tag-both">Both</span>
-          </div>
-        </div>
-
-        <div class="event-row">
-          <div class="event-month">March 2027</div>
-          <div>
-            <div class="event-name">SXSW Austin — 12–18 March</div>
-            <div class="event-desc">Positioning UK companies at the intersection of creativity, technology and culture. Curated industry networking, invite-only roundtable with SXSW team, speaker submission support.</div>
-            <span class="event-tag tag-ukaeg">UKAEG</span>
-          </div>
-        </div>
-
+    <div class="panel" id="p4">
+      <div class="eyebrow">Costs &amp; options</div>
+      <h1 class="ptitle">Pricing &amp; <em>bundle.</em></h1>
+      <div class="pbody">
+        <p>All prices are + VAT. Membership runs for 12 months from the date of signature. Sarah has offered Jungle a reduced Front Foot rate — standard agency price is £6,000.</p>
       </div>
+      <div class="mem-cards">
+        <div class="mem-card">
+          <span class="mem-badge badge-uk">Front Foot · UK</span>
+          <div class="mem-name">Front Foot</div>
+          <div class="mem-lead">Led by Sarah Virani</div>
+          <div class="mem-desc">UK senior leader network. Events, Government access, policy briefings, Credos research, working groups.</div>
+          <div class="mem-price">
+            <div class="prow"><span class="pl">Standard rate</span><span class="pv strike">£6,000 + VAT</span></div>
+            <div class="prow"><span class="pl">Offered to Jungle</span><span class="pv">£4,000 + VAT</span></div>
+            <div class="prow"><span class="pl">With UKAEG bundle</span><span class="pvg">£4,000 + VAT</span></div>
+          </div>
+        </div>
+        <div class="mem-card hl">
+          <span class="mem-badge badge-intl">UKAEG · International</span>
+          <div class="mem-name">UKAEG</div>
+          <div class="mem-lead">Led by Aisling Conlon</div>
+          <div class="mem-desc">International missions: Cannes, Advertising Week NY, Athar, SXSW. Market briefings and brand introductions.</div>
+          <div class="mem-price">
+            <div class="prow"><span class="pl">Standard rate</span><span class="pv">£4,500 + VAT</span></div>
+            <div class="prow"><span class="pl">With Front Foot bundle</span><span class="pvg">£4,000 + VAT</span></div>
+            <div class="prow"><span class="pl">Year</span><span class="pv">June 2026 – May 2027</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="hbox" style="margin-top:20px;">
+        <p><strong>Bundle total: £8,000 + VAT.</strong> Saving £500 on UKAEG (down from £4,500) plus £2,000 on Front Foot (down from standard £6,000). The in-person SLT induction with Sarah and the AA's Commercial Director is included on joining Front Foot.</p>
+      </div>
+      <div class="pnav"><button class="nbtn" onclick="show(5)">Next <svg viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     </div>
 
-    <hr class="divider">
-
-    <!-- FRONT FOOT DETAIL -->
-    <div class="section-label">Front Foot — full benefit breakdown</div>
-    <div class="ff-benefits">
-      <div class="ff-cat">
-        <div class="ff-cat-title">Industry events &amp; networking</div>
-        <div class="ff-item">Front Foot Breakfasts — senior leaders resolving issues and exploring ideas</div>
-        <div class="ff-item">Front Foot Leadership Dinner — annual C-suite dinner, 60+ attendees</div>
-        <div class="ff-item">LEAD industry summit — discounted passes for colleagues</div>
-        <div class="ff-item">Annual President's Reception hosted by Andria Vidler (CEO, Allwyn)</div>
-        <div class="ff-item">Parliamentary Receptions and dinners with key politicians</div>
-        <div class="ff-item">Guest invitations to NABS, MGGB and WACL dinners</div>
-        <div class="ff-item">Bespoke co-hosting opportunities to develop events with FF members</div>
+    <div class="panel" id="p5">
+      <div class="eyebrow">What's on</div>
+      <h1 class="ptitle">Events <em>calendar.</em></h1>
+      <div class="pbody"><p>Key moments across the 2026–27 membership year.</p></div>
+      <div class="elist">
+        <div class="erow"><div class="emonth">May 2026</div><div><div class="ename">AA Centenary Reception</div><div class="edesc">The AA's 100th anniversary. Senior industry reception.</div><span class="etag tf">Front Foot</span></div></div>
+        <div class="erow"><div class="emonth">June 2026</div><div><div class="ename">SXSW London — 1–6 June</div><div class="edesc">Launch of the UK Advertising Export Report. Curated roundtable, access to UK House invite-only events.</div><span class="etag tu">UKAEG</span></div></div>
+        <div class="erow"><div class="emonth">June 2026</div><div><div class="ename">Cannes Lions — 22–26 June</div><div class="edesc">Pre-Cannes London briefing, CMO breakfast with international brand leaders, UK Advertising reception, curated roundtables. 30+ senior connections per mission.</div><span class="etag tu">UKAEG</span></div></div>
+        <div class="erow"><div class="emonth">July 2026</div><div><div class="ename">SXSW Speaker Bootcamp — London</div><div class="edesc">Support for competitive submissions for SXSW Austin 2027 main stage.</div><span class="etag tu">UKAEG</span></div></div>
+        <div class="erow"><div class="emonth">July 2026</div><div><div class="ename">AA Parliamentary Reception</div><div class="edesc">Industry leaders with key politicians at Westminster.</div><span class="etag tf">Front Foot</span></div></div>
+        <div class="erow"><div class="emonth">July 2026</div><div><div class="ename">Insight Session: Global Sports Marketing</div><div class="edesc">Front Foot(ball): The Winning Formula in Global Sports Marketing.</div><span class="etag tf">Front Foot</span></div></div>
+        <div class="erow"><div class="emonth">Oct 2026</div><div><div class="ename">Advertising Week New York — 5–8 Oct</div><div class="edesc">Leadership reception at the British Residence, UK House pop-up, roundtables. Opportunity to bring clients and prospects.</div><span class="etag tu">UKAEG</span></div></div>
+        <div class="erow"><div class="emonth">Nov 2026</div><div><div class="ename">Athar Festival — Saudi Arabia</div><div class="edesc">British Embassy reception, VIP lunch, CMO session with regional brand leaders, UK Advertising table at the Athar Awards.</div><span class="etag tu">UKAEG</span></div></div>
+        <div class="erow"><div class="emonth">Year-round</div><div><div class="ename">Front Foot Breakfasts, Dinners &amp; Roundtables</div><div class="edesc">Regular senior-level gatherings. Policy briefings, AI taskforce, talent and inclusion working groups, LEAD industry summit access.</div><span class="etag tb">Both</span></div></div>
+        <div class="erow"><div class="emonth">Mar 2027</div><div><div class="ename">SXSW Austin — 12–18 March</div><div class="edesc">Curated networking, invite-only roundtable with SXSW team, speaker submission support.</div><span class="etag tu">UKAEG</span></div></div>
       </div>
-      <div class="ff-cat">
-        <div class="ff-cat-title">Data, insights &amp; working groups</div>
-        <div class="ff-item">Priority access and speaker opportunities across AA outputs</div>
-        <div class="ff-item">Involvement in working groups: Skills &amp; Growth, Talent &amp; Inclusion, AI Taskforce</div>
-        <div class="ff-item">Exclusive Credos research with priority input into focus areas</div>
-        <div class="ff-item">Bespoke presentations for team and clients on industry topics</div>
-        <div class="ff-item">Policy briefings on LHF, data, AI regulation, Online Advertising Taskforce</div>
-        <div class="ff-item">Bespoke All In Census reporting benchmarked against industry</div>
-        <div class="ff-item">Front Foot Insight Sessions on topical policy and regulatory issues</div>
-      </div>
-      <div class="ff-cat">
-        <div class="ff-cat-title">Credos (ad industry think tank)</div>
-        <div class="ff-item">Access to AdPays reports and AA/WARC adspend figures</div>
-        <div class="ff-item">Exclusive member-only insights via the AA website</div>
-        <div class="ff-item">Value of Trust Report and interactive Trust Tracker Dashboard</div>
-        <div class="ff-item">Input into the Trust Action Plan</div>
-        <div class="ff-item">Expert-led online insight sessions on the industry landscape</div>
-      </div>
+      <div class="pnav"><button class="nbtn" onclick="show(6)">Next <svg viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     </div>
 
-    <hr class="divider">
-
-    <!-- EXPECTATION MANAGEMENT -->
-    <div class="section-label">Managing expectations</div>
-    <div class="expectation-box">
-      <h3>What this is, and what it isn't</h3>
-      <p>The AA is not an intermediary. Joining does not put Jungle in pitch consideration sets and should not be evaluated against that metric. There are no shortlists, no direct briefs, no lead generation.</p>
-      <p>The value is relationship infrastructure — consistent access to senior people at the right moments, a credible context for Jungle to show up as a thought leader rather than a vendor, and a platform to build visibility with the kinds of brand and agency leaders who eventually influence or make agency selection decisions. That's a slower burn, and it compounds over time.</p>
-      <p>It runs in parallel to intermediary engagement. The question is whether £4k–8k/year for that access is the right allocation at this stage of Jungle's growth trajectory.</p>
+    <div class="panel" id="p6">
+      <div class="eyebrow">Value for Jungle</div>
+      <h1 class="ptitle">What it <em>unlocks.</em></h1>
+      <div class="pbody"><p>Translating the membership benefits into what they practically mean for an agency at Jungle's stage.</p></div>
+      <div class="blist">
+        <div class="brow"><div class="bkey">Room access</div><div class="bval">Senior brand and agency leaders at curated events and receptions we'd otherwise have no route into. The kind of relationships that take years to build cold.</div></div>
+        <div class="brow"><div class="bkey">Speaking platform</div><div class="bval">Speaker bootcamps and submission support for Cannes, SXSW, and Athar. Practical help getting Jungle voices onto panels that matter for profile and positioning.</div></div>
+        <div class="brow"><div class="bkey">Credibility signal</div><div class="bval">AA membership carries weight with intermediaries — a shorthand for seriousness within the industry. Useful supporting context as we build those relationships in parallel.</div></div>
+        <div class="brow"><div class="bkey">International access</div><div class="bval">Structured briefings and brand introductions across Cannes, NY, Saudi Arabia, and Austin. Relevant if Jungle has international growth ambitions on the horizon.</div></div>
+        <div class="brow"><div class="bkey">Policy intelligence</div><div class="bval">Early sight of regulatory direction on AI, LHF, data. Useful context for client conversations and for grounding Jungle's own thought leadership in real industry debate.</div></div>
+        <div class="brow"><div class="bkey">Industry data</div><div class="bval">Credos reports, AA/WARC adspend forecasts, and the Trust Tracker — data that can inform our own content and thought leadership outputs.</div></div>
+        <div class="brow"><div class="bkey">Export Report</div><div class="bval">Inclusion in the UK Advertising Export Report — distributed to Government and international partners. Visibility in the right hands.</div></div>
+      </div>
+      <div class="pnav"><button class="nbtn" onclick="show(7)">Next <svg viewBox="0 0 10 10" fill="none"><path d="M3 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     </div>
 
-    <!-- CONTACTS -->
-    <div class="section-label">Contacts</div>
-    <div class="contacts-grid">
-      <div class="contact-card">
-        <div class="contact-name">Sarah Virani</div>
-        <div class="contact-role">Head of Membership — Front Foot</div>
-        <div class="contact-email">sarah.virani@adassoc.org.uk</div>
-        <div class="contact-scope">Lead contact for Front Foot membership. Offered Jungle a reduced rate of £4,000 + VAT (standard: £6,000). Runs the in-person SLT induction on joining.</div>
+    <div class="panel" id="p7">
+      <div class="eyebrow">Next steps</div>
+      <h1 class="ptitle"><em>Contacts.</em></h1>
+      <div class="pbody">
+        <p>Both options are available now. If we proceed with Front Foot, Sarah's next step is an in-person induction with Jungle's SLT — a working session to map the right events and opportunities against our priorities.</p>
       </div>
-      <div class="contact-card">
-        <div class="contact-name">Aisling Conlon</div>
-        <div class="contact-role">International Director — UKAEG</div>
-        <div class="contact-email">aisling.conlon@adassoc.org.uk</div>
-        <div class="contact-scope">Lead contact for UKAEG / export group membership. Manages all international missions and in-market programming.</div>
+      <div class="cgrid">
+        <div class="ccard"><div class="cname">Sarah Virani</div><div class="crole">Head of Membership · Front Foot</div><div class="cemail">sarah.virani@adassoc.org.uk</div><div class="cnote">Lead contact for Front Foot. Offered Jungle a reduced rate of £4,000 + VAT (standard £6,000). Runs the in-person SLT induction on sign-up.</div></div>
+        <div class="ccard"><div class="cname">Aisling Conlon</div><div class="crole">International Director · UKAEG</div><div class="cemail">aisling.conlon@adassoc.org.uk</div><div class="cnote">Lead contact for UKAEG. Manages all international missions and in-market programming across Cannes, NY, Saudi, and SXSW.</div></div>
+        <div class="ccard"><div class="cname">Sharon Lloyd Barnes</div><div class="crole">Commercial Director &amp; Inclusion Lead</div><div class="cemail">sharon.lloydbarnes@adassoc.org.uk</div><div class="cnote">Attends the SLT induction alongside Sarah on Front Foot sign-up.</div></div>
       </div>
-      <div class="contact-card">
-        <div class="contact-name">Sharon Lloyd Barnes</div>
-        <div class="contact-role">Commercial Director &amp; Inclusion Lead</div>
-        <div class="contact-email">sharon.lloydbarnes@adassoc.org.uk</div>
-        <div class="contact-scope">Attends the SLT induction meeting alongside Sarah on Front Foot sign-up.</div>
+      <div class="hbox" style="margin-top:28px;">
+        <p><strong>To progress:</strong> confirm interest to Sarah for Front Foot, Aisling for UKAEG, or both for the bundle. Membership runs 12 months from date of signature. UKAEG year: June 2026 – May 2027.</p>
       </div>
     </div>
 
   </div>
-</main>
+</div>
 
 <script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
 <script>
-const GATE_PASSWORD = 'massive';
-function checkGate() {
-  const val = document.getElementById('gate-input').value;
-  if (val === GATE_PASSWORD) {
-    sessionStorage.setItem('jc_auth', '1');
-    const overlay = document.getElementById('gate-overlay');
-    overlay.classList.add('hidden');
-    setTimeout(() => overlay.remove(), 350);
-  } else {
-    const input = document.getElementById('gate-input');
-    const err = document.getElementById('gate-error');
-    input.classList.add('error');
-    err.textContent = 'Incorrect password';
-    setTimeout(() => { input.classList.remove('error'); input.value = ''; err.textContent = ''; }, 1000);
-  }
-}
-if (sessionStorage.getItem('jc_auth') === '1') {
-  document.getElementById('gate-overlay').remove();
-} else {
-  document.getElementById('gate-input').focus();
-}
+const GATE_PASSWORD='massive';
+function checkGate(){const v=document.getElementById('gate-input').value;if(v===GATE_PASSWORD){sessionStorage.setItem('jc_auth','1');const o=document.getElementById('gate-overlay');o.classList.add('hidden');setTimeout(()=>o.remove(),350);}else{const i=document.getElementById('gate-input'),e=document.getElementById('gate-error');i.classList.add('error');e.textContent='Incorrect password';setTimeout(()=>{i.classList.remove('error');i.value='';e.textContent='';},1000);}}
+if(sessionStorage.getItem('jc_auth')==='1'){document.getElementById('gate-overlay').remove();}else{document.getElementById('gate-input').focus();}
+const tabs=document.querySelectorAll('.tab');
+const panels=document.querySelectorAll('.panel');
+function show(n){tabs.forEach((t,i)=>t.classList.toggle('active',i===n));panels.forEach((p,i)=>p.classList.toggle('active',i===n));document.querySelector('.panel-wrap').scrollTop=0;}
 </script>
 </body>
 </html>
