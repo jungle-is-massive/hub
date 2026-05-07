@@ -2656,8 +2656,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
 
 <script>
 // ── PIPELINE QUICK ENTRY MODAL ──────────────────────────────────────────
-const PM_HS_TOKEN = (window.JUNGLE_CONFIG||{}).HS_TOKEN||'';
-const PM_HS_URL   = 'https://api.hubapi.com/crm/v3/objects/deals';
+const PM_HS_PROXY = `${SUPABASE_URL}/functions/v1/hs-proxy`;
+const PM_SB_KEY   = SUPABASE_KEY;
 let pmCurrentType = 'opportunity';
 
 function openPipelineModal(type) {
@@ -2734,10 +2734,12 @@ async function submitPipelineModal() {
   };
 
   try {
-    const res = await fetch(PM_HS_URL, {
+    const res = await fetch(PM_HS_PROXY, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${PM_HS_TOKEN}`,
+        'Authorization': `Bearer ${PM_SB_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/deals',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(hsPayload)
