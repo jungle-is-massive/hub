@@ -1529,27 +1529,35 @@ async function selectInquiry(e, rowEl) {
   rowEl.classList.add('active');
   activeInquiryEmail = e.email;
 
-  // Render message column
+  // Render message column (use Supabase message initially, may be overridden by HubSpot fetch)
   const msgBody = document.getElementById('inquiries-message-body');
   const name = [e.firstname, e.lastname].filter(Boolean).join(' ') || '—';
-  msgBody.innerHTML = `
-    <div class="inq-message-company">${e.company || name}</div>
-    <div class="inq-message-contact">${name !== e.company ? name : ''}</div>
-    <div class="inq-message-body">${(e.message || 'No message content.').replace(/</g,'&lt;')}</div>
-    <div class="inq-message-email">${e.email}</div>
-  `;
+  const renderMessageCol = (msg) => {
+    msgBody.innerHTML = `
+      <div class="inq-message-company">${e.company || name}</div>
+      <div class="inq-message-contact">${name !== e.company ? name : ''}</div>
+      <div class="inq-message-body">${(msg || 'No message content.').replace(/</g,'&lt;')}</div>
+      <div class="inq-message-email">${e.email}</div>
+    `;
+  };
+  renderMessageCol(e.message);
 
   // Render status column with loading state
   const statusBody = document.getElementById('inquiries-status-body');
   statusBody.innerHTML = `<div class="inq-status-empty" style="font-size:11px">Looking up HubSpot contact…</div>`;
 
-  // Fetch HubSpot contact
+  // Fetch HubSpot contact (and message if missing from Supabase)
   let contactId = null;
   let currentStatus = '';
+  let latestNote = null;
+
   if (inquiryHsContactCache[e.email]) {
-    ({ id: contactId, hs_lead_status: currentStatus } = inquiryHsContactCache[e.email]);
+    ({ id: contactId, hs_lead_status: currentStatus, latest_note: latestNote } = inquiryHsContactCache[e.email]);
+    // Still re-render message with HS version if we have it cached
+    if (inquiryHsContactCache[e.email].hs_message) renderMessageCol(inquiryHsContactCache[e.email].hs_message);
   } else {
     try {
+      // 1. Fetch contact (includes message property)
       const res = await fetch(HS_PROXY, {
         method: 'POST',
         headers: {
@@ -1560,7 +1568,7 @@ async function selectInquiry(e, rowEl) {
         },
         body: JSON.stringify({
           filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: e.email }] }],
-          properties: ['email','firstname','lastname','hs_lead_status','company'],
+          properties: ['email','firstname','lastname','hs_lead_status','company','message'],
           limit: 1
         })
       });
@@ -1569,7 +1577,66 @@ async function selectInquiry(e, rowEl) {
         const c = data.results[0];
         contactId = c.id;
         currentStatus = c.properties.hs_lead_status || '';
-        inquiryHsContactCache[e.email] = { id: contactId, hs_lead_status: currentStatus };
+        const hsMessage = c.properties.message || '';
+
+        // If Supabase had no message but HubSpot does, update the display
+        if (!e.message && hsMessage && activeInquiryEmail === e.email) {
+          renderMessageCol(hsMessage);
+        }
+
+        // 2. Fetch note associations for this contact
+        let noteBody = '';
+        let noteDate = '';
+        try {
+          const assocRes = await fetch(HS_PROXY, {
+            headers: {
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'x-proxy-target': 'hubspot',
+              'x-hs-path': `/crm/v3/objects/contacts/${contactId}/associations/notes`
+            }
+          });
+          const assocData = await assocRes.json();
+          const noteIds = (assocData.results || []).map(r => r.id);
+
+          if (noteIds.length > 0) {
+            // 3. Batch fetch note bodies, get most recent dashboard note
+            const batchRes = await fetch(HS_PROXY, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'x-proxy-target': 'hubspot',
+                'x-hs-path': '/crm/v3/objects/notes/batch/read',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                inputs: noteIds.slice(0, 10).map(id => ({ id })),
+                properties: ['hs_note_body', 'hs_timestamp', 'hs_createdate']
+              })
+            });
+            const batchData = await batchRes.json();
+            // Sort by created date desc, pick most recent dashboard note
+            const notes = (batchData.results || [])
+              .filter(n => (n.properties.hs_note_body || '').includes('[Activity Dashboard Note]'))
+              .sort((a, b) => new Date(b.properties.hs_createdate) - new Date(a.properties.hs_createdate));
+            if (notes.length > 0) {
+              // Strip the header prefix we added when saving
+              const raw = notes[0].properties.hs_note_body || '';
+              const lines = raw.split('\n');
+              // Remove first two lines ([Activity Dashboard Note] and company/name line)
+              noteBody = lines.slice(2).join('\n').trim();
+              noteDate = new Date(notes[0].properties.hs_createdate)
+                .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            }
+          }
+        } catch(noteErr) {
+          console.error('Note fetch error:', noteErr);
+        }
+
+        latestNote = { body: noteBody, date: noteDate };
+        inquiryHsContactCache[e.email] = {
+          id: contactId, hs_lead_status: currentStatus,
+          hs_message: hsMessage, latest_note: latestNote
+        };
       }
     } catch(err) {
       console.error('HS contact lookup error:', err);
@@ -1588,11 +1655,16 @@ async function selectInquiry(e, rowEl) {
     `<option value="${o.value}" ${currentStatus === o.value ? 'selected' : ''}>${o.label}</option>`
   ).join('');
 
+  const noteTimestamp = latestNote && latestNote.date
+    ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:6px;">Last saved: ${latestNote.date}</div>`
+    : '';
+
   statusBody.innerHTML = `
     <div style="font-size:11px;color:var(--grey-mid);margin-bottom:8px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Lead Status</div>
     <select class="inq-status-select" id="inq-status-select">${statusOpts}</select>
     <div style="font-size:11px;color:var(--grey-mid);margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Notes</div>
-    <textarea class="inq-notes-textarea" id="inq-notes-textarea" placeholder="e.g. Proposal sent — awaiting response by 15 May…" style="flex:1;min-height:160px"></textarea>
+    ${noteTimestamp}
+    <textarea class="inq-notes-textarea" id="inq-notes-textarea" placeholder="e.g. Proposal sent — awaiting response by 15 May…" style="flex:1;min-height:160px">${latestNote && latestNote.body ? latestNote.body : ''}</textarea>
     <div class="inq-save-status" id="inq-save-status"></div>
   `;
 
@@ -1611,7 +1683,13 @@ async function selectInquiry(e, rowEl) {
   notesEl.addEventListener('input', () => {
     clearTimeout(inquiryNoteDebounce);
     saveEl.textContent = 'Saving…'; saveEl.className = 'inq-save-status saving';
-    inquiryNoteDebounce = setTimeout(() => createHsNote(contactId, e, notesEl.value, saveEl), 1200);
+    inquiryNoteDebounce = setTimeout(() => {
+      // Update cache so re-selecting shows latest text without refetch
+      if (inquiryHsContactCache[e.email]) {
+        inquiryHsContactCache[e.email].latest_note = { body: notesEl.value, date: 'Just now' };
+      }
+      createHsNote(contactId, e, notesEl.value, saveEl);
+    }, 1200);
   });
 }
 
