@@ -2055,14 +2055,6 @@ function toggleSourcePanel(pill, panel) {
 
 async function loadStaffReferralLeaderboard() {
   try {
-    // 1. Fetch team members + their targets from Supabase
-    const sbRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/team_members?select=full_name,role_title,initials,referral_target&is_active=eq.true&order=sort_order.asc`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-    );
-    const team = await sbRes.json();
-
-    // 2. Fetch Staff Referral deals from HubSpot
     const hsRes = await fetch(HS_PROXY, {
       method: 'POST',
       headers: {
@@ -2083,22 +2075,17 @@ async function loadStaffReferralLeaderboard() {
     const hsData = await hsRes.json();
     const deals = hsData.results || [];
 
-    // 3. Count actuals by referred_by name (fuzzy match to team member names)
+    // Aggregate by referred_by
     const actuals = {};
     deals.forEach(d => {
-      const raw = (d.properties?.referred_by || '').trim();
-      if (!raw) return;
-      // Match against team member names (first name or full name)
-      const match = team.find(m =>
-        m.full_name.toLowerCase() === raw.toLowerCase() ||
-        m.full_name.toLowerCase().startsWith(raw.toLowerCase()) ||
-        raw.toLowerCase().startsWith(m.full_name.split(' ')[0].toLowerCase())
-      );
-      const key = match ? match.full_name : raw;
-      actuals[key] = (actuals[key] || 0) + 1;
+      const name = (d.properties?.referred_by || '').trim();
+      const key = name || '__unknown__';
+      if (!actuals[key]) actuals[key] = { count: 0, deals: [] };
+      actuals[key].count++;
+      actuals[key].deals.push(d.properties?.dealname || 'Unnamed deal');
     });
 
-    renderStaffReferralLeaderboard(team, actuals);
+    renderStaffReferralLeaderboard(actuals, deals.length);
   } catch(e) {
     console.error('Staff referral leaderboard error:', e);
     document.getElementById('staff-referral-table').innerHTML =
@@ -2106,59 +2093,43 @@ async function loadStaffReferralLeaderboard() {
   }
 }
 
-function renderStaffReferralLeaderboard(team, actuals) {
+function renderStaffReferralLeaderboard(actuals, total) {
   const container = document.getElementById('staff-referral-table');
   if (!container) return;
 
-  // Sort by actuals desc, then by name
-  const sorted = [...team].sort((a, b) => {
-    const aAct = actuals[a.full_name] || 0;
-    const bAct = actuals[b.full_name] || 0;
-    return bAct - aAct || a.full_name.localeCompare(b.full_name);
-  });
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state">No staff referral deals in pipeline yet.</div>';
+    return;
+  }
 
-  const maxEst = Math.max(...sorted.map(m => m.referral_target || 1));
-  const maxAct = Math.max(...sorted.map(m => actuals[m.full_name] || 0), 1);
-  const maxBar = Math.max(maxEst, maxAct);
+  // Sort by count desc
+  const sorted = Object.entries(actuals)
+    .sort((a, b) => b[1].count - a[1].count);
+
+  const maxCount = sorted[0][1].count;
+  const medals = ['🥇', '🥈', '🥉'];
 
   let html = `
-    <div class="icomp-row icomp-header" style="grid-template-columns:160px 1fr 90px 80px 80px">
+    <div class="icomp-row icomp-header" style="grid-template-columns:180px 1fr 80px">
       <div>Name</div>
-      <div>Progress</div>
-      <div style="text-align:right">Estimated</div>
-      <div style="text-align:right">Actual</div>
-      <div style="text-align:right">vs est.</div>
+      <div>Referrals</div>
+      <div style="text-align:right">Count</div>
     </div>`;
 
-  sorted.forEach((member, i) => {
-    const target = member.referral_target || 1;
-    const actual = actuals[member.full_name] || 0;
-    const estPct  = Math.round((target / maxBar) * 100);
-    const actPct  = Math.round((actual / maxBar) * 100);
-    const pct     = target > 0 ? Math.round((actual / target) * 100) : 0;
-
-    const actColour = actual === 0 ? 'var(--grey-mid)'
-      : actual >= target ? 'var(--teal)' : 'var(--coral)';
-    const actLabel  = actual > 0 ? actual : '—';
-    const pctLabel  = actual > 0 ? `${pct}%` : '—';
-
-    // Rank medal for top 3 with actuals
-    const rank = i + 1;
-    const medal = actual > 0 && rank === 1 ? ' 🥇' : actual > 0 && rank === 2 ? ' 🥈' : actual > 0 && rank === 3 ? ' 🥉' : '';
+  sorted.forEach(([name, data], i) => {
+    const isUnknown = name === '__unknown__';
+    const displayName = isUnknown ? 'Unknown referrer' : name;
+    const barPct = Math.round((data.count / maxCount) * 100);
+    const medal = !isUnknown && i < 3 ? medals[i] : '';
+    const dealTitles = data.deals.join(', ');
 
     html += `
-      <div class="icomp-row" style="grid-template-columns:160px 1fr 90px 80px 80px">
-        <div>
-          <div class="icomp-name">${member.full_name}${medal}</div>
-          <div style="font-size:10px;color:var(--grey-mid);margin-top:1px">${member.role_title || ''}</div>
-        </div>
+      <div class="icomp-row" style="grid-template-columns:180px 1fr 80px" title="${data.count} referral${data.count !== 1 ? 's' : ''}: ${dealTitles}">
+        <div class="icomp-name">${medal ? medal + ' ' : ''}${displayName}${isUnknown ? ` <span style="font-size:10px;color:var(--grey-mid);font-weight:400">(referred_by not set)</span>` : ''}</div>
         <div class="icomp-bar-wrap">
-          <div class="icomp-bar-est" style="width:${estPct}%"></div>
-          <div class="icomp-bar-act" style="width:${actPct}%;background:${actColour}"></div>
+          <div class="icomp-bar-act" style="width:${barPct}%;background:${isUnknown ? 'var(--grey-mid)' : 'var(--green)'}"></div>
         </div>
-        <div class="icomp-est">${target}</div>
-        <div class="icomp-act" style="color:${actColour}">${actLabel}</div>
-        <div class="icomp-pct" style="color:${actColour}">${pctLabel}</div>
+        <div class="icomp-act" style="color:${isUnknown ? 'var(--grey-mid)' : 'var(--black)'}">${data.count}</div>
       </div>`;
   });
 
@@ -3277,6 +3248,7 @@ async function submitPipelineModal() {
       dealstage:    dealStage,
       deal_source:  document.getElementById('pm-source').value     || undefined,
       sector:       document.getElementById('pm-sector').value      || undefined,
+      referred_by:  document.getElementById('pm-referred').value.trim() || undefined,
       description:  descParts || undefined,
     }
   };
@@ -3298,6 +3270,7 @@ async function submitPipelineModal() {
     successEl.textContent = `✓ ${label} for ${company} saved to HubSpot — Agency Pipeline`;
     successEl.style.display = 'block';
     btn.textContent = 'Saved ✓';
+    // Keep button disabled after success to prevent double-submit
     setTimeout(() => closePipelineModal(), 1800);
   } catch(err) {
     const errEl = document.getElementById('pm-error');
