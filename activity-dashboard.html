@@ -2316,16 +2316,14 @@ const JUNGLE_EMOJIS = [
 ];
 
 const JUNGLE_GIFS = [
-  'https://media.tenor.com/vR7q9JNiRGgAAAAC/jungle-book-king-louie.gif',
-  'https://media.tenor.com/s0XCFOUn00sAAAAC/tarzan-jungle.gif',
-  'https://media.tenor.com/3b0-RZNW7XYAAAAC/lion-king-simba.gif',
-  'https://media.tenor.com/LZlJGSPfNgkAAAAC/monkey-dance.gif',
-  'https://media.tenor.com/NrfHPpDOlogAAAAC/jungle-animals.gif',
-  'https://media.tenor.com/qh1iMsnMVToAAAAC/toucan-bird.gif',
-  'https://media.tenor.com/oFcw8OMk56IAAAAC/parrot-dancing.gif',
-  'https://media.tenor.com/VcYThS8T3W0AAAAC/gorilla-dance.gif',
-  'https://media.tenor.com/rXdMDfmFXO8AAAAC/tiger-cute.gif',
-  'https://media.tenor.com/YE3ookBMV_MAAAAC/elephant-dance.gif',
+  'https://media2.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif',
+  'https://media2.giphy.com/media/3oriO6oBzgzBsELBDi/giphy.gif',
+  'https://media1.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif',
+  'https://media0.giphy.com/media/xT9IgpTTFPBTqxKrKw/giphy.gif',
+  'https://media2.giphy.com/media/l0HlNJbKFKFZbKHza/giphy.gif',
+  'https://media3.giphy.com/media/xUA7b1MxpngddUvdSw/giphy.gif',
+  'https://media1.giphy.com/media/l4FGCymGGNTZVZwtO/giphy.gif',
+  'https://media0.giphy.com/media/oCjCGBHMDgBPdABBhS/giphy.gif',
 ];
 
 function pickJungleEmojis() {
@@ -2508,11 +2506,14 @@ async function sendSnapshot() {
     const subject    = `${emojis} Jungle Growth Weekly Snapshot — ${today}`;
     const toList     = [...recipients];
 
+    // Encode subject as RFC 2047 MIME encoded-word so emojis survive email headers
+    const encodedSubject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
+
     // Build RFC 2822 message and base64url-encode it for Gmail API
     const boundary   = 'jungle_boundary_' + Date.now();
     const rawMessage = [
       `To: ${toList.join(', ')}`,
-      `Subject: ${subject}`,
+      `Subject: ${encodedSubject}`,
       'MIME-Version: 1.0',
       'Content-Type: text/html; charset=utf-8',
       '',
