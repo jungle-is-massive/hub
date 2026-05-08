@@ -157,27 +157,109 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .meeting-next { background: var(--cream-soft); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--black); line-height: 1.4; }
 .meeting-next-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 3px; }
 
-/* INQUIRIES */
-#inquiries-list { display: flex; flex-direction: column; gap: 8px; }
-.inquiry-row {
-  background: var(--white); border: 1px solid var(--grey-light); border-radius: 10px;
-  padding: 14px 18px; display: grid; grid-template-columns: 1fr auto auto auto;
-  align-items: center; gap: 16px; animation: fadeUp 0.35s ease both;
+/* INQUIRIES — three-column panel layout */
+#inquiries-panel {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);
+  gap: 0;
+  background: var(--white);
+  border: 1px solid var(--grey-light);
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 320px;
 }
-@media(max-width:700px){ .inquiry-row { grid-template-columns: 1fr; } }
-.inquiry-name { font-size: 14px; font-weight: 600; }
-.inquiry-company { font-size: 12px; color: var(--grey-mid); margin-top: 2px; }
-.inquiry-source { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-mid); background: var(--cream-soft); padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
-.inquiry-date { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); white-space: nowrap; }
-.stage-pill {
+#inquiries-list-col {
+  border-right: 1px solid var(--grey-light);
+  display: flex; flex-direction: column;
+  overflow-y: auto; max-height: 560px;
+}
+#inquiries-message-col {
+  border-right: 1px solid var(--grey-light);
+  display: flex; flex-direction: column;
+}
+#inquiries-status-col {
+  display: flex; flex-direction: column;
+}
+.inq-col-header {
   font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
-  letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px;
-  border-radius: 20px; white-space: nowrap;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid);
+  padding: 12px 16px 10px; border-bottom: 1px solid var(--grey-light);
+  background: var(--cream-soft); flex-shrink: 0;
 }
-.stage-new { background: rgba(135,251,102,0.15); color: #3a8a20; border: 1px solid rgba(135,251,102,0.4); }
-.stage-contacted { background: rgba(74,191,255,0.12); color: #1a6d99; border: 1px solid rgba(74,191,255,0.3); }
-.stage-meeting { background: rgba(123,111,224,0.12); color: #5a4fb0; border: 1px solid rgba(123,111,224,0.3); }
-.stage-qualified { background: rgba(240,180,41,0.12); color: #8a6000; border: 1px solid rgba(240,180,41,0.3); }
+.inq-col-body { padding: 12px 16px; flex: 1; overflow-y: auto; }
+.inquiry-row {
+  padding: 10px 14px; cursor: pointer;
+  border-bottom: 1px solid var(--grey-light);
+  transition: background 0.12s;
+  animation: fadeUp 0.35s ease both;
+}
+.inquiry-row:last-child { border-bottom: none; }
+.inquiry-row:hover { background: var(--cream-soft); }
+.inquiry-row.active { background: var(--cream); border-left: 3px solid var(--black); }
+.inquiry-name { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+.inquiry-company { font-size: 11px; color: var(--grey-mid); margin-top: 2px; }
+.inquiry-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.inquiry-date { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); }
+.inquiry-source { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-mid); background: var(--cream-soft); padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+/* message col */
+.inq-message-empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--grey-mid); font-size: 12px; padding: 24px;
+  text-align: center; line-height: 1.5;
+}
+.inq-message-company { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.inq-message-contact { font-size: 12px; color: var(--grey-mid); margin-bottom: 12px; }
+.inq-message-body { font-size: 13px; line-height: 1.65; color: var(--black); white-space: pre-wrap; }
+.inq-message-email { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey-mid); margin-top: 12px; }
+/* status col */
+.inq-status-select {
+  width: 100%; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 8px 10px; border: 1px solid var(--grey-light);
+  border-radius: 8px; background: var(--cream-soft); color: var(--black);
+  cursor: pointer; margin-bottom: 12px; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238A8880'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.inq-status-select:focus { outline: none; border-color: var(--black); }
+.inq-notes-textarea {
+  width: 100%; flex: 1; resize: none; border: 1px solid var(--grey-light);
+  border-radius: 8px; padding: 10px 12px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; line-height: 1.6; color: var(--black); background: var(--white);
+  transition: border-color 0.15s;
+}
+.inq-notes-textarea:focus { outline: none; border-color: var(--black); }
+.inq-notes-textarea::placeholder { color: var(--grey-mid); }
+.inq-save-status {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--grey-mid); margin-top: 8px;
+  min-height: 14px; text-align: right;
+}
+.inq-save-status.saving { color: var(--amber); }
+.inq-save-status.saved { color: var(--teal); }
+.inq-save-status.error { color: var(--coral); }
+.inq-status-empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--grey-mid); font-size: 12px; padding: 24px;
+  text-align: center; line-height: 1.5;
+}
+.status-pill {
+  display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px;
+  border-radius: 20px; margin-bottom: 10px;
+}
+.status-NEW { background: rgba(135,251,102,0.15); color: #3a8a20; border: 1px solid rgba(135,251,102,0.4); }
+.status-OPEN { background: rgba(74,191,255,0.12); color: #1a6d99; border: 1px solid rgba(74,191,255,0.3); }
+.status-IN_PROGRESS { background: rgba(123,111,224,0.12); color: #5a4fb0; border: 1px solid rgba(123,111,224,0.3); }
+.status-OPEN_DEAL { background: rgba(240,180,41,0.15); color: #8a6000; border: 1px solid rgba(240,180,41,0.35); }
+.status-UNQUALIFIED { background: rgba(200,195,184,0.3); color: #5a5850; border: 1px solid rgba(200,195,184,0.6); }
+.status-ATTEMPTED_TO_CONTACT { background: rgba(255,107,74,0.12); color: #a03020; border: 1px solid rgba(255,107,74,0.3); }
+.status-CONNECTED { background: rgba(62,207,142,0.12); color: #1a7a50; border: 1px solid rgba(62,207,142,0.3); }
+.status-BAD_TIMING { background: rgba(200,195,184,0.3); color: #5a5850; border: 1px solid rgba(200,195,184,0.6); }
+@media(max-width:900px){
+  #inquiries-panel { grid-template-columns: 1fr; }
+  #inquiries-message-col, #inquiries-status-col { border-left: none; border-top: 1px solid var(--grey-light); }
+}
+/* stage pills kept for deal pipeline */
 .stage-proposal { background: rgba(255,107,74,0.12); color: #a03020; border: 1px solid rgba(255,107,74,0.3); }
 .stage-default { background: var(--cream-soft); color: var(--grey-mid); border: 1px solid var(--grey-light); }
 
@@ -761,7 +843,27 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
     <div class="section-label">Fresh HubSpot Inquiries</div>
     <div class="section-count" id="inquiries-count">—</div>
   </div>
-  <div id="inquiries-list"><div class="empty-state">Loading inquiries…</div></div>
+  <div id="inquiries-panel">
+    <!-- Col 1: list -->
+    <div id="inquiries-list-col">
+      <div class="inq-col-header">Inquiries</div>
+      <div id="inquiries-list"><div class="empty-state" style="padding:20px">Loading inquiries…</div></div>
+    </div>
+    <!-- Col 2: message -->
+    <div id="inquiries-message-col">
+      <div class="inq-col-header">Inquiry Message</div>
+      <div id="inquiries-message-body" class="inq-col-body">
+        <div class="inq-message-empty">Select an inquiry to read the message</div>
+      </div>
+    </div>
+    <!-- Col 3: status + notes -->
+    <div id="inquiries-status-col">
+      <div class="inq-col-header">Status &amp; Notes</div>
+      <div id="inquiries-status-body" class="inq-col-body" style="display:flex;flex-direction:column;">
+        <div class="inq-status-empty">Select an inquiry to update status and add notes</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ACTIVE OPPORTUNITIES -->
   <div id="section-deals" class="section-head">
@@ -1370,10 +1472,30 @@ function formatValue(v) {
   return n >= 1000000 ? `£${(n/1000000).toFixed(1)}m` : `£${Math.round(n/1000)}k`;
 }
 
+// ─────────────────────────────────────────────
+// INQUIRY PANEL STATE
+// ─────────────────────────────────────────────
+let activeInquiryEmail = null;
+let inquiryHsContactCache = {}; // email → { id, hs_lead_status }
+let inquiryNoteDebounce = null;
+let inquiryStatusDebounce = null;
+
+const LEAD_STATUS_OPTIONS = [
+  { value: '',                    label: '— No status —' },
+  { value: 'NEW',                 label: 'New' },
+  { value: 'OPEN',                label: 'Open' },
+  { value: 'IN_PROGRESS',         label: 'In Progress' },
+  { value: 'OPEN_DEAL',           label: 'Open Deal' },
+  { value: 'UNQUALIFIED',         label: 'Unqualified' },
+  { value: 'ATTEMPTED_TO_CONTACT',label: 'Attempted to Contact' },
+  { value: 'CONNECTED',           label: 'Connected' },
+  { value: 'BAD_TIMING',          label: 'Bad Timing' },
+];
+
 function renderInquiries(inquiries) {
   const container = document.getElementById('inquiries-list');
   if (!inquiries.length) {
-    container.innerHTML = `<div class="empty-state">No BD-flagged inquiries yet. Go to <a href="https://jungle-is-massive.github.io/playground/dashboard.html#opportunities" style="color:var(--black);font-weight:700">the opportunities dashboard</a> → Fresh Enquiries and click ★ on anything worth tracking.</div>`;
+    container.innerHTML = `<div class="empty-state" style="padding:20px">No BD-flagged inquiries yet. Go to <a href="https://jungle-is-massive.github.io/playground/dashboard.html#opportunities" style="color:var(--black);font-weight:700">the opportunities dashboard</a> → Fresh Enquiries and click ★ on anything worth tracking.</div>`;
     return;
   }
   container.innerHTML = '';
@@ -1381,24 +1503,181 @@ function renderInquiries(inquiries) {
     const row = document.createElement('div');
     row.className = 'inquiry-row';
     row.style.animationDelay = `${i * 0.05}s`;
-    const submittedDate = new Date(e.submittedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    row.dataset.email = e.email;
     const flaggedDate = e.flaggedAt
       ? new Date(e.flaggedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
       : '—';
     const name = [e.firstname, e.lastname].filter(Boolean).join(' ') || '—';
     row.innerHTML = `
-      <div>
-        <div class="inquiry-name">${e.company || name}</div>
-        <div class="inquiry-company">${name !== e.company ? name : e.email}</div>
-      </div>
-      <div class="inquiry-source" title="Submitted ${submittedDate}">Flagged ${flaggedDate}</div>
-      <div class="inquiry-date" title="${e.email}">${e.email}</div>
-      <div style="font-size:11px;color:var(--grey-mid);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${e.bdNotes || e.message}">
-        ${e.bdNotes ? `<span style="color:var(--black)">${e.bdNotes}</span>` : `<span style="color:var(--grey-mid);font-style:italic">${(e.message||'').substring(0,80)}…</span>`}
+      <div class="inquiry-name">${e.company || name}</div>
+      <div class="inquiry-company">${name !== e.company ? name : e.email}</div>
+      <div class="inquiry-meta">
+        <span class="inquiry-date">Flagged ${flaggedDate}</span>
       </div>
     `;
+    row.addEventListener('click', () => selectInquiry(e, row));
     container.appendChild(row);
   });
+  // Auto-select first
+  const first = container.querySelector('.inquiry-row');
+  if (first) first.click();
+}
+
+async function selectInquiry(e, rowEl) {
+  // Highlight selected row
+  document.querySelectorAll('.inquiry-row').forEach(r => r.classList.remove('active'));
+  rowEl.classList.add('active');
+  activeInquiryEmail = e.email;
+
+  // Render message column
+  const msgBody = document.getElementById('inquiries-message-body');
+  const name = [e.firstname, e.lastname].filter(Boolean).join(' ') || '—';
+  msgBody.innerHTML = `
+    <div class="inq-message-company">${e.company || name}</div>
+    <div class="inq-message-contact">${name !== e.company ? name : ''}</div>
+    <div class="inq-message-body">${(e.message || 'No message content.').replace(/</g,'&lt;')}</div>
+    <div class="inq-message-email">${e.email}</div>
+  `;
+
+  // Render status column with loading state
+  const statusBody = document.getElementById('inquiries-status-body');
+  statusBody.innerHTML = `<div class="inq-status-empty" style="font-size:11px">Looking up HubSpot contact…</div>`;
+
+  // Fetch HubSpot contact
+  let contactId = null;
+  let currentStatus = '';
+  if (inquiryHsContactCache[e.email]) {
+    ({ id: contactId, hs_lead_status: currentStatus } = inquiryHsContactCache[e.email]);
+  } else {
+    try {
+      const res = await fetch(HS_PROXY, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'x-proxy-target': 'hubspot',
+          'x-hs-path': '/crm/v3/objects/contacts/search',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: e.email }] }],
+          properties: ['email','firstname','lastname','hs_lead_status','company'],
+          limit: 1
+        })
+      });
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        const c = data.results[0];
+        contactId = c.id;
+        currentStatus = c.properties.hs_lead_status || '';
+        inquiryHsContactCache[e.email] = { id: contactId, hs_lead_status: currentStatus };
+      }
+    } catch(err) {
+      console.error('HS contact lookup error:', err);
+    }
+  }
+
+  // Only render if this inquiry is still selected
+  if (activeInquiryEmail !== e.email) return;
+
+  if (!contactId) {
+    statusBody.innerHTML = `<div class="inq-status-empty">Contact not found in HubSpot.<br><br>This contact may not have been synced yet.</div>`;
+    return;
+  }
+
+  const statusOpts = LEAD_STATUS_OPTIONS.map(o =>
+    `<option value="${o.value}" ${currentStatus === o.value ? 'selected' : ''}>${o.label}</option>`
+  ).join('');
+
+  statusBody.innerHTML = `
+    <div style="font-size:11px;color:var(--grey-mid);margin-bottom:8px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Lead Status</div>
+    <select class="inq-status-select" id="inq-status-select">${statusOpts}</select>
+    <div style="font-size:11px;color:var(--grey-mid);margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Notes</div>
+    <textarea class="inq-notes-textarea" id="inq-notes-textarea" placeholder="e.g. Proposal sent — awaiting response by 15 May…" style="flex:1;min-height:160px"></textarea>
+    <div class="inq-save-status" id="inq-save-status"></div>
+  `;
+
+  const selectEl = document.getElementById('inq-status-select');
+  const notesEl  = document.getElementById('inq-notes-textarea');
+  const saveEl   = document.getElementById('inq-save-status');
+
+  selectEl.addEventListener('change', () => {
+    const newStatus = selectEl.value;
+    inquiryHsContactCache[e.email].hs_lead_status = newStatus;
+    clearTimeout(inquiryStatusDebounce);
+    saveEl.textContent = 'Saving…'; saveEl.className = 'inq-save-status saving';
+    inquiryStatusDebounce = setTimeout(() => updateHsLeadStatus(contactId, newStatus, saveEl), 600);
+  });
+
+  notesEl.addEventListener('input', () => {
+    clearTimeout(inquiryNoteDebounce);
+    saveEl.textContent = 'Saving…'; saveEl.className = 'inq-save-status saving';
+    inquiryNoteDebounce = setTimeout(() => createHsNote(contactId, e, notesEl.value, saveEl), 1200);
+  });
+}
+
+async function updateHsLeadStatus(contactId, status, saveEl) {
+  try {
+    const res = await fetch(HS_PROXY, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': `/crm/v3/objects/contacts/${contactId}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ properties: { hs_lead_status: status || null } })
+    });
+    if (!res.ok) throw new Error(res.status);
+    if (saveEl && document.getElementById('inq-save-status') === saveEl) {
+      saveEl.textContent = 'Status saved ✓'; saveEl.className = 'inq-save-status saved';
+      setTimeout(() => { if(saveEl.textContent.includes('Status')) saveEl.textContent = ''; }, 3000);
+    }
+  } catch(err) {
+    console.error('Lead status update error:', err);
+    if (saveEl && document.getElementById('inq-save-status') === saveEl) {
+      saveEl.textContent = 'Error saving status'; saveEl.className = 'inq-save-status error';
+    }
+  }
+}
+
+async function createHsNote(contactId, inquiry, noteText, saveEl) {
+  if (!noteText.trim()) {
+    if (saveEl && document.getElementById('inq-save-status') === saveEl) saveEl.textContent = '';
+    return;
+  }
+  const name = [inquiry.firstname, inquiry.lastname].filter(Boolean).join(' ') || inquiry.email;
+  const body = `[Activity Dashboard Note]\n${inquiry.company ? inquiry.company + ' — ' : ''}${name}\n\n${noteText}`;
+  try {
+    const res = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/notes',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        properties: {
+          hs_timestamp: new Date().toISOString(),
+          hs_note_body: body
+        },
+        associations: [{
+          to: { id: contactId },
+          types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }]
+        }]
+      })
+    });
+    if (!res.ok) throw new Error(res.status);
+    if (saveEl && document.getElementById('inq-save-status') === saveEl) {
+      saveEl.textContent = 'Note saved to HubSpot ✓'; saveEl.className = 'inq-save-status saved';
+      setTimeout(() => { if(saveEl.textContent.includes('Note')) saveEl.textContent = ''; }, 3000);
+    }
+  } catch(err) {
+    console.error('Note create error:', err);
+    if (saveEl && document.getElementById('inq-save-status') === saveEl) {
+      saveEl.textContent = 'Error saving note'; saveEl.className = 'inq-save-status error';
+    }
+  }
 }
 
 function renderOpportunities(hsDeals) {
