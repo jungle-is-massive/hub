@@ -2429,8 +2429,14 @@ function buildSnapshotEmail() {
   // To do list
   body += buildTodoEmailSection();
 
+  // Jungle GIF sign-off
+  const gif = pickJungleGif();
+  body += `<hr style="border:none;border-top:1px solid #e0e0e0;margin:20px 0 16px 0">`;
+  body += `<p style="margin:0 0 8px 0;font-size:13px;color:#666;font-style:italic">Have a great weekend from the Jungle 🌿</p>`;
+  body += `<img src="${gif}" alt="Jungle gif" style="max-width:320px;width:100%;border-radius:8px;display:block;margin:0 0 16px 0" />`;
+
   // Footer
-  body += `<hr style="border:none;border-top:1px solid #e0e0e0;margin:20px 0 12px 0">`;
+  body += `<hr style="border:none;border-top:1px solid #e0e0e0;margin:0 0 12px 0">`;
   body += `<p style="color:#999;font-size:12px;margin:0">Sent from <a href="https://jungle-is-massive.github.io/hub/activity-dashboard.html" style="color:#999">Jungle Activity Dashboard</a></p>`;
   body += `</div>`;
 
@@ -2438,7 +2444,44 @@ function buildSnapshotEmail() {
 }
 
 
-async function sendSnapshot() {
+// ─────────────────────────────────────────────
+// JUNGLE EMOJI + GIF POOLS
+// ─────────────────────────────────────────────
+const JUNGLE_EMOJIS = [
+  '🌿','🌴','🌳','🦁','🐯','🐆','🦊','🐘','🦏','🦛',
+  '🦍','🦧','🐒','🐊','🦜','🦋','🐍','🐢','🦎','🐸',
+  '🌺','🌸','🌼','🍃','🍀','🌱','🎋','🎍','🌾','🪴',
+  '🦩','🦚','🦉','🦅','🐦','🌊','🍌','🥭','🍍','🪵'
+];
+
+const JUNGLE_GIFS = [
+  // Jungle/animal themed GIFs — direct Tenor media URLs
+  'https://media.tenor.com/vR7q9JNiRGgAAAAC/jungle-book-king-louie.gif',
+  'https://media.tenor.com/s0XCFOUn00sAAAAC/tarzan-jungle.gif',
+  'https://media.tenor.com/3b0-RZNW7XYAAAAC/lion-king-simba.gif',
+  'https://media.tenor.com/LZlJGSPfNgkAAAAC/monkey-dance.gif',
+  'https://media.tenor.com/NrfHPpDOlogAAAAC/jungle-animals.gif',
+  'https://media.tenor.com/qh1iMsnMVToAAAAC/toucan-bird.gif',
+  'https://media.tenor.com/oFcw8OMk56IAAAAC/parrot-dancing.gif',
+  'https://media.tenor.com/VcYThS8T3W0AAAAC/gorilla-dance.gif',
+  'https://media.tenor.com/rXdMDfmFXO8AAAAC/tiger-cute.gif',
+  'https://media.tenor.com/YE3ookBMV_MAAAAC/elephant-dance.gif',
+];
+
+function pickJungleEmojis() {
+  const pool = [...JUNGLE_EMOJIS];
+  const count = Math.random() < 0.4 ? 2 : 3; // 40% chance of 2, 60% chance of 3
+  const picked = [];
+  for (let i = 0; i < count; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked.join(' ');
+}
+
+function pickJungleGif() {
+  return JUNGLE_GIFS[Math.floor(Math.random() * JUNGLE_GIFS.length)];
+}
   const recipients = new Set([...activePills]);
   const inputVal = document.getElementById('recipient-input').value.trim();
   if (inputVal) inputVal.split(',').map(e => e.trim()).filter(Boolean).forEach(e => recipients.add(e));
@@ -2460,7 +2503,8 @@ async function sendSnapshot() {
   try {
     const emailBody  = buildSnapshotEmail();
     const today      = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    const subject    = 'Jungle Growth Weekly Snapshot ' + today;
+    const emojis     = pickJungleEmojis();
+    const subject    = `${emojis} Jungle Growth Weekly Snapshot — ${today}`;
     const toList     = [...recipients];
 
     // Build RFC 2822 message and base64url-encode it for Gmail API
