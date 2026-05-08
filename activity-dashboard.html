@@ -92,7 +92,7 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 #source-breakdown-bar { margin-bottom: 12px; }
 #intermediary-comparison-bar { margin-bottom: 28px; }
 #intermediary-comparison-table { width: 100%; }
-.icomp-row { display: grid; grid-template-columns: 160px 1fr 90px 80px 80px; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--grey-light); }
+.icomp-row { display: grid; grid-template-columns: 160px 1fr 80px 90px 80px 80px; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--grey-light); }
 .icomp-row:last-child { border-bottom: none; }
 .icomp-header { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); padding-bottom: 6px; border-bottom: 1px solid var(--grey-light); }
 .icomp-name { font-size: 12px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -102,7 +102,7 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .icomp-est { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey-mid); text-align: right; }
 .icomp-act { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-align: right; }
 .icomp-pct { font-family: 'DM Mono', monospace; font-size: 10px; text-align: right; }
-@media(max-width:700px) { .icomp-row { grid-template-columns: 120px 1fr 70px 60px; } .icomp-pct { display: none; } }
+@media(max-width:700px) { .icomp-row { grid-template-columns: 120px 1fr 60px 70px 60px; } .icomp-pct { display: none; } }
 #intermediary-comparison-bar { overflow: hidden; max-height: 0; transition: max-height 0.35s ease, margin-bottom 0.35s ease; margin-bottom: 0; }
 #intermediary-comparison-bar.open { max-height: 800px; margin-bottom: 12px; }
 .funnel-bar-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
@@ -1896,6 +1896,7 @@ function renderIntermediaryComparison(actuals) {
     <div class="icomp-row icomp-header">
       <div>Intermediary</div>
       <div>Pipeline progress</div>
+      <div style="text-align:right">No. of Briefs</div>
       <div style="text-align:right">Estimated</div>
       <div style="text-align:right">Actual</div>
       <div style="text-align:right">vs est.</div>
@@ -1918,6 +1919,10 @@ function renderIntermediaryComparison(actuals) {
     const estLabel  = est >= 1000000 ? `£${(est/1000000).toFixed(1)}m` : `£${Math.round(est/1000)}k`;
     const dealNote  = actCount > 0 ? ` · ${actCount} deal${actCount !== 1 ? 's' : ''}` : '';
 
+    const briefsLabel = `${actCount} of ${inter.pitches_expected}`;
+    const briefsColour = actCount >= inter.pitches_expected ? 'var(--green-dim)'
+      : actCount > 0 ? 'var(--black)' : 'var(--grey-mid)';
+
     html += `
       <div class="icomp-row" title="${inter.name}${dealNote}">
         <div class="icomp-name">${inter.name}</div>
@@ -1925,6 +1930,7 @@ function renderIntermediaryComparison(actuals) {
           <div class="icomp-bar-est" style="width:${estPct}%"></div>
           <div class="icomp-bar-act" style="width:${actPct}%;background:${actColour}"></div>
         </div>
+        <div class="icomp-est" style="color:${briefsColour};font-weight:${actCount > 0 ? 600 : 400}">${briefsLabel}</div>
         <div class="icomp-est">${estLabel}</div>
         <div class="icomp-act" style="color:${actColour}">${actLabel}</div>
         <div class="icomp-pct" style="color:${actColour}">${pctLabel}</div>
