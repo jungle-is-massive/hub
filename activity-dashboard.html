@@ -105,6 +105,8 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 @media(max-width:700px) { .icomp-row { grid-template-columns: 120px 1fr 60px 70px 60px; } .icomp-pct { display: none; } }
 #intermediary-comparison-bar { overflow: hidden; max-height: 0; transition: max-height 0.35s ease, margin-bottom 0.35s ease; margin-bottom: 0; }
 #intermediary-comparison-bar.open { max-height: 800px; margin-bottom: 12px; }
+#staff-referral-bar { overflow: hidden; max-height: 0; transition: max-height 0.35s ease, margin-bottom 0.35s ease; margin-bottom: 0; }
+#staff-referral-bar.open { max-height: 600px; margin-bottom: 12px; }
 .funnel-bar-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
 .funnel-bar-row { display: grid; gap: 4px; }
 .funnel-bar-row.row-1 { grid-template-columns: repeat(6, 1fr); }
@@ -811,6 +813,10 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   <div id="intermediary-comparison-bar">
     <div class="funnel-bar-label">Intermediary Pipeline — Actual vs Estimated</div>
     <div id="intermediary-comparison-table"><div class="source-pill-loading"></div></div>
+  </div>
+  <div id="staff-referral-bar">
+    <div class="funnel-bar-label">Staff Referral Leaderboard</div>
+    <div id="staff-referral-table"><div class="source-pill-loading"></div></div>
   </div>
 
   <!-- FUNNEL STAGES -->
@@ -1989,14 +1995,18 @@ function renderDealSource(deals) {
     const colour = SOURCE_COLOURS[src] || '#8A8880';
     const pct = Math.round((count / total) * 100);
     const isIntermediary = src === 'Intermediary';
+    const isStaffReferral = src === 'Staff Referral';
+    const isClickable = isIntermediary || isStaffReferral;
+    const clickHandler = isIntermediary ? 'toggleSourcePanel(this,\'intermediary\')' : isStaffReferral ? 'toggleSourcePanel(this,\'staff-referral\')' : '';
+    const tooltip = isClickable ? ' — click to expand breakdown' : '';
     html += `
-      <div class="source-pill${isIntermediary ? ' clickable' : ''}"
-           title="${count} deal${count !== 1 ? 's' : ''} · ${pct}% of open pipeline${isIntermediary ? ' — click to expand breakdown' : ''}"
-           ${isIntermediary ? 'onclick="toggleIntermediaryBreakdown(this)"' : ''}>
+      <div class="source-pill${isClickable ? ' clickable' : ''}"
+           title="${count} deal${count !== 1 ? 's' : ''} · ${pct}% of open pipeline${tooltip}"
+           ${isClickable ? `onclick="${clickHandler}"` : ''}> 
         <div class="source-pill-dot" style="background:${colour}"></div>
         ${src}
         <span class="source-pill-count">${count}</span>
-        ${isIntermediary ? '<span style="font-size:9px;opacity:0.5;margin-left:2px">▾</span>' : ''}
+        ${isClickable ? '<span style="font-size:9px;opacity:0.5;margin-left:2px">▾</span>' : ''}
       </div>`;
   });
 
@@ -2012,14 +2022,147 @@ function renderDealSource(deals) {
   container.innerHTML = html;
 }
 
-function toggleIntermediaryBreakdown(pill) {
-  const bar = document.getElementById('intermediary-comparison-bar');
+function toggleSourcePanel(pill, panel) {
+  const barId = panel === 'intermediary' ? 'intermediary-comparison-bar' : 'staff-referral-bar';
+  const otherId = panel === 'intermediary' ? 'staff-referral-bar' : 'intermediary-comparison-bar';
+  const bar = document.getElementById(barId);
+  const other = document.getElementById(otherId);
   if (!bar) return;
+
+  // Close the other panel + deactivate its pill
+  if (other && other.classList.contains('open')) {
+    other.classList.remove('open');
+    document.querySelectorAll('.source-pill.active').forEach(p => {
+      p.classList.remove('active');
+      const ch = p.querySelector('span[style*="opacity"]');
+      if (ch) ch.textContent = '▾';
+    });
+  }
+
   const isOpen = bar.classList.toggle('open');
   pill.classList.toggle('active', isOpen);
-  // Flip the chevron
   const chevron = pill.querySelector('span[style*="opacity"]');
   if (chevron) chevron.textContent = isOpen ? '▴' : '▾';
+
+  // Lazy-load leaderboard on first open
+  if (isOpen && panel === 'staff-referral') {
+    const table = document.getElementById('staff-referral-table');
+    if (table && table.querySelector('.source-pill-loading')) {
+      loadStaffReferralLeaderboard();
+    }
+  }
+}
+
+async function loadStaffReferralLeaderboard() {
+  try {
+    // 1. Fetch team members + their targets from Supabase
+    const sbRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/team_members?select=full_name,role_title,initials,referral_target&is_active=eq.true&order=sort_order.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const team = await sbRes.json();
+
+    // 2. Fetch Staff Referral deals from HubSpot
+    const hsRes = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/deals/search',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filterGroups: [{ filters: [
+          { propertyName: 'pipeline',    operator: 'EQ', value: AGENCY_PIPELINE },
+          { propertyName: 'deal_source', operator: 'EQ', value: 'Staff Referral' }
+        ]}],
+        properties: ['dealname', 'amount', 'referred_by'],
+        limit: 100
+      })
+    });
+    const hsData = await hsRes.json();
+    const deals = hsData.results || [];
+
+    // 3. Count actuals by referred_by name (fuzzy match to team member names)
+    const actuals = {};
+    deals.forEach(d => {
+      const raw = (d.properties?.referred_by || '').trim();
+      if (!raw) return;
+      // Match against team member names (first name or full name)
+      const match = team.find(m =>
+        m.full_name.toLowerCase() === raw.toLowerCase() ||
+        m.full_name.toLowerCase().startsWith(raw.toLowerCase()) ||
+        raw.toLowerCase().startsWith(m.full_name.split(' ')[0].toLowerCase())
+      );
+      const key = match ? match.full_name : raw;
+      actuals[key] = (actuals[key] || 0) + 1;
+    });
+
+    renderStaffReferralLeaderboard(team, actuals);
+  } catch(e) {
+    console.error('Staff referral leaderboard error:', e);
+    document.getElementById('staff-referral-table').innerHTML =
+      '<div class="empty-state">Unable to load referral data</div>';
+  }
+}
+
+function renderStaffReferralLeaderboard(team, actuals) {
+  const container = document.getElementById('staff-referral-table');
+  if (!container) return;
+
+  // Sort by actuals desc, then by name
+  const sorted = [...team].sort((a, b) => {
+    const aAct = actuals[a.full_name] || 0;
+    const bAct = actuals[b.full_name] || 0;
+    return bAct - aAct || a.full_name.localeCompare(b.full_name);
+  });
+
+  const maxEst = Math.max(...sorted.map(m => m.referral_target || 1));
+  const maxAct = Math.max(...sorted.map(m => actuals[m.full_name] || 0), 1);
+  const maxBar = Math.max(maxEst, maxAct);
+
+  let html = `
+    <div class="icomp-row icomp-header" style="grid-template-columns:160px 1fr 90px 80px 80px">
+      <div>Name</div>
+      <div>Progress</div>
+      <div style="text-align:right">Estimated</div>
+      <div style="text-align:right">Actual</div>
+      <div style="text-align:right">vs est.</div>
+    </div>`;
+
+  sorted.forEach((member, i) => {
+    const target = member.referral_target || 1;
+    const actual = actuals[member.full_name] || 0;
+    const estPct  = Math.round((target / maxBar) * 100);
+    const actPct  = Math.round((actual / maxBar) * 100);
+    const pct     = target > 0 ? Math.round((actual / target) * 100) : 0;
+
+    const actColour = actual === 0 ? 'var(--grey-mid)'
+      : actual >= target ? 'var(--teal)' : 'var(--coral)';
+    const actLabel  = actual > 0 ? actual : '—';
+    const pctLabel  = actual > 0 ? `${pct}%` : '—';
+
+    // Rank medal for top 3 with actuals
+    const rank = i + 1;
+    const medal = actual > 0 && rank === 1 ? ' 🥇' : actual > 0 && rank === 2 ? ' 🥈' : actual > 0 && rank === 3 ? ' 🥉' : '';
+
+    html += `
+      <div class="icomp-row" style="grid-template-columns:160px 1fr 90px 80px 80px">
+        <div>
+          <div class="icomp-name">${member.full_name}${medal}</div>
+          <div style="font-size:10px;color:var(--grey-mid);margin-top:1px">${member.role_title || ''}</div>
+        </div>
+        <div class="icomp-bar-wrap">
+          <div class="icomp-bar-est" style="width:${estPct}%"></div>
+          <div class="icomp-bar-act" style="width:${actPct}%;background:${actColour}"></div>
+        </div>
+        <div class="icomp-est">${target}</div>
+        <div class="icomp-act" style="color:${actColour}">${actLabel}</div>
+        <div class="icomp-pct" style="color:${actColour}">${pctLabel}</div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
 }
 
 function renderLane(containerId, deals, colorVar) {
