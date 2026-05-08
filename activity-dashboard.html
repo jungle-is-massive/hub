@@ -1808,44 +1808,51 @@ function renderOpportunities(hsDeals) {
 
 // ─────────────────────────────────────────────
 // INTERMEDIARY COMPARISON — Actual vs Estimated
-// Estimated figures mirror intermediary-plan/index.html INTERMEDIARIES array
+// Intermediary estimates are fetched live from Supabase in loadIntermediaryComparison()
 // ─────────────────────────────────────────────
-const INTERMEDIARY_ESTIMATES = [
-  { id:'aar',           name:'AAR',                      pitches_expected:4, avg_value:280000 },
-  { id:'ingenuity',     name:'Ingenuity+',               pitches_expected:3, avg_value:250000 },
-  { id:'creativebrief', name:'Creativebrief',            pitches_expected:5, avg_value:150000 },
-  { id:'oystercatchers',name:'Oystercatchers',           pitches_expected:3, avg_value:320000 },
-  { id:'observatory',   name:'Observatory International',pitches_expected:2, avg_value:200000 },
-  { id:'tuffon',        name:'Tuffon Hall',              pitches_expected:1, avg_value:180000 },
-  { id:'auditstar',     name:'Auditstar',                pitches_expected:1, avg_value:150000 },
-  { id:'individuals',   name:'Individual Consultants',   pitches_expected:2, avg_value:175000 },
-  { id:'masterclassing',name:'Masterclassing',           pitches_expected:2, avg_value:100000 },
-  { id:'gonetwork',     name:'The GO Network',           pitches_expected:2, avg_value:175000 },
-  { id:'adassoc',       name:'Advertising Association',  pitches_expected:1, avg_value:200000 },
-];
 
-// Maps HubSpot intermediaries field values → INTERMEDIARY_ESTIMATES names
+// Maps HubSpot intermediaries field values → Supabase intermediary names
 // (HubSpot may return slightly different strings — normalise here)
 const INTERMEDIARY_NAME_MAP = {
-  'AAR':                       'AAR',
-  'Ingenuity':                 'Ingenuity+',
-  'Ingenuity+':                'Ingenuity+',
-  'Creativebrief':             'Creativebrief',
-  'Oystercatchers':            'Oystercatchers',
-  'Observatory International': 'Observatory International',
-  'Tuffon Hall':               'Tuffon Hall',
-  'Auditstar':                 'Auditstar',
-  'Individual Consultants':    'Individual Consultants',
-  'Masterclassing':            'Masterclassing',
-  'The GO Network':            'The GO Network',
-  'Advertising Association':   'Advertising Association',
+  'AAR':                                    'AAR',
+  'Ingenuity':                              'Ingenuity Group',
+  'Ingenuity+':                             'Ingenuity Group',
+  'Ingenuity Group':                        'Ingenuity Group',
+  'Creativebrief':                          'Creativebrief',
+  'Oystercatchers':                         'Oystercatchers',
+  'Observatory International':              'Observatory International',
+  'Tuffon Hall':                            'Tuffon Hall Consultancy',
+  'Tuffon Hall Consultancy':                'Tuffon Hall Consultancy',
+  'Auditstar':                              'Auditstar',
+  'Individual Consultants':                 'Individual Consultants',
+  'Masterclassing':                         'Masterclassing',
+  'The GO Network':                         'The GO Network',
+  'Advertising Association':                'Advertising Association - International and UK',
+  'Nicky Bullard':                          'Nicky Bullard — Elevator',
+  'Elevator':                               'Nicky Bullard — Elevator',
+  'Alex Young':                             'Alex Young',
 };
 
 const CONVERSION_RATE = 0.30; // 30% — matches intermediary plan default
 
 async function loadIntermediaryComparison() {
   try {
-    // Fetch all Agency Pipeline deals with intermediaries field
+    // Fetch intermediary estimates live from Supabase
+    const sbRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/intermediaries?select=name,pitches_expected,avg_pitch_value,sort_order&order=sort_order.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const sbData = await sbRes.json();
+    // Only include rows with at least avg_pitch_value set
+    const estimates = sbData
+      .filter(r => r.avg_pitch_value)
+      .map(r => ({
+        name: r.name,
+        pitches_expected: r.pitches_expected || 0,
+        avg_value: r.avg_pitch_value
+      }));
+
+    // Fetch all Agency Pipeline deals
     const res = await fetch(HS_PROXY, {
       method: 'POST',
       headers: {
@@ -1877,7 +1884,7 @@ async function loadIntermediaryComparison() {
       actuals[name].value += parseFloat(d.properties?.amount || 0);
     });
 
-    renderIntermediaryComparison(actuals);
+    renderIntermediaryComparison(actuals, estimates);
   } catch(e) {
     console.error('Intermediary comparison error:', e);
     document.getElementById('intermediary-comparison-table').innerHTML =
@@ -1885,12 +1892,12 @@ async function loadIntermediaryComparison() {
   }
 }
 
-function renderIntermediaryComparison(actuals) {
+function renderIntermediaryComparison(actuals, estimates) {
   const container = document.getElementById('intermediary-comparison-table');
   if (!container) return;
 
   // Max estimated projected revenue for bar scaling
-  const maxEst = Math.max(...INTERMEDIARY_ESTIMATES.map(i => i.pitches_expected * i.avg_value * CONVERSION_RATE));
+  const maxEst = Math.max(...estimates.map(i => i.pitches_expected * i.avg_value * CONVERSION_RATE));
 
   let html = `
     <div class="icomp-row icomp-header">
@@ -1902,7 +1909,7 @@ function renderIntermediaryComparison(actuals) {
       <div style="text-align:right">vs est.</div>
     </div>`;
 
-  INTERMEDIARY_ESTIMATES.forEach(inter => {
+  estimates.forEach(inter => {
     const est     = inter.pitches_expected * inter.avg_value * CONVERSION_RATE;
     const actual  = actuals[inter.name];
     const actVal  = actual ? actual.value : 0;
