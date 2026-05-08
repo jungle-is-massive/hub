@@ -303,8 +303,16 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .opp-contact { font-size: 11px; color: var(--grey-mid); }
 .opp-age { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); background: var(--cream-soft); padding: 2px 7px; border-radius: 20px; }
 .opp-next { background: var(--cream-soft); border-radius: 8px; padding: 8px 10px; }
-.opp-next-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 3px; }
-.opp-next-text { font-size: 11px; line-height: 1.4; }
+.opp-next-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; }
+.opp-next-edit-hint { font-size: 8px; opacity: 0; transition: opacity 0.15s; letter-spacing: 0.05em; }
+.opp-next:hover .opp-next-edit-hint { opacity: 1; }
+.opp-next-text { font-size: 11px; line-height: 1.4; cursor: text; }
+.opp-next-textarea {
+  font-size: 11px; line-height: 1.4; font-family: inherit;
+  width: 100%; border: none; border-bottom: 1.5px solid var(--black);
+  background: transparent; outline: none; resize: none;
+  padding: 0; color: var(--black); min-height: 36px;
+}
 
 /* EVENTS */
 #events-list { display: flex; flex-direction: column; gap: 8px; }
@@ -2173,12 +2181,60 @@ function renderLane(containerId, deals, colorVar) {
         <div class="opp-age" style="color:${ageColourHS};border-color:${ageColourHS};background:${ageColourHS}18">${age} in stage</div>
       </div>
       <div class="opp-next">
-        <div class="opp-next-label">Next action</div>
-        <div class="opp-next-text">${nextStep.substring(0, 120)}${nextStep.length > 120 ? '…' : ''}</div>
+        <div class="opp-next-label">Next action <span class="opp-next-edit-hint">click to edit</span></div>
+        <div class="opp-next-text" data-deal-id="${d.id}" data-full-text="${(nextStep).replace(/"/g,'&quot;')}">${nextStep.substring(0, 120)}${nextStep.length > 120 ? '…' : ''}</div>
       </div>
       <button class="opp-add-task" onclick="quickAddTask(this.dataset.co)" data-co="">+ Add task</button>
     `;
     card.querySelector('.opp-add-task').dataset.co = p.dealname || '';
+
+    // Click-to-edit next action
+    const nextTextEl = card.querySelector('.opp-next-text');
+    nextTextEl.addEventListener('click', () => {
+      if (card.querySelector('.opp-next-textarea')) return; // already editing
+      const current = nextTextEl.dataset.fullText || nextTextEl.textContent;
+      const ta = document.createElement('textarea');
+      ta.className = 'opp-next-textarea';
+      ta.value = current === 'No next step recorded' ? '' : current;
+      ta.rows = 3;
+      nextTextEl.replaceWith(ta);
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+
+      const commit = async () => {
+        const newVal = ta.value.trim();
+        const display = newVal || 'No next step recorded';
+        const newDiv = document.createElement('div');
+        newDiv.className = 'opp-next-text';
+        newDiv.dataset.dealId = d.id;
+        newDiv.dataset.fullText = newVal;
+        newDiv.textContent = display.substring(0, 120) + (display.length > 120 ? '…' : '');
+        ta.replaceWith(newDiv);
+        // Re-attach listener
+        newDiv.addEventListener('click', nextTextEl.onclick);
+        if (newVal !== current && !(current === 'No next step recorded' && !newVal)) {
+          await fetch(HS_PROXY, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'x-proxy-target': 'hubspot',
+              'x-hs-path': `/crm/v3/objects/deals/${d.id}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ properties: { hs_next_step: newVal } })
+          });
+          // Update cached deal so re-renders stay current
+          d.properties.hs_next_step = newVal;
+        }
+      };
+
+      ta.addEventListener('blur', commit);
+      ta.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { ta.value = current === 'No next step recorded' ? '' : current; ta.blur(); }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ta.blur(); }
+      });
+    });
+
     container.appendChild(card);
   });
 }
