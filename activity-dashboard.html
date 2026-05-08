@@ -1628,11 +1628,26 @@ async function selectInquiry(e, rowEl) {
               .filter(n => (n.properties.hs_note_body || '').includes('[Activity Dashboard Note]'))
               .sort((a, b) => new Date(b.properties.hs_createdate) - new Date(a.properties.hs_createdate));
             if (notes.length > 0) {
-              // Strip the header prefix we added when saving
               const raw = notes[0].properties.hs_note_body || '';
-              const lines = raw.split('\n');
-              // Remove first two lines ([Activity Dashboard Note] and company/name line)
-              noteBody = lines.slice(2).join('\n').trim();
+              // Strip HTML if present, then strip our [Activity Dashboard Note] header (first 2 lines)
+              let cleaned = raw;
+              if (cleaned.includes('<') && cleaned.includes('>')) {
+                cleaned = cleaned
+                  .replace(/<br\s*\/?>/gi, '\n')
+                  .replace(/<p[^>]*>/gi, '')
+                  .replace(/<\/p>/gi, '\n')
+                  .replace(/<[^>]+>/g, '')
+                  .replace(/&nbsp;/g, ' ')
+                  .replace(/&mdash;/g, '—')
+                  .replace(/&amp;/g, '&')
+                  .replace(/&lt;/g, '<')
+                  .replace(/&gt;/g, '>');
+              }
+              const lines = cleaned.split('\n').map(l => l.trim());
+              // Remove [Activity Dashboard Note] line and company/name line
+              const bodyStart = lines.findIndex(l => l.startsWith('[Activity Dashboard Note]'));
+              const sliceFrom = bodyStart >= 0 ? bodyStart + 2 : 0;
+              noteBody = lines.slice(sliceFrom).join('\n').trim();
               noteDate = new Date(notes[0].properties.hs_createdate)
                 .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
             }
@@ -1645,8 +1660,7 @@ async function selectInquiry(e, rowEl) {
         inquiryHsContactCache[e.email] = {
           id: contactId, hs_lead_status: currentStatus,
           hs_message: hsMessage, latest_note: latestNote
-        };
-      }
+        };      }
     } catch(err) {
       console.error('HS contact lookup error:', err);
     }
@@ -1664,16 +1678,18 @@ async function selectInquiry(e, rowEl) {
     `<option value="${o.value}" ${currentStatus === o.value ? 'selected' : ''}>${o.label}</option>`
   ).join('');
 
-  const noteTimestamp = latestNote && latestNote.date
-    ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:6px;">Last saved: ${latestNote.date}</div>`
-    : '';
+  const latestNoteHtml = latestNote && latestNote.body
+    ? `<div style="background:var(--cream-soft);border:1px solid var(--grey-light);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;color:var(--black);white-space:pre-wrap;word-break:break-word;">${latestNote.body.replace(/</g,'&lt;')}</div>
+       <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);margin-top:5px;text-align:right;">Saved ${latestNote.date}</div>`
+    : `<div style="font-size:12px;color:var(--grey-mid);font-style:italic;">No notes yet.</div>`;
 
   statusBody.innerHTML = `
     <div style="font-size:11px;color:var(--grey-mid);margin-bottom:8px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Lead Status</div>
     <select class="inq-status-select" id="inq-status-select">${statusOpts}</select>
-    <div style="font-size:11px;color:var(--grey-mid);margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Notes</div>
-    ${noteTimestamp}
-    <textarea class="inq-notes-textarea" id="inq-notes-textarea" placeholder="e.g. Proposal sent — awaiting response by 15 May…" style="flex:1;min-height:160px">${latestNote && latestNote.body ? latestNote.body : ''}</textarea>
+    <div style="font-size:11px;color:var(--grey-mid);margin-bottom:8px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Latest Note</div>
+    <div id="inq-latest-note-block">${latestNoteHtml}</div>
+    <div style="font-size:11px;color:var(--grey-mid);margin:14px 0 6px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Add New Note</div>
+    <textarea class="inq-notes-textarea" id="inq-notes-textarea" placeholder="e.g. Proposal sent — awaiting response by 15 May…" style="flex:1;min-height:100px"></textarea>
     <button class="inq-save-note-btn" id="inq-save-note-btn">Save Note</button>
     <div class="inq-save-status" id="inq-save-status"></div>
   `;
@@ -1695,10 +1711,19 @@ async function selectInquiry(e, rowEl) {
     if (!notesEl.value.trim()) return;
     saveBtnEl.disabled = true;
     saveEl.textContent = 'Saving…'; saveEl.className = 'inq-save-status saving';
+    const noteText = notesEl.value;
+    await createHsNote(contactId, e, noteText, saveEl);
     if (inquiryHsContactCache[e.email]) {
-      inquiryHsContactCache[e.email].latest_note = { body: notesEl.value, date: 'Just now' };
+      const newNote = { body: noteText, date: 'Just now' };
+      inquiryHsContactCache[e.email].latest_note = newNote;
+      // Refresh the latest note display inline
+      const latestNoteEl = document.getElementById('inq-latest-note-block');
+      if (latestNoteEl) {
+        latestNoteEl.innerHTML = `<div style="background:var(--cream-soft);border:1px solid var(--grey-light);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;color:var(--black);white-space:pre-wrap;word-break:break-word;">${noteText.replace(/</g,'&lt;')}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);margin-top:5px;text-align:right;">Saved Just now</div>`;
+      }
     }
-    await createHsNote(contactId, e, notesEl.value, saveEl);
+    notesEl.value = '';
     saveBtnEl.disabled = false;
   });
 }
