@@ -2305,6 +2305,44 @@ function togglePill(el) {
   }
 }
 
+// ─────────────────────────────────────────────
+// JUNGLE EMOJI + GIF POOLS
+// ─────────────────────────────────────────────
+const JUNGLE_EMOJIS = [
+  '🌿','🌴','🌳','🦁','🐯','🐆','🦊','🐘','🦏','🦛',
+  '🦍','🦧','🐒','🐊','🦜','🦋','🐍','🐢','🦎','🐸',
+  '🌺','🌸','🌼','🍃','🍀','🌱','🎋','🎍','🌾','🪴',
+  '🦩','🦚','🦉','🦅','🐦','🌊','🍌','🥭','🍍','🪵'
+];
+
+const JUNGLE_GIFS = [
+  'https://media.tenor.com/vR7q9JNiRGgAAAAC/jungle-book-king-louie.gif',
+  'https://media.tenor.com/s0XCFOUn00sAAAAC/tarzan-jungle.gif',
+  'https://media.tenor.com/3b0-RZNW7XYAAAAC/lion-king-simba.gif',
+  'https://media.tenor.com/LZlJGSPfNgkAAAAC/monkey-dance.gif',
+  'https://media.tenor.com/NrfHPpDOlogAAAAC/jungle-animals.gif',
+  'https://media.tenor.com/qh1iMsnMVToAAAAC/toucan-bird.gif',
+  'https://media.tenor.com/oFcw8OMk56IAAAAC/parrot-dancing.gif',
+  'https://media.tenor.com/VcYThS8T3W0AAAAC/gorilla-dance.gif',
+  'https://media.tenor.com/rXdMDfmFXO8AAAAC/tiger-cute.gif',
+  'https://media.tenor.com/YE3ookBMV_MAAAAC/elephant-dance.gif',
+];
+
+function pickJungleEmojis() {
+  const pool = [...JUNGLE_EMOJIS];
+  const count = Math.random() < 0.4 ? 2 : 3;
+  const picked = [];
+  for (let i = 0; i < count; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked.join(' ');
+}
+
+function pickJungleGif() {
+  return JUNGLE_GIFS[Math.floor(Math.random() * JUNGLE_GIFS.length)];
+}
+
 function buildSnapshotEmail() {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const { meetings, events } = dashboardData;
@@ -2444,44 +2482,7 @@ function buildSnapshotEmail() {
 }
 
 
-// ─────────────────────────────────────────────
-// JUNGLE EMOJI + GIF POOLS
-// ─────────────────────────────────────────────
-const JUNGLE_EMOJIS = [
-  '🌿','🌴','🌳','🦁','🐯','🐆','🦊','🐘','🦏','🦛',
-  '🦍','🦧','🐒','🐊','🦜','🦋','🐍','🐢','🦎','🐸',
-  '🌺','🌸','🌼','🍃','🍀','🌱','🎋','🎍','🌾','🪴',
-  '🦩','🦚','🦉','🦅','🐦','🌊','🍌','🥭','🍍','🪵'
-];
-
-const JUNGLE_GIFS = [
-  // Jungle/animal themed GIFs — direct Tenor media URLs
-  'https://media.tenor.com/vR7q9JNiRGgAAAAC/jungle-book-king-louie.gif',
-  'https://media.tenor.com/s0XCFOUn00sAAAAC/tarzan-jungle.gif',
-  'https://media.tenor.com/3b0-RZNW7XYAAAAC/lion-king-simba.gif',
-  'https://media.tenor.com/LZlJGSPfNgkAAAAC/monkey-dance.gif',
-  'https://media.tenor.com/NrfHPpDOlogAAAAC/jungle-animals.gif',
-  'https://media.tenor.com/qh1iMsnMVToAAAAC/toucan-bird.gif',
-  'https://media.tenor.com/oFcw8OMk56IAAAAC/parrot-dancing.gif',
-  'https://media.tenor.com/VcYThS8T3W0AAAAC/gorilla-dance.gif',
-  'https://media.tenor.com/rXdMDfmFXO8AAAAC/tiger-cute.gif',
-  'https://media.tenor.com/YE3ookBMV_MAAAAC/elephant-dance.gif',
-];
-
-function pickJungleEmojis() {
-  const pool = [...JUNGLE_EMOJIS];
-  const count = Math.random() < 0.4 ? 2 : 3; // 40% chance of 2, 60% chance of 3
-  const picked = [];
-  for (let i = 0; i < count; i++) {
-    const idx = Math.floor(Math.random() * pool.length);
-    picked.push(pool.splice(idx, 1)[0]);
-  }
-  return picked.join(' ');
-}
-
-function pickJungleGif() {
-  return JUNGLE_GIFS[Math.floor(Math.random() * JUNGLE_GIFS.length)];
-}
+async function sendSnapshot() {
   const recipients = new Set([...activePills]);
   const inputVal = document.getElementById('recipient-input').value.trim();
   if (inputVal) inputVal.split(',').map(e => e.trim()).filter(Boolean).forEach(e => recipients.add(e));
