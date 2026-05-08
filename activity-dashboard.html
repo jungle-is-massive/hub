@@ -229,6 +229,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 }
 .inq-notes-textarea:focus { outline: none; border-color: var(--black); }
 .inq-notes-textarea::placeholder { color: var(--grey-mid); }
+.inq-save-note-btn {
+  margin-top: 8px; padding: 8px 16px; border: none; border-radius: 8px;
+  background: var(--black); color: var(--green);
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+  transition: opacity 0.15s; align-self: flex-end;
+}
+.inq-save-note-btn:hover { opacity: 0.8; }
+.inq-save-note-btn:disabled { opacity: 0.4; cursor: default; }
 .inq-save-status {
   font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--grey-mid); margin-top: 8px;
@@ -1665,11 +1674,13 @@ async function selectInquiry(e, rowEl) {
     <div style="font-size:11px;color:var(--grey-mid);margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Notes</div>
     ${noteTimestamp}
     <textarea class="inq-notes-textarea" id="inq-notes-textarea" placeholder="e.g. Proposal sent — awaiting response by 15 May…" style="flex:1;min-height:160px">${latestNote && latestNote.body ? latestNote.body : ''}</textarea>
+    <button class="inq-save-note-btn" id="inq-save-note-btn">Save Note</button>
     <div class="inq-save-status" id="inq-save-status"></div>
   `;
 
   const selectEl = document.getElementById('inq-status-select');
   const notesEl  = document.getElementById('inq-notes-textarea');
+  const saveBtnEl = document.getElementById('inq-save-note-btn');
   const saveEl   = document.getElementById('inq-save-status');
 
   selectEl.addEventListener('change', () => {
@@ -1680,16 +1691,15 @@ async function selectInquiry(e, rowEl) {
     inquiryStatusDebounce = setTimeout(() => updateHsLeadStatus(contactId, newStatus, saveEl), 600);
   });
 
-  notesEl.addEventListener('input', () => {
-    clearTimeout(inquiryNoteDebounce);
+  saveBtnEl.addEventListener('click', async () => {
+    if (!notesEl.value.trim()) return;
+    saveBtnEl.disabled = true;
     saveEl.textContent = 'Saving…'; saveEl.className = 'inq-save-status saving';
-    inquiryNoteDebounce = setTimeout(() => {
-      // Update cache so re-selecting shows latest text without refetch
-      if (inquiryHsContactCache[e.email]) {
-        inquiryHsContactCache[e.email].latest_note = { body: notesEl.value, date: 'Just now' };
-      }
-      createHsNote(contactId, e, notesEl.value, saveEl);
-    }, 1200);
+    if (inquiryHsContactCache[e.email]) {
+      inquiryHsContactCache[e.email].latest_note = { body: notesEl.value, date: 'Just now' };
+    }
+    await createHsNote(contactId, e, notesEl.value, saveEl);
+    saveBtnEl.disabled = false;
   });
 }
 
