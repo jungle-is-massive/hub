@@ -292,9 +292,9 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 
 .opp-card {
   background: var(--white); border: 1px solid var(--grey-light); border-radius: 12px;
-  padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+  padding: 11px 13px; display: flex; flex-direction: column; gap: 6px;
   animation: fadeUp 0.35s ease both; position: relative; overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s; margin-bottom: 10px;
 }
 .opp-card:hover { border-color: var(--lane-color, #0E0E0E); box-shadow: 0 6px 20px -8px rgba(0,0,0,0.12); }
 .opp-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--lane-color, var(--grey-light)); }
@@ -562,14 +562,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 }
 .prio-red { background: #FF6B4A; }
 .opp-add-task {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid);
-  background: none; border: 1px solid var(--grey-light); border-radius: 20px;
-  padding: 3px 8px; cursor: pointer; margin-top: 8px;
-  transition: border-color 0.15s, color 0.15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  background: none; border: 1px solid var(--grey-light);
+  color: var(--grey-mid); cursor: pointer; font-size: 14px; line-height: 1;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  opacity: 0;
 }
-.opp-add-task:hover { border-color: var(--black); color: var(--black); }
+.opp-card:hover .opp-add-task { opacity: 1; }
+.opp-add-task:hover { border-color: var(--black); color: var(--black); background: var(--cream-soft); }
 .prio-amber { background: #F0B429; }
 .prio-green { background: #3ECF8E; }
 
@@ -2175,7 +2176,10 @@ function renderLane(containerId, deals, colorVar) {
     card.innerHTML = `
       <div class="opp-top">
         <div class="opp-company">${p.dealname || 'Unnamed Deal'}</div>
-        ${val ? `<div class="opp-value">${val}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button class="opp-add-task" title="Add task">+</button>
+          ${val ? `<div class="opp-value">${val}</div>` : ''}
+        </div>
       </div>
       <div class="opp-stage-row">
         <div class="stage-pill ${stagePillClass(p.dealstage)}">${stageLabel(p.dealstage)}</div>
@@ -2186,9 +2190,12 @@ function renderLane(containerId, deals, colorVar) {
         <div class="opp-next-label">Next action <span class="opp-next-edit-hint">click to edit</span></div>
         <div class="opp-next-text" data-deal-id="${d.id}" data-full-text="${(nextStep).replace(/"/g,'&quot;')}">${nextStep.substring(0, 120)}${nextStep.length > 120 ? '…' : ''}</div>
       </div>
-      <button class="opp-add-task" onclick="quickAddTask(this.dataset.co)" data-co="">+ Add task</button>
+      <button class="opp-add-task" title="Add task">+</button>
     `;
-    card.querySelector('.opp-add-task').dataset.co = p.dealname || '';
+    card.querySelectorAll('.opp-add-task').forEach(btn => {
+      btn.dataset.co = p.dealname || '';
+      btn.addEventListener('click', () => quickAddTask(p.dealname || ''));
+    });
 
     // Click-to-edit next action
     const nextTextEl = card.querySelector('.opp-next-text');
