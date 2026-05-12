@@ -3255,6 +3255,235 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
 
 
 <!-- ── PIPELINE QUICK ENTRY MODAL ─────────────────────────────── -->
+<!-- ── GROWTH STATUS FLOATING BUTTON ───────────────────────────── -->
+<button id="gs-fab" onclick="openGrowthStatus()" title="Growth Status" aria-label="Open Growth Status panel" style="
+  position:fixed; bottom:32px; right:32px; z-index:390;
+  display:flex; align-items:center; gap:8px;
+  padding:0 18px 0 14px; height:44px;
+  background:var(--black); color:var(--green);
+  border:none; border-radius:100px;
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
+  cursor:pointer; box-shadow:0 4px 24px rgba(0,0,0,0.22);
+  transition:transform 0.15s, box-shadow 0.15s;
+" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.28)'"
+   onmouseout="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,0.22)'">
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/>
+    <rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/>
+    <rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/>
+    <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/>
+  </svg>
+  Growth Status
+  <span id="gs-fab-badge" style="display:none;margin-left:2px;background:var(--green);color:var(--black);font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;line-height:16px"></span>
+</button>
+
+<!-- ── GROWTH STATUS DRAWER ──────────────────────────────────── -->
+<div id="gs-backdrop" onclick="closeGrowthStatus()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.36)"></div>
+<div id="gs-drawer" role="dialog" aria-label="Growth Status" style="
+  display:none; position:fixed; top:0; right:0; bottom:0; z-index:401;
+  width:min(580px,100%); background:var(--cream);
+  border-left:1.5px solid var(--grey-light);
+  box-shadow:-20px 0 60px rgba(0,0,0,0.16);
+  overflow-y:auto; transform:translateX(100%);
+  transition:transform 0.28s cubic-bezier(0.22,1,0.36,1);
+  display:none; flex-direction:column;
+">
+  <!-- Header -->
+  <div style="position:sticky;top:0;z-index:10;background:var(--black);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg width="14" height="14" viewBox="0 0 15 15" fill="none" style="color:var(--green)">
+        <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/>
+        <rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/>
+        <rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/>
+        <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/>
+      </svg>
+      <span style="font-size:14px;font-weight:800;letter-spacing:-0.02em;color:var(--white)">Growth Status</span>
+      <span id="gs-sync-label" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)"></span>
+    </div>
+    <button onclick="closeGrowthStatus()" style="background:none;border:none;cursor:pointer;color:var(--grey-mid);padding:6px;display:flex;align-items:center;transition:color 0.12s" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--grey-mid)'">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <!-- Filter tabs -->
+  <div id="gs-filters" style="display:flex;gap:6px;padding:16px 24px 0;flex-wrap:wrap"></div>
+
+  <!-- Content -->
+  <div id="gs-content" style="padding:16px 24px 40px;flex:1">
+    <div id="gs-loading" style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--grey-mid);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase">Loading…</div>
+    <div id="gs-rows"></div>
+  </div>
+</div>
+
+<script>
+// ── GROWTH STATUS DRAWER ─────────────────────────────────────────────────
+const GS_STATUS_COLOURS = {
+  'in progress':        { bg:'rgba(135,251,102,0.14)', border:'rgba(135,251,102,0.5)', text:'#2a6600' },
+  'scheduled':          { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.45)', text:'#0a5080' },
+  'reviewing':          { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.5)', text:'#7a4e00' },
+  'planning':           { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.45)', text:'#3a2e8a' },
+  'early development':  { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.45)', text:'#3a2e8a' },
+  'ideation':           { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.45)', text:'#0a5030' },
+  'relationship building': { bg:'rgba(74,191,255,0.12)', border:'rgba(74,191,255,0.45)', text:'#0a5080' },
+  'awaiting designer':  { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.5)', text:'#7a4e00' },
+  'under review':       { bg:'rgba(200,195,184,0.2)',  border:'rgba(200,195,184,0.6)', text:'#555' },
+  'completed':          { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.45)', text:'#0a5030' },
+};
+const GS_STATUS_DEFAULT = { bg:'rgba(200,195,184,0.2)', border:'rgba(200,195,184,0.6)', text:'#555' };
+
+const GS_PRIORITY_COLOURS = {
+  'high':   { dot:'#FF6B4A' },
+  'medium': { dot:'#F0B429' },
+  'low':    { dot:'#C8C3B8' },
+};
+
+let gsData = [];
+let gsActiveFilter = 'all';
+
+function gsStatusStyle(status) {
+  const key = (status||'').toLowerCase().trim();
+  return GS_STATUS_COLOURS[key] || GS_STATUS_DEFAULT;
+}
+
+function gsPriorityDot(tier) {
+  const key = (tier||'').toLowerCase().trim();
+  const colour = (GS_PRIORITY_COLOURS[key]||{}).dot || '#C8C3B8';
+  return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${colour};flex-shrink:0;margin-top:3px"></span>`;
+}
+
+async function openGrowthStatus() {
+  const drawer = document.getElementById('gs-drawer');
+  const backdrop = document.getElementById('gs-backdrop');
+  backdrop.style.display = 'block';
+  drawer.style.display = 'flex';
+  requestAnimationFrame(() => { drawer.style.transform = 'translateX(0)'; });
+  if (gsData.length === 0) await gsLoad();
+}
+
+function closeGrowthStatus() {
+  const drawer = document.getElementById('gs-drawer');
+  drawer.style.transform = 'translateX(100%)';
+  setTimeout(() => {
+    drawer.style.display = 'none';
+    document.getElementById('gs-backdrop').style.display = 'none';
+  }, 300);
+}
+
+async function gsLoad() {
+  document.getElementById('gs-loading').style.display = 'flex';
+  document.getElementById('gs-rows').innerHTML = '';
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/growth_status?select=*&order=workstream.asc,name.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    gsData = await res.json();
+    // Sync label from most recent synced_at
+    const latest = gsData.reduce((a,b) => a.synced_at > b.synced_at ? a : b, gsData[0]||{});
+    if (latest && latest.synced_at) {
+      const d = new Date(latest.synced_at);
+      document.getElementById('gs-sync-label').textContent =
+        'Synced ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'}) + ' · ' +
+        d.toLocaleDateString('en-GB', {day:'numeric',month:'short'});
+    }
+    // Badge
+    const highPriority = gsData.filter(r => (r.priority_tier||'').toLowerCase() === 'high').length;
+    const badge = document.getElementById('gs-fab-badge');
+    if (highPriority > 0) { badge.textContent = highPriority + ' high'; badge.style.display = 'inline'; }
+    gsRenderFilters();
+    gsRenderRows();
+  } catch(e) {
+    document.getElementById('gs-loading').innerHTML = '<span style="color:#FF6B4A;font-size:12px">Failed to load — check Supabase</span>';
+  }
+  document.getElementById('gs-loading').style.display = 'none';
+}
+
+function gsRenderFilters() {
+  const workstreams = ['all', ...new Set(gsData.map(r => r.workstream).filter(Boolean))];
+  const container = document.getElementById('gs-filters');
+  container.innerHTML = workstreams.map(ws => `
+    <button onclick="gsSetFilter('${ws}')" data-gsfilter="${ws}" style="
+      padding:5px 12px; border-radius:20px; border:1.5px solid var(--grey-light);
+      background:${ws === gsActiveFilter ? 'var(--black)' : 'var(--white)'};
+      color:${ws === gsActiveFilter ? 'var(--green)' : 'var(--grey-mid)'};
+      font-family:'DM Mono',monospace; font-size:9px; font-weight:500;
+      letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
+      transition:all 0.12s; white-space:nowrap;
+    ">${ws === 'all' ? 'All' : ws}</button>
+  `).join('');
+}
+
+function gsSetFilter(ws) {
+  gsActiveFilter = ws;
+  gsRenderFilters();
+  gsRenderRows();
+}
+
+function gsRenderRows() {
+  const filtered = gsActiveFilter === 'all'
+    ? gsData
+    : gsData.filter(r => r.workstream === gsActiveFilter);
+
+  const container = document.getElementById('gs-rows');
+  if (!filtered.length) { container.innerHTML = '<p style="color:var(--grey-mid);font-size:13px;padding:20px 0">No items.</p>'; return; }
+
+  container.innerHTML = filtered.map(row => {
+    const s = gsStatusStyle(row.status);
+    const hasBlocker = row.any_blockers && row.any_blockers.trim().length > 3;
+    return `
+    <div style="background:var(--white);border:1px solid var(--grey-light);border-radius:12px;padding:16px 18px;margin-bottom:10px;position:relative;overflow:hidden">
+      <!-- Top row: name + status badge -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
+        <div style="display:flex;gap:8px;align-items:flex-start;min-width:0">
+          ${gsPriorityDot(row.priority_tier)}
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:700;letter-spacing:-0.01em;line-height:1.3;color:var(--black)">${row.name||'—'}</div>
+            ${row.workstream ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-top:2px">${row.workstream}</div>` : ''}
+          </div>
+        </div>
+        <span style="flex-shrink:0;padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:${s.bg};border:1px solid ${s.border};color:${s.text};white-space:nowrap">${row.status||'—'}</span>
+      </div>
+
+      <!-- Update -->
+      ${row.update ? `<div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:8px">${row.update}</div>` : ''}
+
+      <!-- Next steps -->
+      ${row.next_steps ? `
+      <div style="background:var(--cream-soft);border-radius:8px;padding:8px 10px;margin-bottom:${hasBlocker?'8px':'0'}">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:3px">Next steps</div>
+        <div style="font-size:12px;color:var(--black);line-height:1.5">${row.next_steps}</div>
+      </div>` : ''}
+
+      <!-- Blocker -->
+      ${hasBlocker ? `
+      <div style="background:rgba(255,107,74,0.07);border:1px solid rgba(255,107,74,0.2);border-radius:8px;padding:8px 10px">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#FF6B4A;margin-bottom:3px">⚠ Blocker</div>
+        <div style="font-size:12px;color:#a03020;line-height:1.5">${row.any_blockers}</div>
+      </div>` : ''}
+
+      <!-- Meta row: owner + deadline -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px">
+        ${row.owner ? `<div style="font-size:11px;color:var(--grey-mid);line-height:1.4"><span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase">Owner · </span>${row.owner.replace(/\n/g,', ')}</div>` : '<div></div>'}
+        ${row.hard_deadline ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);flex-shrink:0">${row.hard_deadline}</div>` : ''}
+      </div>
+
+      <!-- Links -->
+      ${row.links && row.links.trim() ? `
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+        ${row.links.split(/[\n,]+/).filter(l=>l.trim().startsWith('http')).map(l => `<a href="${l.trim()}" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--black);background:var(--grey-light);padding:3px 8px;border-radius:4px;text-decoration:none;transition:opacity 0.12s" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">↗ Link</a>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Escape key support
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('gs-drawer').style.display !== 'none') {
+    closeGrowthStatus();
+  }
+});
+</script>
+
 <div id="pipeline-modal-backdrop" onclick="closePipelineModal()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.36)"></div>
 <div id="pipeline-modal" role="dialog" aria-label="New pipeline entry" style="display:none;position:fixed;top:0;right:0;bottom:0;z-index:401;width:min(560px,100%);background:var(--cream);border-left:1.5px solid var(--grey-light);box-shadow:-20px 0 60px rgba(0,0,0,0.16);overflow-y:auto;transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.22,1,0.36,1)">
 
