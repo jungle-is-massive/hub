@@ -3266,38 +3266,52 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
 
 <!-- ── PIPELINE QUICK ENTRY MODAL ─────────────────────────────── -->
 <!-- ── GROWTH STATUS DRAWER ──────────────────────────────────── -->
-<div id="gs-backdrop" onclick="closeGrowthStatus()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.36)"></div>
+<div id="gs-backdrop" onclick="closeGrowthStatus()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.44)"></div>
 <div id="gs-drawer" role="dialog" aria-label="Growth Status" style="
   display:none; position:fixed; top:0; right:0; bottom:0; z-index:401;
-  width:min(580px,100%); background:var(--cream);
+  width:min(80vw,1200px); background:var(--cream);
   border-left:1.5px solid var(--grey-light);
-  box-shadow:-20px 0 60px rgba(0,0,0,0.16);
-  overflow-y:auto; transform:translateX(100%);
-  transition:transform 0.28s cubic-bezier(0.22,1,0.36,1);
-  display:none; flex-direction:column;
+  box-shadow:-20px 0 80px rgba(0,0,0,0.2);
+  transform:translateX(100%);
+  transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  flex-direction:column;
 ">
+
   <!-- Header -->
-  <div style="position:sticky;top:0;z-index:10;background:var(--black);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-    <div style="display:flex;align-items:center;gap:10px">
-      <svg width="14" height="14" viewBox="0 0 15 15" fill="none" style="color:var(--green)">
+  <div style="position:sticky;top:0;z-index:10;background:var(--black);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:24px">
+    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+      <svg width="14" height="14" viewBox="0 0 15 15" fill="none" style="color:var(--green);flex-shrink:0">
         <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/>
         <rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/>
         <rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/>
         <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/>
       </svg>
-      <span style="font-size:14px;font-weight:800;letter-spacing:-0.02em;color:var(--white)">Growth Status</span>
+      <span style="font-size:15px;font-weight:800;letter-spacing:-0.02em;color:var(--white);white-space:nowrap">Growth Status</span>
       <span id="gs-sync-label" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)"></span>
     </div>
-    <button onclick="closeGrowthStatus()" style="background:none;border:none;cursor:pointer;color:var(--grey-mid);padding:6px;display:flex;align-items:center;transition:color 0.12s" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--grey-mid)'">
+    <!-- Summary chips -->
+    <div id="gs-header-chips" style="display:flex;gap:8px;flex:1;justify-content:center"></div>
+    <button onclick="closeGrowthStatus()" style="background:none;border:none;cursor:pointer;color:var(--grey-mid);padding:6px;display:flex;align-items:center;flex-shrink:0;transition:color 0.12s" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--grey-mid)'">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </button>
   </div>
 
-  <!-- Filter tabs -->
-  <div id="gs-filters" style="display:flex;gap:6px;padding:16px 24px 0;flex-wrap:wrap"></div>
+  <!-- Filter bar -->
+  <div style="background:var(--white);border-bottom:1px solid var(--grey-light);padding:12px 28px;display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+    <!-- Priority row -->
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);margin-right:4px;white-space:nowrap">Priority</span>
+      <div id="gs-priority-filters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+    </div>
+    <!-- Workstream row -->
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);margin-right:4px;white-space:nowrap">Type</span>
+      <div id="gs-ws-filters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+    </div>
+  </div>
 
   <!-- Content -->
-  <div id="gs-content" style="padding:16px 24px 40px;flex:1">
+  <div style="overflow-y:auto;flex:1;padding:20px 28px 48px">
     <div id="gs-loading" style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--grey-mid);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase">Loading…</div>
     <div id="gs-rows"></div>
   </div>
@@ -3306,37 +3320,36 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
 <script>
 // ── GROWTH STATUS DRAWER ─────────────────────────────────────────────────
 const GS_STATUS_COLOURS = {
-  'in progress':        { bg:'rgba(135,251,102,0.14)', border:'rgba(135,251,102,0.5)', text:'#2a6600' },
-  'scheduled':          { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.45)', text:'#0a5080' },
-  'reviewing':          { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.5)', text:'#7a4e00' },
-  'planning':           { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.45)', text:'#3a2e8a' },
-  'early development':  { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.45)', text:'#3a2e8a' },
-  'ideation':           { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.45)', text:'#0a5030' },
-  'relationship building': { bg:'rgba(74,191,255,0.12)', border:'rgba(74,191,255,0.45)', text:'#0a5080' },
-  'awaiting designer':  { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.5)', text:'#7a4e00' },
-  'under review':       { bg:'rgba(200,195,184,0.2)',  border:'rgba(200,195,184,0.6)', text:'#555' },
-  'completed':          { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.45)', text:'#0a5030' },
+  'in progress':           { bg:'rgba(135,251,102,0.14)', border:'rgba(135,251,102,0.45)', text:'#2a6600' },
+  'scheduled':             { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.4)',   text:'#0a5080' },
+  'reviewing':             { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.45)',  text:'#7a4e00' },
+  'planning':              { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.4)',  text:'#3a2e8a' },
+  'early development':     { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.4)',  text:'#3a2e8a' },
+  'ideation':              { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.4)',   text:'#0a5030' },
+  'relationship building': { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.4)',   text:'#0a5080' },
+  'awaiting designer':     { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.45)',  text:'#7a4e00' },
+  'under review':          { bg:'rgba(200,195,184,0.18)', border:'rgba(200,195,184,0.5)',  text:'#666' },
+  'completed':             { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.4)',   text:'#0a5030' },
 };
-const GS_STATUS_DEFAULT = { bg:'rgba(200,195,184,0.2)', border:'rgba(200,195,184,0.6)', text:'#555' };
-
-const GS_PRIORITY_COLOURS = {
-  'high':   { dot:'#FF6B4A' },
-  'medium': { dot:'#F0B429' },
-  'low':    { dot:'#C8C3B8' },
-};
+const GS_STATUS_DEFAULT = { bg:'rgba(200,195,184,0.18)', border:'rgba(200,195,184,0.5)', text:'#666' };
+const GS_PRIORITY_ORDER = { 'high':0, 'medium':1, 'low':2, '':3 };
 
 let gsData = [];
-let gsActiveFilter = 'all';
+let gsActivePriority = 'all'; // 'all' | 'high' | 'medium' | 'low' | 'blocked'
+let gsActiveWs = 'all';
 
-function gsStatusStyle(status) {
-  const key = (status||'').toLowerCase().trim();
-  return GS_STATUS_COLOURS[key] || GS_STATUS_DEFAULT;
+function gsStatusStyle(s) {
+  return GS_STATUS_COLOURS[(s||'').toLowerCase().trim()] || GS_STATUS_DEFAULT;
 }
 
-function gsPriorityDot(tier) {
-  const key = (tier||'').toLowerCase().trim();
-  const colour = (GS_PRIORITY_COLOURS[key]||{}).dot || '#C8C3B8';
-  return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${colour};flex-shrink:0;margin-top:3px"></span>`;
+function gsIsBlocked(row) {
+  return row.any_blockers && row.any_blockers.trim().length > 3;
+}
+
+function gsPriorityMeta(tier) {
+  const t = (tier||'').toLowerCase();
+  const colours = { high:'#FF6B4A', medium:'#F0B429', low:'#C8C3B8' };
+  return { colour: colours[t] || '#C8C3B8', label: tier || '' };
 }
 
 async function openGrowthStatus() {
@@ -3362,109 +3375,200 @@ async function gsLoad() {
   document.getElementById('gs-rows').innerHTML = '';
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/growth_status?select=*&order=workstream.asc,name.asc`,
+      `${SUPABASE_URL}/rest/v1/growth_status?select=*`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
-    gsData = await res.json();
-    // Sync label from most recent synced_at
-    const latest = gsData.reduce((a,b) => a.synced_at > b.synced_at ? a : b, gsData[0]||{});
-    if (latest && latest.synced_at) {
+    const raw = await res.json();
+    // Filter out empty rows (HubSpot placeholder row etc)
+    gsData = raw.filter(r => r.name && r.name.trim() && r.status);
+    // Sort: High → Medium → Low, then by name
+    gsData.sort((a,b) => {
+      const pa = GS_PRIORITY_ORDER[(a.priority_tier||'').toLowerCase()] ?? 3;
+      const pb = GS_PRIORITY_ORDER[(b.priority_tier||'').toLowerCase()] ?? 3;
+      if (pa !== pb) return pa - pb;
+      return (a.name||'').localeCompare(b.name||'');
+    });
+
+    // Sync label
+    const latest = raw.reduce((a,b) => a.synced_at > b.synced_at ? a : b, raw[0]||{});
+    if (latest?.synced_at) {
       const d = new Date(latest.synced_at);
       document.getElementById('gs-sync-label').textContent =
-        'Synced ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'}) + ' · ' +
-        d.toLocaleDateString('en-GB', {day:'numeric',month:'short'});
+        'Synced ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) +
+        ' · ' + d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
     }
-    // Badge
-    const highPriority = gsData.filter(r => (r.priority_tier||'').toLowerCase() === 'high').length;
+
+    // Nav badge — high priority count
+    const highCount = gsData.filter(r => (r.priority_tier||'').toLowerCase() === 'high').length;
     const badge = document.getElementById('gs-fab-badge');
-    if (highPriority > 0) { badge.textContent = highPriority + ' high'; badge.style.display = 'inline'; }
+    if (highCount > 0) { badge.textContent = highCount; badge.style.display = 'inline'; }
+
+    gsRenderHeaderChips();
     gsRenderFilters();
     gsRenderRows();
   } catch(e) {
-    document.getElementById('gs-loading').innerHTML = '<span style="color:#FF6B4A;font-size:12px">Failed to load — check Supabase</span>';
+    document.getElementById('gs-loading').innerHTML =
+      '<span style="color:#FF6B4A;font-size:12px">Failed to load — check Supabase</span>';
   }
   document.getElementById('gs-loading').style.display = 'none';
 }
 
-function gsRenderFilters() {
-  const workstreams = ['all', ...new Set(gsData.map(r => r.workstream).filter(Boolean))];
-  const container = document.getElementById('gs-filters');
-  container.innerHTML = workstreams.map(ws => `
-    <button onclick="gsSetFilter('${ws}')" data-gsfilter="${ws}" style="
-      padding:5px 12px; border-radius:20px; border:1.5px solid var(--grey-light);
-      background:${ws === gsActiveFilter ? 'var(--black)' : 'var(--white)'};
-      color:${ws === gsActiveFilter ? 'var(--green)' : 'var(--grey-mid)'};
-      font-family:'DM Mono',monospace; font-size:9px; font-weight:500;
-      letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
-      transition:all 0.12s; white-space:nowrap;
-    ">${ws === 'all' ? 'All' : ws}</button>
-  `).join('');
+function gsRenderHeaderChips() {
+  const high    = gsData.filter(r => (r.priority_tier||'').toLowerCase() === 'high').length;
+  const blocked = gsData.filter(gsIsBlocked).length;
+  const total   = gsData.length;
+  document.getElementById('gs-header-chips').innerHTML = `
+    <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(255,107,74,0.15);border:1px solid rgba(255,107,74,0.3)">
+      <span style="width:6px;height:6px;border-radius:50%;background:#FF6B4A;display:inline-block"></span>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#FF6B4A">${high} High</span>
+    </div>
+    ${blocked > 0 ? `<div style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(240,180,41,0.12);border:1px solid rgba(240,180,41,0.3)">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#b07a00">⚠ ${blocked} Blocked</span>
+    </div>` : ''}
+    <div style="padding:4px 10px;border-radius:20px;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.08)">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">${total} Items</span>
+    </div>
+  `;
 }
 
-function gsSetFilter(ws) {
-  gsActiveFilter = ws;
-  gsRenderFilters();
-  gsRenderRows();
+function gsFilterBtn(label, activeVal, currentActive, onClick, extraStyle='') {
+  const isActive = currentActive === activeVal;
+  return `<button onclick="${onClick}" style="
+    padding:4px 11px; border-radius:20px;
+    border:1.5px solid ${isActive ? 'var(--black)' : 'var(--grey-light)'};
+    background:${isActive ? 'var(--black)' : 'transparent'};
+    color:${isActive ? 'var(--green)' : 'var(--grey-mid)'};
+    font-family:'DM Mono',monospace; font-size:9px; font-weight:500;
+    letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
+    transition:all 0.12s; white-space:nowrap; ${extraStyle}
+  ">${label}</button>`;
 }
+
+function gsRenderFilters() {
+  const pFilters = [
+    { label:'All',       val:'all' },
+    { label:'● High',    val:'high' },
+    { label:'● Medium',  val:'medium' },
+    { label:'● Low',     val:'low' },
+    { label:'⚠ Blocked', val:'blocked' },
+  ];
+  document.getElementById('gs-priority-filters').innerHTML =
+    pFilters.map(f => gsFilterBtn(f.label, f.val, gsActivePriority, `gsSetPriority('${f.val}')`)).join('');
+
+  const workstreams = ['all', ...new Set(gsData.map(r => r.workstream).filter(Boolean))];
+  document.getElementById('gs-ws-filters').innerHTML =
+    workstreams.map(ws => gsFilterBtn(ws === 'all' ? 'All' : ws, ws, gsActiveWs, `gsSetWs('${ws.replace(/'/g,"\\'")}')`) ).join('');
+}
+
+function gsSetPriority(val) { gsActivePriority = val; gsRenderFilters(); gsRenderRows(); }
+function gsSetWs(val) { gsActiveWs = val; gsRenderFilters(); gsRenderRows(); }
 
 function gsRenderRows() {
-  const filtered = gsActiveFilter === 'all'
-    ? gsData
-    : gsData.filter(r => r.workstream === gsActiveFilter);
+  let rows = gsData;
+  // Priority / blocked filter
+  if (gsActivePriority === 'blocked') {
+    rows = rows.filter(gsIsBlocked);
+  } else if (gsActivePriority !== 'all') {
+    rows = rows.filter(r => (r.priority_tier||'').toLowerCase() === gsActivePriority);
+  }
+  // Workstream filter
+  if (gsActiveWs !== 'all') {
+    rows = rows.filter(r => r.workstream === gsActiveWs);
+  }
 
   const container = document.getElementById('gs-rows');
-  if (!filtered.length) { container.innerHTML = '<p style="color:var(--grey-mid);font-size:13px;padding:20px 0">No items.</p>'; return; }
+  if (!rows.length) {
+    container.innerHTML = '<p style="color:var(--grey-mid);font-size:13px;padding:20px 0">No items match this filter.</p>';
+    return;
+  }
 
-  container.innerHTML = filtered.map(row => {
-    const s = gsStatusStyle(row.status);
-    const hasBlocker = row.any_blockers && row.any_blockers.trim().length > 3;
-    return `
-    <div style="background:var(--white);border:1px solid var(--grey-light);border-radius:12px;padding:16px 18px;margin-bottom:10px;position:relative;overflow:hidden">
-      <!-- Top row: name + status badge -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
-        <div style="display:flex;gap:8px;align-items:flex-start;min-width:0">
-          ${gsPriorityDot(row.priority_tier)}
-          <div style="min-width:0">
-            <div style="font-size:13px;font-weight:700;letter-spacing:-0.01em;line-height:1.3;color:var(--black)">${row.name||'—'}</div>
-            ${row.workstream ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-top:2px">${row.workstream}</div>` : ''}
-          </div>
-        </div>
-        <span style="flex-shrink:0;padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:${s.bg};border:1px solid ${s.border};color:${s.text};white-space:nowrap">${row.status||'—'}</span>
-      </div>
+  // Separate high priority for featured treatment, rest normal
+  const highRows  = rows.filter(r => (r.priority_tier||'').toLowerCase() === 'high');
+  const otherRows = rows.filter(r => (r.priority_tier||'').toLowerCase() !== 'high');
 
-      <!-- Update -->
-      ${row.update ? `<div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:8px">${row.update}</div>` : ''}
+  let html = '';
 
-      <!-- Next steps -->
-      ${row.next_steps ? `
-      <div style="background:var(--cream-soft);border-radius:8px;padding:8px 10px;margin-bottom:${hasBlocker?'8px':'0'}">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:3px">Next steps</div>
-        <div style="font-size:12px;color:var(--black);line-height:1.5">${row.next_steps}</div>
-      </div>` : ''}
-
-      <!-- Blocker -->
-      ${hasBlocker ? `
-      <div style="background:rgba(255,107,74,0.07);border:1px solid rgba(255,107,74,0.2);border-radius:8px;padding:8px 10px">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#FF6B4A;margin-bottom:3px">⚠ Blocker</div>
-        <div style="font-size:12px;color:#a03020;line-height:1.5">${row.any_blockers}</div>
-      </div>` : ''}
-
-      <!-- Meta row: owner + deadline -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px">
-        ${row.owner ? `<div style="font-size:11px;color:var(--grey-mid);line-height:1.4"><span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase">Owner · </span>${row.owner.replace(/\n/g,', ')}</div>` : '<div></div>'}
-        ${row.hard_deadline ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);flex-shrink:0">${row.hard_deadline}</div>` : ''}
-      </div>
-
-      <!-- Links -->
-      ${row.links && row.links.trim() ? `
-      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
-        ${row.links.split(/[\n,]+/).filter(l=>l.trim().startsWith('http')).map(l => `<a href="${l.trim()}" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--black);background:var(--grey-light);padding:3px 8px;border-radius:4px;text-decoration:none;transition:opacity 0.12s" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">↗ Link</a>`).join('')}
-      </div>` : ''}
+  if (highRows.length && gsActivePriority !== 'medium' && gsActivePriority !== 'low') {
+    html += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#FF6B4A;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span style="width:6px;height:6px;border-radius:50%;background:#FF6B4A;display:inline-block"></span>
+      High priority · ${highRows.length} item${highRows.length>1?'s':''}
     </div>`;
-  }).join('');
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;margin-bottom:${otherRows.length ? '24px' : '0'}">`;
+    html += highRows.map(r => gsCard(r, true)).join('');
+    html += '</div>';
+  }
+
+  if (otherRows.length) {
+    if (highRows.length && gsActivePriority === 'all') {
+      html += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--grey-mid);display:inline-block"></span>
+        Medium &amp; low · ${otherRows.length} item${otherRows.length>1?'s':''}
+      </div>`;
+    }
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px">`;
+    html += otherRows.map(r => gsCard(r, false)).join('');
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
 }
 
-// Escape key support
+function gsCard(row, featured) {
+  const s = gsStatusStyle(row.status);
+  const blocked = gsIsBlocked(row);
+  const pm = gsPriorityMeta(row.priority_tier);
+  const leftBorder = featured ? `border-left:3px solid #FF6B4A;` : '';
+
+  return `<div style="background:var(--white);border:1px solid var(--grey-light);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;${leftBorder}${blocked ? 'border-top:2px solid rgba(255,107,74,0.4);' : ''}">
+
+    <!-- Name + status -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
+      <div style="min-width:0">
+        <div style="font-size:13px;font-weight:700;letter-spacing:-0.01em;line-height:1.3;color:var(--black)">${row.name||'—'}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+          ${row.workstream ? `<span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">${row.workstream}</span>` : ''}
+          ${row.priority_tier ? `<span style="display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:${pm.colour}"><span style="width:5px;height:5px;border-radius:50%;background:${pm.colour};display:inline-block"></span>${pm.label}</span>` : ''}
+        </div>
+      </div>
+      <span style="flex-shrink:0;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;background:${s.bg};border:1px solid ${s.border};color:${s.text};white-space:nowrap">${row.status||'—'}</span>
+    </div>
+
+    <!-- Update -->
+    ${row.update ? `<div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:9px">${row.update}</div>` : ''}
+
+    <!-- Next steps -->
+    ${row.next_steps ? `<div style="background:var(--cream-soft);border-radius:8px;padding:8px 10px;margin-bottom:${blocked?'8px':'0'}">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:3px">Next steps</div>
+      <div style="font-size:12px;color:var(--black);line-height:1.5">${row.next_steps}</div>
+    </div>` : ''}
+
+    <!-- Blocker -->
+    ${blocked ? `<div style="background:rgba(255,107,74,0.07);border:1px solid rgba(255,107,74,0.25);border-radius:8px;padding:8px 10px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#FF6B4A;margin-bottom:3px">⚠ Blocker</div>
+      <div style="font-size:12px;color:#a03020;line-height:1.5">${row.any_blockers}</div>
+    </div>` : ''}
+
+    <!-- Owner + deadline -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px">
+      ${row.owner ? `<div style="font-size:11px;color:var(--grey-mid);line-height:1.4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase">Owner · </span>${row.owner.replace(/\n/g,', ')}
+      </div>` : '<div></div>'}
+      ${row.hard_deadline ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--grey-mid);flex-shrink:0;background:var(--cream-soft);padding:3px 8px;border-radius:4px">${row.hard_deadline}</div>` : ''}
+    </div>
+
+    <!-- Links -->
+    ${row.links && row.links.trim() ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px">
+      ${row.links.split(/[\n]+/).filter(l=>l.trim()).map(l => {
+        const url = l.trim().match(/https?:\/\/\S+/)?.[0];
+        if (!url) return '';
+        const label = l.replace(/https?:\/\/\S+/,'').replace(/^[\s:]+|[\s:]+$/g,'') || '↗ Link';
+        return `<a href="${url}" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--black);background:var(--grey-light);padding:3px 8px;border-radius:4px;text-decoration:none;transition:opacity 0.12s" onmouseover="this.style.opacity=0.65" onmouseout="this.style.opacity=1">${label}</a>`;
+      }).filter(Boolean).join('')}
+    </div>` : ''}
+  </div>`;
+}
+
+// Escape to close
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && document.getElementById('gs-drawer').style.display !== 'none') {
     closeGrowthStatus();
