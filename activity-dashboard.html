@@ -747,6 +747,16 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9m0 18c1.66 0 3-4.03 3-9s-1.34-9-3-9m-9 9a9 9 0 019-9"/></svg>
       Refresh
     </button>
+    <button class="refresh-btn" id="gs-nav-btn" onclick="openGrowthStatus()">
+      <svg width="11" height="11" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;stroke:none">
+        <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/>
+        <rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/>
+        <rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/>
+        <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/>
+      </svg>
+      Growth Status
+      <span id="gs-fab-badge" style="display:none;background:var(--green);color:var(--black);font-size:8px;font-weight:800;padding:1px 5px;border-radius:20px;line-height:15px;margin-left:1px"></span>
+    </button>
   </div>
 </div>
 
@@ -3255,28 +3265,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
 
 
 <!-- ── PIPELINE QUICK ENTRY MODAL ─────────────────────────────── -->
-<!-- ── GROWTH STATUS FLOATING BUTTON ───────────────────────────── -->
-<button id="gs-fab" onclick="openGrowthStatus()" title="Growth Status" aria-label="Open Growth Status panel" style="
-  position:fixed; bottom:32px; right:32px; z-index:390;
-  display:flex; align-items:center; gap:8px;
-  padding:0 18px 0 14px; height:44px;
-  background:var(--black); color:var(--green);
-  border:none; border-radius:100px;
-  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
-  cursor:pointer; box-shadow:0 4px 24px rgba(0,0,0,0.22);
-  transition:transform 0.15s, box-shadow 0.15s;
-" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.28)'"
-   onmouseout="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,0.22)'">
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-    <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/>
-    <rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/>
-    <rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/>
-    <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/>
-  </svg>
-  Growth Status
-  <span id="gs-fab-badge" style="display:none;margin-left:2px;background:var(--green);color:var(--black);font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;line-height:16px"></span>
-</button>
-
 <!-- ── GROWTH STATUS DRAWER ──────────────────────────────────── -->
 <div id="gs-backdrop" onclick="closeGrowthStatus()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.36)"></div>
 <div id="gs-drawer" role="dialog" aria-label="Growth Status" style="
