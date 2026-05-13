@@ -3310,7 +3310,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
   </div>
 
   <!-- Table header -->
-  <div id="gs-table-header" style="display:grid;grid-template-columns:18px 24px 180px 110px 100px 1fr 90px 28px;gap:0;padding:0 28px;height:34px;align-items:center;background:var(--white);border-bottom:1px solid var(--grey-light);flex-shrink:0">
+  <div id="gs-table-header" style="display:grid;grid-template-columns:18px 24px 190px 160px 120px 1fr 110px 28px;gap:0;padding:0 28px;height:34px;align-items:center;background:var(--white);border-bottom:1px solid var(--grey-light);flex-shrink:0">
     <div></div>
     <div></div>
     <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)">Item</div>
@@ -3537,7 +3537,7 @@ function gsRowHtml(row) {
 
   return `<div class="gs-row" data-id="${row.id}" draggable="true" style="border-bottom:1px solid var(--grey-light);background:var(--white);transition:background 0.1s${blocked?';border-left:3px solid rgba(255,107,74,0.5)':''}">
     <!-- Main row -->
-    <div onclick="gsToggleExpand('${row.id}')" style="display:grid;grid-template-columns:18px 24px 180px 110px 100px 1fr 90px 28px;gap:0;padding:0 28px;height:44px;align-items:center;cursor:pointer;transition:background 0.1s" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
+    <div onclick="gsToggleExpand('${row.id}')" style="display:grid;grid-template-columns:18px 24px 190px 160px 120px 1fr 110px 28px;gap:0;padding:0 28px;height:44px;align-items:center;cursor:pointer;transition:background 0.1s" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
       <!-- Drag handle -->
       <div class="gs-drag-handle" onclick="event.stopPropagation()" style="cursor:grab;color:var(--grey-light);display:flex;align-items:center;user-select:none" title="Drag to reorder">
         <svg width="10" height="14" viewBox="0 0 10 14" fill="none"><circle cx="3" cy="3" r="1.2" fill="currentColor"/><circle cx="7" cy="3" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="11" r="1.2" fill="currentColor"/><circle cx="7" cy="11" r="1.2" fill="currentColor"/></svg>
@@ -3550,7 +3550,7 @@ function gsRowHtml(row) {
         <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${row.workstream||''}</div>
       </div>
       <!-- Status -->
-      <div><span style="padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;background:${s.bg};border:1px solid ${s.border};color:${s.text};white-space:nowrap">${row.status||'—'}</span></div>
+      <div style="overflow:hidden;padding-right:8px"><span style="padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;background:${s.bg};border:1px solid ${s.border};color:${s.text};white-space:nowrap;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis">${row.status||'—'}</span></div>
       <!-- Owner -->
       <div style="font-size:11px;color:var(--grey-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(row.owner||'').split('\n')[0]}</div>
       <!-- Update -->
