@@ -3269,14 +3269,13 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
 <div id="gs-backdrop" onclick="closeGrowthStatus()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.44)"></div>
 <div id="gs-drawer" role="dialog" aria-label="Growth Status" style="
   display:none; position:fixed; top:0; right:0; bottom:0; z-index:401;
-  width:min(80vw,1200px); background:var(--cream);
+  width:min(82vw,1300px); background:var(--cream);
   border-left:1.5px solid var(--grey-light);
   box-shadow:-20px 0 80px rgba(0,0,0,0.2);
   transform:translateX(100%);
   transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
   flex-direction:column;
 ">
-
   <!-- Header -->
   <div style="position:sticky;top:0;z-index:10;background:var(--black);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:24px">
     <div style="display:flex;align-items:center;gap:10px;min-width:0">
@@ -3289,36 +3288,65 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
       <span style="font-size:15px;font-weight:800;letter-spacing:-0.02em;color:var(--white);white-space:nowrap">Growth Status</span>
       <span id="gs-sync-label" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)"></span>
     </div>
-    <!-- Summary chips -->
     <div id="gs-header-chips" style="display:flex;gap:8px;flex:1;justify-content:center"></div>
-    <button onclick="closeGrowthStatus()" style="background:none;border:none;cursor:pointer;color:var(--grey-mid);padding:6px;display:flex;align-items:center;flex-shrink:0;transition:color 0.12s" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--grey-mid)'">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    </button>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <button id="gs-save-order-btn" onclick="gsSaveOrder()" style="display:none;padding:6px 14px;border-radius:20px;border:1.5px solid var(--green);background:transparent;color:var(--green);font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='var(--green)';this.style.color='var(--black)'" onmouseout="this.style.background='transparent';this.style.color='var(--green)'">Save order</button>
+      <button onclick="closeGrowthStatus()" style="background:none;border:none;cursor:pointer;color:var(--grey-mid);padding:6px;display:flex;align-items:center;transition:color 0.12s" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--grey-mid)'">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- Filter bar -->
-  <div style="background:var(--white);border-bottom:1px solid var(--grey-light);padding:12px 28px;display:flex;flex-direction:column;gap:8px;flex-shrink:0">
-    <!-- Priority row -->
+  <div style="background:var(--white);border-bottom:1px solid var(--grey-light);padding:10px 28px;display:flex;flex-direction:column;gap:7px;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:6px">
-      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);margin-right:4px;white-space:nowrap">Priority</span>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);width:52px;flex-shrink:0">Priority</span>
       <div id="gs-priority-filters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
     </div>
-    <!-- Workstream row -->
     <div style="display:flex;align-items:center;gap:6px">
-      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);margin-right:4px;white-space:nowrap">Type</span>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);width:52px;flex-shrink:0">Type</span>
       <div id="gs-ws-filters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
     </div>
   </div>
 
-  <!-- Content -->
-  <div style="overflow-y:auto;flex:1;padding:20px 28px 48px">
+  <!-- Table header -->
+  <div id="gs-table-header" style="display:grid;grid-template-columns:18px 24px 180px 110px 100px 1fr 90px 28px;gap:0;padding:0 28px;height:34px;align-items:center;background:var(--white);border-bottom:1px solid var(--grey-light);flex-shrink:0">
+    <div></div>
+    <div></div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)">Item</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)">Status</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)">Owner</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)">Update</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)">Deadline</div>
+    <div></div>
+  </div>
+
+  <!-- Rows -->
+  <div style="overflow-y:auto;flex:1;padding:0 0 48px">
     <div id="gs-loading" style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--grey-mid);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase">Loading…</div>
     <div id="gs-rows"></div>
   </div>
 </div>
 
+<!-- Edit panel (slides in over drawer) -->
+<div id="gs-edit-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;z-index:402;width:min(480px,100%);background:var(--cream);border-left:1.5px solid var(--grey-light);box-shadow:-20px 0 60px rgba(0,0,0,0.18);transform:translateX(100%);transition:transform 0.25s cubic-bezier(0.22,1,0.36,1);overflow-y:auto;flex-direction:column">
+  <div style="position:sticky;top:0;z-index:1;background:var(--black);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <span id="gs-edit-title" style="font-size:13px;font-weight:700;color:var(--white);letter-spacing:-0.01em"></span>
+    <button onclick="closeEditPanel()" style="background:none;border:none;cursor:pointer;color:var(--grey-mid);display:flex;align-items:center;transition:color 0.12s" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--grey-mid)'">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div id="gs-edit-form" style="padding:20px 24px 40px;display:flex;flex-direction:column;gap:14px"></div>
+  <div style="position:sticky;bottom:0;background:var(--cream);border-top:1px solid var(--grey-light);padding:14px 24px;display:flex;gap:8px">
+    <button onclick="gsSubmitEdit()" style="flex:1;height:40px;background:var(--black);color:var(--green);border:none;border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Save changes</button>
+    <button onclick="closeEditPanel()" style="height:40px;padding:0 16px;background:transparent;color:var(--grey-mid);border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Cancel</button>
+  </div>
+</div>
+
 <script>
-// ── GROWTH STATUS DRAWER ─────────────────────────────────────────────────
+// ── GROWTH STATUS ─────────────────────────────────────────────────────────
+const GS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyke1WMZK7qIsXvbvkrm3p4H83TLmhVGXr9fzDnD_G0R5zmkSPbKVVhhtkhi5jen3vV/exec';
+
 const GS_STATUS_COLOURS = {
   'in progress':           { bg:'rgba(135,251,102,0.14)', border:'rgba(135,251,102,0.45)', text:'#2a6600' },
   'scheduled':             { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.4)',   text:'#0a5080' },
@@ -3333,24 +3361,33 @@ const GS_STATUS_COLOURS = {
 };
 const GS_STATUS_DEFAULT = { bg:'rgba(200,195,184,0.18)', border:'rgba(200,195,184,0.5)', text:'#666' };
 const GS_PRIORITY_ORDER = { 'high':0, 'medium':1, 'low':2, '':3 };
+const GS_PRIORITY_COLOUR = { 'high':'#FF6B4A', 'medium':'#F0B429', 'low':'#C8C3B8' };
+const GS_FIELDS = [
+  { key:'workstream',   label:'Workstream' },
+  { key:'name',         label:'Name' },
+  { key:'goal',         label:'Goal',         multiline:true },
+  { key:'owner',        label:'Owner',        multiline:true },
+  { key:'update',       label:'Update',       multiline:true },
+  { key:'any_blockers', label:'Blockers',     multiline:true },
+  { key:'next_steps',   label:'Next steps',   multiline:true },
+  { key:'priority_tier',label:'Priority',     options:['High','Medium','Low'] },
+  { key:'hard_deadline',label:'Hard deadline' },
+  { key:'status',       label:'Status',       options:['In progress','Scheduled','Reviewing','Planning','Early development','Ideation','Relationship building','Awaiting designer','Under review','Completed'] },
+  { key:'links',        label:'Links',        multiline:true },
+];
 
 let gsData = [];
-let gsActivePriority = 'all'; // 'all' | 'high' | 'medium' | 'low' | 'blocked'
+let gsActivePriority = 'all';
 let gsActiveWs = 'all';
+let gsExpandedId = null;
+let gsEditingRow = null;
+let gsDragSrcId = null;
+let gsOrderDirty = false;
 
 function gsStatusStyle(s) {
   return GS_STATUS_COLOURS[(s||'').toLowerCase().trim()] || GS_STATUS_DEFAULT;
 }
-
-function gsIsBlocked(row) {
-  return row.any_blockers && row.any_blockers.trim().length > 3;
-}
-
-function gsPriorityMeta(tier) {
-  const t = (tier||'').toLowerCase();
-  const colours = { high:'#FF6B4A', medium:'#F0B429', low:'#C8C3B8' };
-  return { colour: colours[t] || '#C8C3B8', label: tier || '' };
-}
+function gsIsBlocked(r) { return r.any_blockers && r.any_blockers.trim().length > 3; }
 
 async function openGrowthStatus() {
   const drawer = document.getElementById('gs-drawer');
@@ -3362,6 +3399,7 @@ async function openGrowthStatus() {
 }
 
 function closeGrowthStatus() {
+  closeEditPanel();
   const drawer = document.getElementById('gs-drawer');
   drawer.style.transform = 'translateX(100%)';
   setTimeout(() => {
@@ -3379,13 +3417,16 @@ async function gsLoad() {
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const raw = await res.json();
-    // Filter out empty rows (HubSpot placeholder row etc)
     gsData = raw.filter(r => r.name && r.name.trim() && r.status);
-    // Sort: High → Medium → Low, then by name
-    gsData.sort((a,b) => {
+
+    // Sort: priority group first, then display_order within group, then name
+    gsData.sort((a, b) => {
       const pa = GS_PRIORITY_ORDER[(a.priority_tier||'').toLowerCase()] ?? 3;
       const pb = GS_PRIORITY_ORDER[(b.priority_tier||'').toLowerCase()] ?? 3;
       if (pa !== pb) return pa - pb;
+      if (a.display_order != null && b.display_order != null) return a.display_order - b.display_order;
+      if (a.display_order != null) return -1;
+      if (b.display_order != null) return 1;
       return (a.name||'').localeCompare(b.name||'');
     });
 
@@ -3398,7 +3439,6 @@ async function gsLoad() {
         ' · ' + d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
     }
 
-    // Nav badge — high priority count
     const highCount = gsData.filter(r => (r.priority_tier||'').toLowerCase() === 'high').length;
     const badge = document.getElementById('gs-fab-badge');
     if (highCount > 0) { badge.textContent = highCount; badge.style.display = 'inline'; }
@@ -3408,7 +3448,7 @@ async function gsLoad() {
     gsRenderRows();
   } catch(e) {
     document.getElementById('gs-loading').innerHTML =
-      '<span style="color:#FF6B4A;font-size:12px">Failed to load — check Supabase</span>';
+      '<span style="color:#FF6B4A;font-size:12px;padding:20px">Failed to load — check Supabase</span>';
   }
   document.getElementById('gs-loading').style.display = 'none';
 }
@@ -3416,166 +3456,345 @@ async function gsLoad() {
 function gsRenderHeaderChips() {
   const high    = gsData.filter(r => (r.priority_tier||'').toLowerCase() === 'high').length;
   const blocked = gsData.filter(gsIsBlocked).length;
-  const total   = gsData.length;
   document.getElementById('gs-header-chips').innerHTML = `
     <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(255,107,74,0.15);border:1px solid rgba(255,107,74,0.3)">
       <span style="width:6px;height:6px;border-radius:50%;background:#FF6B4A;display:inline-block"></span>
       <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#FF6B4A">${high} High</span>
     </div>
-    ${blocked > 0 ? `<div style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(240,180,41,0.12);border:1px solid rgba(240,180,41,0.3)">
+    ${blocked ? `<div style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(240,180,41,0.12);border:1px solid rgba(240,180,41,0.3)">
       <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#b07a00">⚠ ${blocked} Blocked</span>
     </div>` : ''}
     <div style="padding:4px 10px;border-radius:20px;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.08)">
-      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">${total} Items</span>
-    </div>
-  `;
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">${gsData.length} Items</span>
+    </div>`;
 }
 
-function gsFilterBtn(label, activeVal, currentActive, onClick, extraStyle='') {
-  const isActive = currentActive === activeVal;
-  return `<button onclick="${onClick}" style="
-    padding:4px 11px; border-radius:20px;
-    border:1.5px solid ${isActive ? 'var(--black)' : 'var(--grey-light)'};
-    background:${isActive ? 'var(--black)' : 'transparent'};
-    color:${isActive ? 'var(--green)' : 'var(--grey-mid)'};
-    font-family:'DM Mono',monospace; font-size:9px; font-weight:500;
-    letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
-    transition:all 0.12s; white-space:nowrap; ${extraStyle}
-  ">${label}</button>`;
+function gsFilterBtn(label, val, active, fn) {
+  const on = active === val;
+  return `<button onclick="${fn}" style="padding:4px 11px;border-radius:20px;border:1.5px solid ${on?'var(--black)':'var(--grey-light)'};background:${on?'var(--black)':'transparent'};color:${on?'var(--green)':'var(--grey-mid)'};font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.12s;white-space:nowrap">${label}</button>`;
 }
 
 function gsRenderFilters() {
-  const pFilters = [
-    { label:'All',       val:'all' },
-    { label:'● High',    val:'high' },
-    { label:'● Medium',  val:'medium' },
-    { label:'● Low',     val:'low' },
-    { label:'⚠ Blocked', val:'blocked' },
-  ];
-  document.getElementById('gs-priority-filters').innerHTML =
-    pFilters.map(f => gsFilterBtn(f.label, f.val, gsActivePriority, `gsSetPriority('${f.val}')`)).join('');
+  document.getElementById('gs-priority-filters').innerHTML = [
+    {l:'All',val:'all'},{l:'● High',val:'high'},{l:'● Medium',val:'medium'},{l:'● Low',val:'low'},{l:'⚠ Blocked',val:'blocked'}
+  ].map(f => gsFilterBtn(f.l, f.val, gsActivePriority, `gsSetPriority('${f.val}')`)).join('');
 
-  const workstreams = ['all', ...new Set(gsData.map(r => r.workstream).filter(Boolean))];
+  const ws = ['all', ...new Set(gsData.map(r => r.workstream).filter(Boolean))];
   document.getElementById('gs-ws-filters').innerHTML =
-    workstreams.map(ws => gsFilterBtn(ws === 'all' ? 'All' : ws, ws, gsActiveWs, `gsSetWs('${ws.replace(/'/g,"\\'")}')`) ).join('');
+    ws.map(w => gsFilterBtn(w==='all'?'All':w, w, gsActiveWs, `gsSetWs('${w.replace(/'/g,"\\'")}')`)).join('');
 }
 
-function gsSetPriority(val) { gsActivePriority = val; gsRenderFilters(); gsRenderRows(); }
-function gsSetWs(val) { gsActiveWs = val; gsRenderFilters(); gsRenderRows(); }
+function gsSetPriority(v) { gsActivePriority = v; gsRenderFilters(); gsRenderRows(); }
+function gsSetWs(v) { gsActiveWs = v; gsRenderFilters(); gsRenderRows(); }
+
+function gsFilteredRows() {
+  let rows = gsData;
+  if (gsActivePriority === 'blocked') rows = rows.filter(gsIsBlocked);
+  else if (gsActivePriority !== 'all') rows = rows.filter(r => (r.priority_tier||'').toLowerCase() === gsActivePriority);
+  if (gsActiveWs !== 'all') rows = rows.filter(r => r.workstream === gsActiveWs);
+  return rows;
+}
 
 function gsRenderRows() {
-  let rows = gsData;
-  // Priority / blocked filter
-  if (gsActivePriority === 'blocked') {
-    rows = rows.filter(gsIsBlocked);
-  } else if (gsActivePriority !== 'all') {
-    rows = rows.filter(r => (r.priority_tier||'').toLowerCase() === gsActivePriority);
-  }
-  // Workstream filter
-  if (gsActiveWs !== 'all') {
-    rows = rows.filter(r => r.workstream === gsActiveWs);
-  }
-
+  const rows = gsFilteredRows();
   const container = document.getElementById('gs-rows');
   if (!rows.length) {
-    container.innerHTML = '<p style="color:var(--grey-mid);font-size:13px;padding:20px 0">No items match this filter.</p>';
+    container.innerHTML = '<p style="color:var(--grey-mid);font-size:13px;padding:20px 28px">No items match this filter.</p>';
     return;
   }
 
-  // Separate high priority for featured treatment, rest normal
-  const highRows  = rows.filter(r => (r.priority_tier||'').toLowerCase() === 'high');
-  const otherRows = rows.filter(r => (r.priority_tier||'').toLowerCase() !== 'high');
+  // Group by priority
+  const groups = [
+    { key:'high',   label:'High priority',   colour:'#FF6B4A', rows: rows.filter(r=>(r.priority_tier||'').toLowerCase()==='high') },
+    { key:'medium', label:'Medium priority',  colour:'#F0B429', rows: rows.filter(r=>(r.priority_tier||'').toLowerCase()==='medium') },
+    { key:'low',    label:'Low priority',     colour:'#C8C3B8', rows: rows.filter(r=>(r.priority_tier||'').toLowerCase()==='low') },
+    { key:'',       label:'No priority set',  colour:'#C8C3B8', rows: rows.filter(r=>!r.priority_tier) },
+  ].filter(g => g.rows.length);
 
-  let html = '';
+  container.innerHTML = groups.map(g => `
+    <div class="gs-group" data-priority="${g.key}">
+      <div style="display:flex;align-items:center;gap:7px;padding:10px 28px 6px;position:sticky;top:0;background:var(--cream);z-index:2;border-bottom:1px solid var(--grey-light)">
+        <span style="width:7px;height:7px;border-radius:50%;background:${g.colour};display:inline-block;flex-shrink:0"></span>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:${g.colour}">${g.label}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">${g.rows.length} item${g.rows.length>1?'s':''}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);margin-left:4px;opacity:0.6">↕ drag to reorder</span>
+      </div>
+      <div class="gs-sortable-group" data-priority="${g.key}">
+        ${g.rows.map(r => gsRowHtml(r)).join('')}
+      </div>
+    </div>
+  `).join('');
 
-  if (highRows.length && gsActivePriority !== 'medium' && gsActivePriority !== 'low') {
-    html += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#FF6B4A;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-      <span style="width:6px;height:6px;border-radius:50%;background:#FF6B4A;display:inline-block"></span>
-      High priority · ${highRows.length} item${highRows.length>1?'s':''}
-    </div>`;
-    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;margin-bottom:${otherRows.length ? '24px' : '0'}">`;
-    html += highRows.map(r => gsCard(r, true)).join('');
-    html += '</div>';
-  }
-
-  if (otherRows.length) {
-    if (highRows.length && gsActivePriority === 'all') {
-      html += `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:10px;display:flex;align-items:center;gap:8px">
-        <span style="width:6px;height:6px;border-radius:50%;background:var(--grey-mid);display:inline-block"></span>
-        Medium &amp; low · ${otherRows.length} item${otherRows.length>1?'s':''}
-      </div>`;
-    }
-    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px">`;
-    html += otherRows.map(r => gsCard(r, false)).join('');
-    html += '</div>';
-  }
-
-  container.innerHTML = html;
+  // Attach drag events
+  gsInitDrag();
 }
 
-function gsCard(row, featured) {
+function gsRowHtml(row) {
   const s = gsStatusStyle(row.status);
   const blocked = gsIsBlocked(row);
-  const pm = gsPriorityMeta(row.priority_tier);
-  const leftBorder = featured ? `border-left:3px solid #FF6B4A;` : '';
+  const expanded = gsExpandedId === row.id;
+  const pc = GS_PRIORITY_COLOUR[(row.priority_tier||'').toLowerCase()] || '#C8C3B8';
 
-  return `<div style="background:var(--white);border:1px solid var(--grey-light);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;${leftBorder}${blocked ? 'border-top:2px solid rgba(255,107,74,0.4);' : ''}">
-
-    <!-- Name + status -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
-      <div style="min-width:0">
-        <div style="font-size:13px;font-weight:700;letter-spacing:-0.01em;line-height:1.3;color:var(--black)">${row.name||'—'}</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
-          ${row.workstream ? `<span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">${row.workstream}</span>` : ''}
-          ${row.priority_tier ? `<span style="display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:${pm.colour}"><span style="width:5px;height:5px;border-radius:50%;background:${pm.colour};display:inline-block"></span>${pm.label}</span>` : ''}
-        </div>
+  return `<div class="gs-row" data-id="${row.id}" draggable="true" style="border-bottom:1px solid var(--grey-light);background:var(--white);transition:background 0.1s${blocked?';border-left:3px solid rgba(255,107,74,0.5)':''}">
+    <!-- Main row -->
+    <div onclick="gsToggleExpand('${row.id}')" style="display:grid;grid-template-columns:18px 24px 180px 110px 100px 1fr 90px 28px;gap:0;padding:0 28px;height:44px;align-items:center;cursor:pointer;transition:background 0.1s" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
+      <!-- Drag handle -->
+      <div class="gs-drag-handle" onclick="event.stopPropagation()" style="cursor:grab;color:var(--grey-light);display:flex;align-items:center;user-select:none" title="Drag to reorder">
+        <svg width="10" height="14" viewBox="0 0 10 14" fill="none"><circle cx="3" cy="3" r="1.2" fill="currentColor"/><circle cx="7" cy="3" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="11" r="1.2" fill="currentColor"/><circle cx="7" cy="11" r="1.2" fill="currentColor"/></svg>
       </div>
-      <span style="flex-shrink:0;padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;background:${s.bg};border:1px solid ${s.border};color:${s.text};white-space:nowrap">${row.status||'—'}</span>
+      <!-- Blocked indicator -->
+      <div style="display:flex;align-items:center">${blocked ? '<span title="Has blocker" style="font-size:11px">⚠</span>' : '<span style="width:6px;height:6px;border-radius:50%;background:'+pc+';display:inline-block"></span>'}</div>
+      <!-- Name -->
+      <div style="min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${row.name||'—'}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${row.workstream||''}</div>
+      </div>
+      <!-- Status -->
+      <div><span style="padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;background:${s.bg};border:1px solid ${s.border};color:${s.text};white-space:nowrap">${row.status||'—'}</span></div>
+      <!-- Owner -->
+      <div style="font-size:11px;color:var(--grey-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(row.owner||'').split('\n')[0]}</div>
+      <!-- Update -->
+      <div style="font-size:11px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:12px">${row.update||'—'}</div>
+      <!-- Deadline -->
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--grey-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${row.hard_deadline||''}</div>
+      <!-- Expand chevron -->
+      <div style="display:flex;align-items:center;justify-content:center;color:var(--grey-mid);transition:transform 0.2s;transform:rotate(${expanded?'90deg':'0deg'})">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
     </div>
 
-    <!-- Update -->
-    ${row.update ? `<div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:9px">${row.update}</div>` : ''}
-
-    <!-- Next steps -->
-    ${row.next_steps ? `<div style="background:var(--cream-soft);border-radius:8px;padding:8px 10px;margin-bottom:${blocked?'8px':'0'}">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:3px">Next steps</div>
-      <div style="font-size:12px;color:var(--black);line-height:1.5">${row.next_steps}</div>
-    </div>` : ''}
-
-    <!-- Blocker -->
-    ${blocked ? `<div style="background:rgba(255,107,74,0.07);border:1px solid rgba(255,107,74,0.25);border-radius:8px;padding:8px 10px">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#FF6B4A;margin-bottom:3px">⚠ Blocker</div>
-      <div style="font-size:12px;color:#a03020;line-height:1.5">${row.any_blockers}</div>
-    </div>` : ''}
-
-    <!-- Owner + deadline -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px">
-      ${row.owner ? `<div style="font-size:11px;color:var(--grey-mid);line-height:1.4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase">Owner · </span>${row.owner.replace(/\n/g,', ')}
-      </div>` : '<div></div>'}
-      ${row.hard_deadline ? `<div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--grey-mid);flex-shrink:0;background:var(--cream-soft);padding:3px 8px;border-radius:4px">${row.hard_deadline}</div>` : ''}
+    <!-- Expanded detail -->
+    <div style="display:${expanded?'block':'none'};padding:0 28px 16px 70px;background:var(--cream-soft,#f0ede6)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        ${row.goal ? `<div style="grid-column:1/-1;background:var(--white);border-radius:8px;padding:10px 12px"><div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:4px">Goal</div><div style="font-size:12px;color:var(--black);line-height:1.5">${row.goal}</div></div>` : ''}
+        ${row.next_steps ? `<div style="background:var(--white);border-radius:8px;padding:10px 12px"><div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:4px">Next steps</div><div style="font-size:12px;color:var(--black);line-height:1.5">${row.next_steps}</div></div>` : ''}
+        ${blocked ? `<div style="background:rgba(255,107,74,0.07);border:1px solid rgba(255,107,74,0.25);border-radius:8px;padding:10px 12px"><div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#FF6B4A;margin-bottom:4px">⚠ Blocker</div><div style="font-size:12px;color:#a03020;line-height:1.5">${row.any_blockers}</div></div>` : ''}
+        ${row.owner ? `<div style="background:var(--white);border-radius:8px;padding:10px 12px"><div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:4px">Owner</div><div style="font-size:12px;color:var(--black);line-height:1.5">${row.owner}</div></div>` : ''}
+      </div>
+      ${row.links && row.links.trim() ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+        ${row.links.split(/\n/).filter(l=>l.trim()).map(l=>{const url=l.trim().match(/https?:\/\/\S+/)?.[0];if(!url)return'';const lbl=l.replace(/https?:\/\/\S+/,'').replace(/^[\s:]+|[\s:]+$/g,'')||'↗ Link';return`<a href="${url}" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--black);background:var(--grey-light);padding:3px 8px;border-radius:4px;text-decoration:none">${lbl}</a>`;}).filter(Boolean).join('')}
+      </div>` : ''}
+      <button onclick="event.stopPropagation();gsOpenEdit('${row.id}')" style="height:32px;padding:0 16px;background:var(--black);color:var(--green);border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Edit row</button>
     </div>
-
-    <!-- Links -->
-    ${row.links && row.links.trim() ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px">
-      ${row.links.split(/[\n]+/).filter(l=>l.trim()).map(l => {
-        const url = l.trim().match(/https?:\/\/\S+/)?.[0];
-        if (!url) return '';
-        const label = l.replace(/https?:\/\/\S+/,'').replace(/^[\s:]+|[\s:]+$/g,'') || '↗ Link';
-        return `<a href="${url}" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--black);background:var(--grey-light);padding:3px 8px;border-radius:4px;text-decoration:none;transition:opacity 0.12s" onmouseover="this.style.opacity=0.65" onmouseout="this.style.opacity=1">${label}</a>`;
-      }).filter(Boolean).join('')}
-    </div>` : ''}
   </div>`;
 }
 
-// Escape to close
+function gsToggleExpand(id) {
+  gsExpandedId = gsExpandedId === id ? null : id;
+  gsRenderRows();
+}
+
+// ── DRAG TO REORDER ───────────────────────────────────────────────────────
+function gsInitDrag() {
+  document.querySelectorAll('.gs-row').forEach(row => {
+    row.addEventListener('dragstart', gsDragStart);
+    row.addEventListener('dragover',  gsDragOver);
+    row.addEventListener('drop',      gsDrop);
+    row.addEventListener('dragend',   gsDragEnd);
+    row.addEventListener('dragleave', gsDragLeave);
+  });
+}
+
+function gsDragStart(e) {
+  gsDragSrcId = this.dataset.id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { this.style.opacity = '0.4'; }, 0);
+}
+
+function gsDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  this.style.background = 'rgba(139,255,87,0.08)';
+  this.style.borderTop = '2px solid var(--green)';
+}
+
+function gsDragLeave() {
+  this.style.background = '';
+  this.style.borderTop = '';
+}
+
+function gsDrop(e) {
+  e.preventDefault();
+  this.style.background = '';
+  this.style.borderTop = '';
+  if (gsDragSrcId === this.dataset.id) return;
+
+  const srcPriority  = gsData.find(r => r.id === gsDragSrcId)?.priority_tier?.toLowerCase() || '';
+  const destPriority = gsData.find(r => r.id === this.dataset.id)?.priority_tier?.toLowerCase() || '';
+
+  // Only allow drag within same priority group
+  if (srcPriority !== destPriority) {
+    gsShowToast('Can only reorder within the same priority group');
+    return;
+  }
+
+  // Reorder in gsData
+  const srcIdx  = gsData.findIndex(r => r.id === gsDragSrcId);
+  const destIdx = gsData.findIndex(r => r.id === this.dataset.id);
+  const [moved] = gsData.splice(srcIdx, 1);
+  gsData.splice(destIdx, 0, moved);
+
+  // Reassign display_order within this priority group
+  const groupItems = gsData.filter(r => (r.priority_tier||'').toLowerCase() === srcPriority);
+  groupItems.forEach((r, i) => { r.display_order = i; });
+
+  gsOrderDirty = true;
+  document.getElementById('gs-save-order-btn').style.display = 'block';
+  gsRenderRows();
+}
+
+function gsDragEnd() {
+  this.style.opacity = '';
+  document.querySelectorAll('.gs-row').forEach(r => {
+    r.style.background = '';
+    r.style.borderTop = '';
+  });
+}
+
+async function gsSaveOrder() {
+  const btn = document.getElementById('gs-save-order-btn');
+  btn.textContent = 'Saving…';
+  btn.style.pointerEvents = 'none';
+
+  // Build upsert payload — update display_order for all rows
+  const updates = gsData.map(r => ({ id: r.id, display_order: r.display_order ?? null }));
+
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/growth_status`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify(updates)
+    });
+    gsOrderDirty = false;
+    btn.style.display = 'none';
+    btn.textContent = 'Save order';
+    btn.style.pointerEvents = '';
+    gsShowToast('Order saved');
+  } catch(err) {
+    btn.textContent = 'Save order';
+    btn.style.pointerEvents = '';
+    gsShowToast('Save failed — try again', true);
+  }
+}
+
+// ── EDIT PANEL ────────────────────────────────────────────────────────────
+function gsOpenEdit(id) {
+  gsEditingRow = gsData.find(r => r.id === id);
+  if (!gsEditingRow) return;
+
+  document.getElementById('gs-edit-title').textContent = gsEditingRow.name || 'Edit';
+
+  const form = document.getElementById('gs-edit-form');
+  form.innerHTML = GS_FIELDS.map(f => {
+    const val = gsEditingRow[f.key] || '';
+    if (f.options) {
+      return `<div>
+        <label style="display:block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:5px">${f.label}</label>
+        <select id="gs-field-${f.key}" style="width:100%;padding:8px 10px;border:1.5px solid var(--grey-light);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);color:var(--black);outline:none">
+          <option value="">— select —</option>
+          ${f.options.map(o => `<option value="${o}" ${val.toLowerCase()===o.toLowerCase()?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </div>`;
+    }
+    if (f.multiline) {
+      return `<div>
+        <label style="display:block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:5px">${f.label}</label>
+        <textarea id="gs-field-${f.key}" rows="3" style="width:100%;padding:8px 10px;border:1.5px solid var(--grey-light);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);resize:vertical;outline:none;box-sizing:border-box">${val}</textarea>
+      </div>`;
+    }
+    return `<div>
+      <label style="display:block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:5px">${f.label}</label>
+      <input id="gs-field-${f.key}" type="text" value="${val.replace(/"/g,'&quot;')}" style="width:100%;padding:8px 10px;border:1.5px solid var(--grey-light);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;box-sizing:border-box">
+    </div>`;
+  }).join('');
+
+  const panel = document.getElementById('gs-edit-panel');
+  panel.style.display = 'flex';
+  requestAnimationFrame(() => { panel.style.transform = 'translateX(0)'; });
+}
+
+function closeEditPanel() {
+  const panel = document.getElementById('gs-edit-panel');
+  panel.style.transform = 'translateX(100%)';
+  setTimeout(() => { panel.style.display = 'none'; }, 260);
+  gsEditingRow = null;
+}
+
+async function gsSubmitEdit() {
+  if (!gsEditingRow) return;
+
+  const payload = { name: gsEditingRow.name };
+  GS_FIELDS.forEach(f => {
+    const el = document.getElementById(`gs-field-${f.key}`);
+    if (el) payload[f.key] = el.value;
+  });
+
+  const saveBtn = document.querySelector('#gs-edit-panel button[onclick="gsSubmitEdit()"]');
+  saveBtn.textContent = 'Saving…';
+  saveBtn.style.pointerEvents = 'none';
+
+  try {
+    // Write to Google Sheet via Apps Script
+    await fetch(GS_APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script doesn't send CORS headers by default
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    // Optimistically update local data so UI reflects change immediately
+    Object.assign(gsEditingRow, payload);
+    // Also update in gsData array
+    const idx = gsData.findIndex(r => r.id === gsEditingRow.id);
+    if (idx > -1) gsData[idx] = { ...gsData[idx], ...payload };
+
+    closeEditPanel();
+    gsRenderHeaderChips();
+    gsRenderFilters();
+    gsRenderRows();
+    gsShowToast('Saved — sheet will sync shortly');
+  } catch(err) {
+    gsShowToast('Save failed — check connection', true);
+  }
+
+  saveBtn.textContent = 'Save changes';
+  saveBtn.style.pointerEvents = '';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function gsShowToast(msg, isError = false) {
+  let t = document.getElementById('gs-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'gs-toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);z-index:500;padding:10px 20px;border-radius:8px;font-family:DM Mono,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = isError ? '#FF6B4A' : 'var(--black)';
+  t.style.color = isError ? '#fff' : 'var(--green)';
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(10px)';
+  }, 2800);
+}
+
+// Escape key
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && document.getElementById('gs-drawer').style.display !== 'none') {
-    closeGrowthStatus();
+  if (e.key === 'Escape') {
+    if (document.getElementById('gs-edit-panel').style.display !== 'none') closeEditPanel();
+    else if (document.getElementById('gs-drawer').style.display !== 'none') closeGrowthStatus();
   }
 });
 </script>
-
 <div id="pipeline-modal-backdrop" onclick="closePipelineModal()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.36)"></div>
 <div id="pipeline-modal" role="dialog" aria-label="New pipeline entry" style="display:none;position:fixed;top:0;right:0;bottom:0;z-index:401;width:min(560px,100%);background:var(--cream);border-left:1.5px solid var(--grey-light);box-shadow:-20px 0 60px rgba(0,0,0,0.16);overflow-y:auto;transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.22,1,0.36,1)">
 
