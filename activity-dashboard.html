@@ -3368,7 +3368,7 @@ async function openDealDrawer(stageId) {
 // TIMELINE VIEW
 // ─────────────────────────────────────────────
 let activeDrawerView = 'board'; // 'board' | 'timeline'
-let timelineLoaded = false;
+let timelineCache = null; // session cache — null means not yet loaded
 
 function switchDrawerView(view, btn) {
   activeDrawerView = view;
@@ -3393,26 +3393,44 @@ function switchDrawerView(view, btn) {
 
 async function loadTimeline() {
   const panel = document.getElementById('timeline-panel');
+
+  // Serve from cache if available — instant re-open
+  if (timelineCache) {
+    renderGantt(panel, timelineCache);
+    return;
+  }
+
   if (!allBoardDeals || allBoardDeals.length === 0) {
     panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Loading deals…</div>';
     await loadDealBoard();
   }
-  panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Fetching milestones from HubSpot…</div>';
+  panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Fetching milestones…</div>';
 
-  // Fetch task associations for all deals in parallel (cap at 20 to stay fast)
   const dealsToCheck = allBoardDeals.slice(0, 20);
-  const taskAssocPromises = dealsToCheck.map(deal =>
-    fetch(HS_PROXY, {
+
+  // ONE batch call to get all task associations — replaces 20 individual calls
+  let assocResults = [];
+  try {
+    const assocRes = await fetch(HS_PROXY, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_KEY}`,
         'x-proxy-target': 'hubspot',
-        'x-hs-path': `/crm/v3/objects/deals/${deal.id}/associations/tasks`
-      }
-    }).then(r => r.json()).then(d => ({ dealId: deal.id, taskIds: (d.results || []).map(t => t.id) }))
-     .catch(() => ({ dealId: deal.id, taskIds: [] }))
-  );
-
-  const assocResults = await Promise.all(taskAssocPromises);
+        'x-hs-path': '/crm/v4/associations/deals/tasks/batch/read',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        inputs: dealsToCheck.map(d => ({ id: d.id }))
+      })
+    });
+    const assocData = await assocRes.json();
+    assocResults = (assocData.results || []).map(r => ({
+      dealId: String(r.from.id),
+      taskIds: (r.to || []).map(t => String(t.toObjectId))
+    }));
+  } catch(e) {
+    console.warn('Timeline: batch association fetch failed', e);
+  }
 
   // Filter to deals that have tasks
   const dealsWithTasks = assocResults.filter(a => a.taskIds.length > 0);
@@ -3428,7 +3446,7 @@ async function loadTimeline() {
     return;
   }
 
-  // Batch-fetch task details
+  // Batch-fetch task details (one call)
   const allTaskIds = dealsWithTasks.flatMap(d => d.taskIds);
   let taskDetails = {};
   try {
@@ -3477,6 +3495,9 @@ async function loadTimeline() {
     panel.innerHTML = '<div class="gantt-empty">No dated tasks found. Add tasks with due dates in HubSpot to populate this view.</div>';
     return;
   }
+
+  // Store in session cache
+  timelineCache = dealMilestones;
 
   renderGantt(panel, dealMilestones);
 }
@@ -3602,6 +3623,8 @@ function closeDealDrawer() {
   document.getElementById('deal-drawer-overlay').classList.remove('open');
   document.getElementById('deal-drawer').classList.remove('open');
   document.body.style.overflow = '';
+  // Clear cache so next open always reflects any HubSpot changes made during the session
+  timelineCache = null;
 }
 
 // Keyboard escape
