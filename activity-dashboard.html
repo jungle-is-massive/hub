@@ -2700,6 +2700,9 @@ function buildSnapshotEmail() {
   });
   body += section('Recent LinkedIn Connections (Last 7 Days)', ul(connItems.length ? connItems : [li('<span style="color:#888">No new Dripify connections this week</span>')]));
 
+  // Growth Status
+  body += buildGrowthStatusEmailSection();
+
   // To do list
   body += buildTodoEmailSection();
 
@@ -3098,6 +3101,41 @@ function buildTodoEmailSection() {
       return li(`${t.title}${co}${catL}${due}`);
     }));
   });
+  return out;
+}
+
+function buildGrowthStatusEmailSection() {
+  if (!gsData || !gsData.length) return '';
+
+  const li  = txt => `<li style="margin:4px 0;font-size:14px;line-height:1.5">${txt}</li>`;
+  const ul  = items => items.length
+    ? `<ul style="margin:6px 0 14px 0;padding-left:20px">${items.join('')}</ul>`
+    : `<ul style="margin:6px 0 14px 0;padding-left:20px"><li style="color:#888;font-size:14px">None</li></ul>`;
+
+  const groups = [
+    { key: 'high',   label: '🔴 High Priority',   colour: '#FF6B4A' },
+    { key: 'medium', label: '🟡 Medium Priority',  colour: '#F0B429' },
+    { key: 'low',    label: '🟢 Low Priority',     colour: '#3ECF8E' },
+  ];
+
+  // Only include groups that have items
+  const populated = groups.filter(g =>
+    gsData.some(r => (r.priority_tier || '').toLowerCase() === g.key)
+  );
+  if (!populated.length) return '';
+
+  let out = `<p style="margin:18px 0 4px 0"><b>Growth Status</b></p>`;
+
+  populated.forEach(g => {
+    const rows = gsData.filter(r => (r.priority_tier || '').toLowerCase() === g.key);
+    out += `<p style="margin:10px 0 4px 0"><b><i style="color:${g.colour}">${g.label}</i></b></p>`;
+    out += ul(rows.map(r => {
+      const status = r.status ? `<span style="color:#888"> — ${r.status}</span>` : '';
+      const update = r.update ? `<br><span style="color:#666;font-size:13px">${r.update.substring(0, 160)}${r.update.length > 160 ? '…' : ''}</span>` : '';
+      return li(`<b>${r.name}</b>${status}${update}`);
+    }));
+  });
+
   return out;
 }
 
