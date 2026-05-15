@@ -730,6 +730,141 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .drawer-footer-note { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); letter-spacing: 0.1em; }
 .drawer-hs-link { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); letter-spacing: 0.1em; text-decoration: none; transition: color 0.15s; }
 .drawer-hs-link:hover { color: var(--green); }
+
+/* ── TIMELINE VIEW ──────────────────────────────────────────── */
+#deal-drawer-view-toggle {
+  display: flex; gap: 6px; padding: 0 24px 12px; flex-shrink: 0;
+  background: var(--black); border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.drawer-view-btn {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.18);
+  background: transparent; color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.drawer-view-btn:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.7); }
+.drawer-view-btn.active { background: var(--green); border-color: var(--green); color: var(--black); font-weight: 700; }
+
+#timeline-panel {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 24px 24px 32px;
+  display: none; flex-direction: column; gap: 0;
+}
+#timeline-panel.visible { display: flex; }
+
+.timeline-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-shrink: 0;
+}
+.timeline-header-title {
+  font-size: 13px; font-weight: 800; letter-spacing: -0.02em; color: var(--black);
+}
+.timeline-header-sub {
+  font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); letter-spacing: 0.1em;
+}
+.timeline-note {
+  font-size: 11px; color: var(--grey-mid); line-height: 1.5; margin-bottom: 20px;
+  padding: 10px 14px; background: rgba(0,0,0,0.04); border-radius: 8px; border-left: 3px solid var(--green);
+  flex-shrink: 0;
+}
+
+/* Gantt chart container */
+.gantt-wrap {
+  position: relative; flex: 1; min-height: 0; overflow: visible;
+}
+.gantt-months-row {
+  display: flex; margin-left: 200px; margin-bottom: 8px; flex-shrink: 0;
+}
+.gantt-month-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--grey-mid); text-align: center; border-left: 1px dashed rgba(0,0,0,0.08); padding-left: 6px;
+}
+.gantt-today-line {
+  position: absolute; top: 0; bottom: 0; width: 2px; background: var(--green);
+  z-index: 5; border-radius: 1px;
+  box-shadow: 0 0 8px rgba(135,251,102,0.5);
+}
+.gantt-today-label {
+  position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--black); background: var(--green); padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+}
+.gantt-row {
+  display: flex; align-items: center; margin-bottom: 14px; position: relative; flex-shrink: 0;
+}
+.gantt-label {
+  width: 192px; flex-shrink: 0; padding-right: 12px;
+}
+.gantt-label-name {
+  font-size: 12px; font-weight: 700; letter-spacing: -0.01em; color: var(--black);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
+}
+.gantt-label-stage {
+  font-family: 'DM Mono', monospace; font-size: 8px; color: var(--grey-mid); letter-spacing: 0.08em;
+  margin-top: 2px; text-transform: uppercase;
+}
+.gantt-track {
+  flex: 1; height: 36px; position: relative; background: rgba(0,0,0,0.04); border-radius: 6px;
+  overflow: visible;
+}
+.gantt-milestone {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; z-index: 3;
+  cursor: default;
+}
+.gantt-milestone-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2.5px solid var(--black); background: var(--white);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform 0.15s;
+}
+.gantt-milestone:hover .gantt-milestone-dot { transform: scale(1.4); }
+.gantt-milestone.past .gantt-milestone-dot { background: var(--grey-light); border-color: var(--grey-mid); }
+.gantt-milestone.today .gantt-milestone-dot { background: var(--green); border-color: var(--black); box-shadow: 0 0 8px rgba(135,251,102,0.6); }
+.gantt-milestone.upcoming .gantt-milestone-dot { background: var(--white); border-color: var(--black); }
+.gantt-milestone.urgent .gantt-milestone-dot { background: #FF6B4A; border-color: #d94a2a; }
+
+.gantt-milestone-tooltip {
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  background: var(--black); color: var(--white); border-radius: 8px;
+  padding: 8px 10px; font-size: 11px; line-height: 1.4; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity 0.15s;
+  z-index: 100; box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  min-width: 160px; text-align: left;
+}
+.gantt-milestone-tooltip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: var(--black);
+}
+.gantt-milestone:hover .gantt-milestone-tooltip { opacity: 1; }
+.gantt-milestone-tooltip strong { display: block; font-weight: 700; margin-bottom: 2px; color: var(--green); }
+.gantt-milestone-tooltip span { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.6); }
+
+.gantt-row-divider {
+  border: none; border-top: 1px solid rgba(0,0,0,0.06); margin: 0 0 14px 200px;
+  flex-shrink: 0;
+}
+.gantt-empty {
+  text-align: center; padding: 48px 24px; color: var(--grey-mid);
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.08em;
+}
+.gantt-loading {
+  text-align: center; padding: 48px 24px; color: var(--grey-mid);
+  font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.gantt-spinner {
+  width: 16px; height: 16px; border: 2px solid var(--grey-light); border-top-color: var(--green);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.timeline-add-hint {
+  margin-top: 20px; padding: 14px 16px; border: 1.5px dashed rgba(0,0,0,0.12);
+  border-radius: 10px; flex-shrink: 0;
+}
+.timeline-add-hint p {
+  font-size: 11px; color: var(--grey-mid); line-height: 1.5; margin: 0;
+}
+.timeline-add-hint strong { color: var(--black); }
 </style>
 </head>
 <body>
@@ -3215,12 +3350,252 @@ async function openDealDrawer(stageId) {
   document.getElementById('deal-drawer').classList.add('open');
   document.body.style.overflow = 'hidden';
 
+  // Always open in board view
+  if (activeDrawerView !== 'board') {
+    const btn = document.getElementById('view-btn-board');
+    switchDrawerView('board', btn);
+  }
+
   await loadDealBoard();
 
   // Activate the right filter button
   const targetStage = stageId || 'all';
   const btn = document.querySelector(`.drawer-filter-btn[data-stage="${targetStage}"]`);
   filterDrawer(targetStage, btn);
+}
+
+// ─────────────────────────────────────────────
+// TIMELINE VIEW
+// ─────────────────────────────────────────────
+let activeDrawerView = 'board'; // 'board' | 'timeline'
+let timelineLoaded = false;
+
+function switchDrawerView(view, btn) {
+  activeDrawerView = view;
+  document.querySelectorAll('.drawer-view-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const board = document.getElementById('deal-board');
+  const filter = document.getElementById('deal-drawer-filter');
+  const timelinePanel = document.getElementById('timeline-panel');
+
+  if (view === 'timeline') {
+    board.style.display = 'none';
+    filter.style.display = 'none';
+    timelinePanel.classList.add('visible');
+    loadTimeline();
+  } else {
+    board.style.display = '';
+    filter.style.display = '';
+    timelinePanel.classList.remove('visible');
+  }
+}
+
+async function loadTimeline() {
+  const panel = document.getElementById('timeline-panel');
+  if (!allBoardDeals || allBoardDeals.length === 0) {
+    panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Loading deals…</div>';
+    await loadDealBoard();
+  }
+  panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Fetching milestones from HubSpot…</div>';
+
+  // Fetch task associations for all deals in parallel (cap at 20 to stay fast)
+  const dealsToCheck = allBoardDeals.slice(0, 20);
+  const taskAssocPromises = dealsToCheck.map(deal =>
+    fetch(HS_PROXY, {
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': `/crm/v3/objects/deals/${deal.id}/associations/tasks`
+      }
+    }).then(r => r.json()).then(d => ({ dealId: deal.id, taskIds: (d.results || []).map(t => t.id) }))
+     .catch(() => ({ dealId: deal.id, taskIds: [] }))
+  );
+
+  const assocResults = await Promise.all(taskAssocPromises);
+
+  // Filter to deals that have tasks
+  const dealsWithTasks = assocResults.filter(a => a.taskIds.length > 0);
+
+  if (dealsWithTasks.length === 0) {
+    panel.innerHTML = `
+      <div class="gantt-empty">No milestone tasks found on any open deals.<br><br>
+      In HubSpot, open a deal → create a task with a due date → it will appear here.</div>
+      <div class="timeline-add-hint"><p>
+        <strong>How to add a milestone:</strong> Open the deal in HubSpot → Tasks → Create task → set a due date.
+        The task name becomes the milestone label on this timeline.
+      </p></div>`;
+    return;
+  }
+
+  // Batch-fetch task details
+  const allTaskIds = dealsWithTasks.flatMap(d => d.taskIds);
+  let taskDetails = {};
+  try {
+    const batchRes = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/tasks/batch/read',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        inputs: allTaskIds.map(id => ({ id })),
+        properties: ['hs_task_subject', 'hs_task_body', 'hs_timestamp', 'hs_task_status']
+      })
+    });
+    const batchData = await batchRes.json();
+    (batchData.results || []).forEach(t => {
+      taskDetails[t.id] = t.properties;
+    });
+  } catch(e) {
+    console.warn('Timeline: task batch fetch failed', e);
+  }
+
+  // Build deal-milestone map
+  const dealMilestones = dealsWithTasks.map(assoc => {
+    const deal = allBoardDeals.find(d => d.id === assoc.dealId);
+    if (!deal) return null;
+    const milestones = assoc.taskIds
+      .map(tid => {
+        const t = taskDetails[tid];
+        if (!t || !t.hs_timestamp) return null;
+        return {
+          id: tid,
+          subject: t.hs_task_subject || 'Task',
+          date: new Date(t.hs_timestamp),
+          status: t.hs_task_status || 'NOT_STARTED'
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.date - b.date);
+    return { deal, milestones };
+  }).filter(dm => dm && dm.milestones.length > 0);
+
+  if (dealMilestones.length === 0) {
+    panel.innerHTML = '<div class="gantt-empty">No dated tasks found. Add tasks with due dates in HubSpot to populate this view.</div>';
+    return;
+  }
+
+  renderGantt(panel, dealMilestones);
+}
+
+function renderGantt(panel, dealMilestones) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Determine date range: from earliest milestone or today-7, to latest milestone or today+60
+  const allDates = dealMilestones.flatMap(dm => dm.milestones.map(m => m.date));
+  let minDate = new Date(Math.min(...allDates, today));
+  let maxDate = new Date(Math.max(...allDates, today));
+
+  // Pad: 7 days before earliest, 14 days after latest
+  minDate = new Date(minDate.getTime() - 7 * 86400000);
+  maxDate = new Date(maxDate.getTime() + 14 * 86400000);
+
+  const totalMs = maxDate - minDate;
+  const totalDays = totalMs / 86400000;
+
+  function pct(date) {
+    return ((date - minDate) / totalMs) * 100;
+  }
+
+  // Generate month labels
+  const months = [];
+  let cursor = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+  while (cursor <= maxDate) {
+    months.push({
+      label: cursor.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }),
+      pct: pct(cursor)
+    });
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+  }
+
+  const todayPct = pct(today);
+  const stageMap = {};
+  AGENCY_STAGE_CONFIG.forEach(s => { stageMap[s.id] = s.label; });
+
+  let html = `
+    <div class="timeline-header">
+      <div>
+        <div class="timeline-header-title">Opportunity Timeline</div>
+        <div class="timeline-header-sub">${dealMilestones.length} deal${dealMilestones.length !== 1 ? 's' : ''} with milestones · tasks pulled from HubSpot</div>
+      </div>
+    </div>
+    <div class="timeline-note">
+      Milestones are HubSpot tasks with a due date. Add tasks to any deal in HubSpot and they'll appear here.
+      <strong style="color:var(--black)"> Hover a dot to see the full milestone name.</strong>
+    </div>
+    <div class="gantt-wrap" style="position:relative">`;
+
+  // Month header row
+  html += `<div style="display:flex;margin-left:200px;margin-bottom:10px;position:relative;height:20px;">`;
+  months.forEach(m => {
+    if (m.pct < 0 || m.pct > 100) return;
+    html += `<div style="position:absolute;left:${Math.max(0,m.pct)}%;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);border-left:1px dashed rgba(0,0,0,0.1);padding-left:5px;transform:translateX(0)">${m.label}</div>`;
+  });
+  html += `</div>`;
+
+  // Deal rows
+  dealMilestones.forEach(({ deal, milestones }) => {
+    const p = deal.properties;
+    const stageLabel = stageMap[p.dealstage] || p.dealstage || '—';
+
+    html += `<div class="gantt-row">
+      <div class="gantt-label">
+        <div class="gantt-label-name" title="${p.dealname || ''}">${p.dealname || 'Untitled'}</div>
+        <div class="gantt-label-stage">${stageLabel}</div>
+      </div>
+      <div class="gantt-track" style="position:relative;">`;
+
+    // Today line inside track
+    if (todayPct >= 0 && todayPct <= 100) {
+      html += `<div style="position:absolute;left:${todayPct}%;top:0;bottom:0;width:1.5px;background:rgba(135,251,102,0.4);z-index:2;"></div>`;
+    }
+
+    milestones.forEach(m => {
+      const mp = pct(m.date);
+      if (mp < -5 || mp > 105) return;
+
+      const isPast = m.date < today;
+      const daysUntil = Math.round((m.date - today) / 86400000);
+      const isUrgent = !isPast && daysUntil <= 7;
+      const dotClass = isPast ? 'past' : isUrgent ? 'urgent' : 'upcoming';
+      const dateStr = m.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const daysStr = isPast
+        ? `${Math.abs(daysUntil)}d ago`
+        : daysUntil === 0 ? 'Today'
+        : `in ${daysUntil}d`;
+      const statusIcon = m.status === 'COMPLETED' ? '✓' : isUrgent ? '⚠' : '◦';
+
+      html += `<div class="gantt-milestone ${dotClass}" style="left:${Math.min(95,Math.max(5,mp))}%;position:absolute;top:50%;transform:translate(-50%,-50%);">
+        <div class="gantt-milestone-dot"></div>
+        <div class="gantt-milestone-tooltip">
+          <strong>${statusIcon} ${m.subject}</strong>
+          <span>${dateStr} · ${daysStr}</span>
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  // Today line across full gantt
+  if (todayPct >= 0 && todayPct <= 100) {
+    html += `<div class="gantt-today-line" style="left:calc(200px + ${todayPct}% * (100% - 200px) / 100)">
+      <div class="gantt-today-label">Today</div>
+    </div>`;
+  }
+
+  html += `</div>`; // gantt-wrap
+
+  html += `<div class="timeline-add-hint" style="margin-top:24px"><p>
+    <strong>Adding a milestone:</strong> In HubSpot, open any deal → scroll to Tasks → create a task with a due date.
+    The task name is the milestone label. No custom fields needed — it just works.
+  </p></div>`;
+
+  panel.innerHTML = html;
 }
 
 function closeDealDrawer() {
@@ -3244,6 +3619,17 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
     </div>
     <button class="drawer-close" onclick="closeDealDrawer()" aria-label="Close">✕</button>
   </div>
+  <!-- View toggle -->
+  <div id="deal-drawer-view-toggle">
+    <button class="drawer-view-btn active" id="view-btn-board" onclick="switchDrawerView('board',this)">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="1" width="3" height="10" rx="1"/><rect x="5" y="3" width="3" height="8" rx="1"/><rect x="9" y="2" width="2" height="9" rx="1"/></svg>
+      Pipeline
+    </button>
+    <button class="drawer-view-btn" id="view-btn-timeline" onclick="switchDrawerView('timeline',this)">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="6" x2="11" y2="6"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
+      Timeline
+    </button>
+  </div>
   <div id="deal-drawer-filter">
     <button class="drawer-filter-btn active" data-stage="all" onclick="filterDrawer('all',this)">All stages</button>
     <button class="drawer-filter-btn" data-stage="3846842616" onclick="filterDrawer('3846842616',this)">Cold outreach</button>
@@ -3257,6 +3643,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
     <button class="drawer-filter-btn" data-stage="5277854954" onclick="filterDrawer('5277854954',this)">Declined</button>
   </div>
   <div id="deal-board"></div>
+  <div id="timeline-panel"></div>
   <div id="deal-drawer-footer">
     <div class="drawer-footer-note" id="drawer-total-note">—</div>
     <a class="drawer-hs-link" href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board?noprefetch=" target="_blank" rel="noopener">Open in HubSpot ↗</a>
