@@ -103,6 +103,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .icomp-act { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; text-align: right; }
 .icomp-pct { font-family: 'DM Mono', monospace; font-size: 10px; text-align: right; }
 @media(max-width:700px) { .icomp-row { grid-template-columns: 120px 1fr 60px 70px 60px; } .icomp-pct { display: none; } }
+/* Briefs cell tooltip */
+.icomp-briefs { position: relative; font-family: 'DM Mono', monospace; font-size: 10px; text-align: right; cursor: default; }
+.icomp-briefs-tip { display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 120; background: var(--black); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 10px 12px; min-width: 200px; max-width: 280px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: left; }
+.icomp-briefs:hover .icomp-briefs-tip { display: block; }
+.icomp-briefs-tip-title { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 6px; }
+.icomp-briefs-tip-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: var(--cream); }
+.icomp-briefs-tip-row:last-child { border-bottom: none; }
+.icomp-briefs-tip-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icomp-briefs-tip-val { font-weight: 700; color: var(--green); flex-shrink: 0; }
 #intermediary-comparison-bar { overflow: hidden; max-height: 0; transition: max-height 0.35s ease, margin-bottom 0.35s ease; margin-bottom: 0; }
 #intermediary-comparison-bar.open { max-height: 800px; margin-bottom: 12px; }
 #staff-referral-bar { overflow: hidden; max-height: 0; transition: max-height 0.35s ease, margin-bottom 0.35s ease; margin-bottom: 0; }
@@ -110,8 +119,8 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .funnel-bar-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
 .funnel-bar-row { display: grid; gap: 4px; }
 .funnel-bar-row.row-1 { grid-template-columns: repeat(6, 1fr); }
-.funnel-bar-row.row-opp { grid-template-columns: repeat(5, 1fr); }
-@media(max-width:900px) { .funnel-bar-row.row-1, .funnel-bar-row.row-opp { grid-template-columns: repeat(3, 1fr); } }
+.funnel-bar-row.row-opp { grid-template-columns: repeat(7, 1fr); }
+@media(max-width:900px) { .funnel-bar-row.row-1, .funnel-bar-row.row-opp { grid-template-columns: repeat(4, 1fr); } }
 @media(max-width:560px) { .funnel-bar-row.row-1, .funnel-bar-row.row-opp { grid-template-columns: repeat(2, 1fr); } }
 #source-breakdown-pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .source-pill { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.08); font-size: 12px; font-weight: 600; color: var(--black); cursor: default; transition: opacity 0.15s, background 0.15s; }
@@ -919,8 +928,8 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   </div>
   <!-- SUMMARY BAR -->
   <div id="summary-bar">
-    <div class="stat-card clickable" onclick="scrollToSection('section-deals')" title="Jump to Open Deals">
-      <div class="stat-label">Open Deals ↓</div>
+    <div class="stat-card clickable" onclick="openDealDrawer(null)" title="View all open deals">
+      <div class="stat-label">Open Deals ↗</div>
       <div class="stat-value" id="stat-deals"><div class="stat-loading"></div></div>
       <div class="stat-sub" id="stat-deals-sub">active opportunities</div>
     </div>
@@ -1232,14 +1241,17 @@ async function loadLinkedInConnections() {
   }
 }
 
-// Row 2 box name → drawer stage filter (module-level to avoid re-declaration in forEach)
-const BOX_DRAWER_MAP = {
-  'Opportunities': 'all',
-  'Pitches':       '3846843580',
-  'Won':           '5277858030',
-  'Lost':          '3846843582',
-  'Declined':      '5277854954',
-};
+// Row 2 — individual deal stage boxes, each maps directly to a HubSpot stage ID
+// Order mirrors the funnel left→right; closed stages shown at the end
+const STAGE_BOXES = [
+  { name: 'Warm',            id: '3846843578', closed: false },
+  { name: 'Qualified',       id: '3846843579', closed: false },
+  { name: 'Pitch / Proposal',id: '3846843580', closed: false },
+  { name: 'Contracts',       id: '3846843581', closed: false },
+  { name: 'Closed Won',      id: '5277858030', closed: true  },
+  { name: 'Closed Lost',     id: '3846843582', closed: true  },
+  { name: 'Declined',        id: '5277854954', closed: true  },
+];
 
 // ─────────────────────────────────────────────
 // FUNNEL STAGES — Supabase structure + live HubSpot counts
@@ -1254,11 +1266,9 @@ const LIFECYCLE_MAP = {
   'Opportunity': 'opportunity',
   'Customer':    'customer',
 };
-// Maps funnel box names to Agency Pipeline stage IDs
+// Maps funnel box names to Agency Pipeline stage IDs (kept for email snapshot only)
 const DEAL_STAGE_MAP = {
-  // Opportunities = Cold outreach + Response + Warm + Qualified
   'Opportunities': ['3846842616','3846842617','3846843578','3846843579'],
-  // Pitches = Pitch / Proposal + Contracts
   'Pitches':       ['3846843580','3846843581'],
   'Won':           ['5277858030'],
   'Lost':          ['3846843582'],
@@ -1297,22 +1307,18 @@ async function loadFunnelStages() {
       results.forEach(r => { lifecycleCounts[r.name] = r.count; });
     } catch(e) { console.warn('Lifecycle counts failed:', e); }
 
-    // 3. Deal stage counts — active deals from dashboardData for Opps + Pitches;
-    //    separate queries for Won (Contracts) + Lost (Closed Lost) which are excluded from the active filter
-    const dealCounts = {};
+    // 3. Deal stage counts — per-stage using STAGE_BOXES
+    //    Active stages counted from dashboardData.deals (already loaded);
+    //    closed stages need separate HubSpot queries as they're excluded from the active filter
+    const stageCounts = {};
     try {
-      // Count from already-loaded active deals for Opportunities + Pitches
       const allDeals = dashboardData.deals || [];
-      dealCounts['Opportunities'] = allDeals.filter(d => DEAL_STAGE_MAP['Opportunities'].includes(d.properties?.dealstage)).length;
-      dealCounts['Pitches']       = allDeals.filter(d => DEAL_STAGE_MAP['Pitches'].includes(d.properties?.dealstage)).length;
+      STAGE_BOXES.filter(s => !s.closed).forEach(box => {
+        stageCounts[box.id] = allDeals.filter(d => d.properties?.dealstage === box.id).length;
+      });
 
-      // Won, Lost, Declined — separate queries as these are excluded from the active deals filter
-      const closedStageQueries = [
-        { key: 'Won',      stage: '5277858030' },
-        { key: 'Lost',     stage: '3846843582' },
-        { key: 'Declined', stage: '5277854954' },
-      ];
-      await Promise.all(closedStageQueries.map(async ({ key, stage }) => {
+      // Closed stages — separate queries
+      await Promise.all(STAGE_BOXES.filter(s => s.closed).map(async (stageBox) => {
         try {
           const res = await fetch(HS_PROXY, {
             method: 'POST',
@@ -1320,50 +1326,57 @@ async function loadFunnelStages() {
             body: JSON.stringify({
               filterGroups: [{ filters: [
                 { propertyName: 'pipeline',  operator: 'EQ', value: AGENCY_PIPELINE },
-                { propertyName: 'dealstage', operator: 'EQ', value: stage }
+                { propertyName: 'dealstage', operator: 'EQ', value: stageBox.id }
               ]}],
               properties: ['dealstage'], limit: 1
             })
           });
           const data = await res.json();
-          dealCounts[key] = data.total ?? null;
-        } catch(e) { console.warn(`${key} count failed:`, e); dealCounts[key] = null; }
+          stageCounts[stageBox.id] = data.total ?? null;
+        } catch(e) { console.warn(`${stageBox.name} count failed:`, e); stageCounts[stageBox.id] = null; }
       }));
     } catch(e) { console.warn('Deal stage counts failed:', e); }
 
-    // 4. Render boxes
+    // 4. Render row 1 (lifecycle, informational) and row 2 (individual deal stage boxes, clickable)
     const row1El   = document.getElementById('funnel-row-1');
     const row2El   = document.getElementById('funnel-row-2');
-    row1El.innerHTML = '';  // clear before re-render to prevent duplicates on refresh
+    row1El.innerHTML = '';
     row2El.innerHTML = '';
     const fmt      = n => n < 10 ? '0' + n : String(n);
     const fmtCount = n => n === null || n === undefined ? '—' : n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
 
+    // Row 1 — lifecycle stages (informational only, no click action)
     stages.forEach((s, i) => {
-      const isLifecycle = s.stage_order <= 6;
-      const rawCount    = isLifecycle ? lifecycleCounts[s.name] : dealCounts[s.name];
-      const hasCount    = rawCount !== null && rawCount !== undefined;
+      if (s.stage_order > 6) return;
+      const rawCount = lifecycleCounts[s.name];
+      const hasCount = rawCount !== null && rawCount !== undefined;
       const box = document.createElement('div');
       box.className = `funnel-box${s.is_mql ? ' is-mql' : ''}${s.is_sql ? ' is-sql' : ''}`;
       box.style.animationDelay = (0.04 + i * 0.03) + 's';
-      box.title = s.description || '';
-
-      // Map row 2 box names to Agency Pipeline stage IDs for drawer
-      // Defined outside forEach to avoid const re-declaration error
-      const drawerStage = !isLifecycle ? BOX_DRAWER_MAP[s.name] : undefined;
-      const isClickable = drawerStage !== undefined && drawerStage !== null;
-
+      box.title = s.description || 'HubSpot contact lifecycle stage — informational';
       box.innerHTML = `
         <div class="funnel-box-num">${fmt(s.stage_order)}</div>
-        <div class="funnel-box-name">${s.name}${isClickable ? '<span style="font-size:8px;opacity:0.4;margin-left:4px">↗</span>' : ''}</div>
+        <div class="funnel-box-name">${s.name}</div>
         <div class="funnel-box-count${hasCount ? ' live' : ''}">${fmtCount(rawCount)}</div>`;
+      row1El.appendChild(box);
+    });
 
-      if (isClickable) {
-        box.style.cursor = 'pointer';
-        box.title = 'Click to view deals';
-        box.addEventListener('click', () => openDealDrawer(drawerStage === 'all' ? null : drawerStage));
-      }
-      (isLifecycle ? row1El : row2El).appendChild(box);
+    // Row 2 — individual deal stage boxes, each filters the drawer on click
+    STAGE_BOXES.forEach((stageBox, i) => {
+      const rawCount = stageCounts[stageBox.id];
+      const hasCount = rawCount !== null && rawCount !== undefined;
+      const box = document.createElement('div');
+      box.className = 'funnel-box';
+      box.style.animationDelay = (0.04 + i * 0.03) + 's';
+      box.style.cursor = 'pointer';
+      box.title = `Click to view ${stageBox.name} deals`;
+      if (stageBox.closed) box.style.opacity = '0.65';
+      box.innerHTML = `
+        <div class="funnel-box-num">${fmt(i + 1)}</div>
+        <div class="funnel-box-name">${stageBox.name}<span style="font-size:8px;opacity:0.4;margin-left:4px">↗</span></div>
+        <div class="funnel-box-count${hasCount ? ' live' : ''}">${fmtCount(rawCount)}</div>`;
+      box.addEventListener('click', () => openDealDrawer(stageBox.id));
+      row2El.appendChild(box);
     });
   } catch(e) {
     console.error('Funnel stages error:', e);
@@ -2041,15 +2054,19 @@ async function loadIntermediaryComparison() {
     const data = await res.json();
     const deals = data.results || [];
 
-    // Group deals by normalised intermediary name
-    const actuals = {}; // name → { count, value }
+    // Group deals by normalised intermediary name — store deal list for tooltip
+    const actuals = {}; // name → { count, value, deals: [{name, amount}] }
     deals.forEach(d => {
       const raw  = d.properties?.intermediaries;
       const name = INTERMEDIARY_NAME_MAP[raw] || raw;
       if (!name) return;
-      if (!actuals[name]) actuals[name] = { count: 0, value: 0 };
+      if (!actuals[name]) actuals[name] = { count: 0, value: 0, deals: [] };
       actuals[name].count++;
       actuals[name].value += parseFloat(d.properties?.amount || 0);
+      actuals[name].deals.push({
+        name:   d.properties?.dealname || 'Unnamed deal',
+        amount: parseFloat(d.properties?.amount || 0)
+      });
     });
 
     renderIntermediaryComparison(actuals, estimates);
@@ -2098,6 +2115,19 @@ function renderIntermediaryComparison(actuals, estimates) {
     const briefsColour = actCount >= inter.pitches_expected ? 'var(--green-dim)'
       : actCount > 0 ? 'var(--black)' : 'var(--grey-mid)';
 
+    // Build deal list for hover tooltip
+    const dealList = actual && actual.deals && actual.deals.length > 0
+      ? actual.deals.map(dl => {
+          const valStr = dl.amount > 0
+            ? (dl.amount >= 1000000 ? `£${(dl.amount/1000000).toFixed(1)}m` : `£${Math.round(dl.amount/1000)}k`)
+            : '—';
+          return `<div class="icomp-briefs-tip-row"><span class="icomp-briefs-tip-name">${dl.name}</span><span class="icomp-briefs-tip-val">${valStr}</span></div>`;
+        }).join('')
+      : '';
+    const briefsTipHtml = dealList
+      ? `<div class="icomp-briefs-tip"><div class="icomp-briefs-tip-title">Deals via ${inter.name}</div>${dealList}</div>`
+      : '';
+
     html += `
       <div class="icomp-row" title="${inter.name}${dealNote}">
         <div class="icomp-name">${inter.name}</div>
@@ -2105,7 +2135,7 @@ function renderIntermediaryComparison(actuals, estimates) {
           <div class="icomp-bar-est" style="width:${estPct}%"></div>
           <div class="icomp-bar-act" style="width:${actPct}%;background:${actColour}"></div>
         </div>
-        <div class="icomp-est" style="color:${briefsColour};font-weight:${actCount > 0 ? 600 : 400}">${briefsLabel}</div>
+        <div class="icomp-briefs" style="color:${briefsColour};font-weight:${actCount > 0 ? 600 : 400}">${briefsLabel}${briefsTipHtml}</div>
         <div class="icomp-est">${estLabel}</div>
         <div class="icomp-act" style="color:${actColour}">${actLabel}</div>
         <div class="icomp-pct" style="color:${actColour}">${pctLabel}</div>
