@@ -87,6 +87,35 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 .stat-loading { width: 48px; height: 34px; background: rgba(255,255,255,0.06); border-radius: 6px; animation: pulse 1.2s ease infinite; }
 @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
+/* DELTA INDICATORS */
+.stat-delta {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.04em; margin-left: 8px; vertical-align: middle;
+}
+.stat-delta.up   { color: #87FB66; }
+.stat-delta.down { color: #FF6B4A; }
+.stat-delta.flat { color: var(--grey-mid); }
+.stat-delta svg  { flex-shrink: 0; }
+
+/* MOMENTUM STRIP */
+#momentum-strip {
+  background: var(--black); border-radius: 14px;
+  padding: 14px 22px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 16px;
+  animation: fadeUp 0.4s ease both; animation-delay: 0.02s;
+}
+#momentum-strip-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey-mid);
+  white-space: nowrap; flex-shrink: 0;
+}
+#momentum-strip-text {
+  font-size: 13px; font-weight: 500; color: var(--cream); line-height: 1.4;
+}
+#momentum-strip-text strong { color: var(--green); font-weight: 700; }
+.momentum-loading { height: 14px; width: 360px; background: rgba(255,255,255,0.06); border-radius: 4px; animation: pulse 1.2s ease infinite; }
+
 /* FUNNEL STAGES */
 #opp-tracking-bar { margin-bottom: 12px; }
 #source-breakdown-bar { margin-bottom: 12px; }
@@ -926,12 +955,21 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       To do list
     </button>
   </div>
+  <!-- MOMENTUM STRIP -->
+  <div id="momentum-strip">
+    <div id="momentum-strip-label">This week</div>
+    <div id="momentum-strip-text"><div class="momentum-loading"></div></div>
+  </div>
+
   <!-- SUMMARY BAR -->
   <div id="summary-bar">
     <div class="stat-card clickable" onclick="openDealDrawer(null)" title="View all open deals">
       <div class="stat-label">Open Deals ↗</div>
       <div class="stat-value" id="stat-deals"><div class="stat-loading"></div></div>
-      <div class="stat-sub" id="stat-deals-sub">active opportunities</div>
+      <div style="display:flex;align-items:center;gap:0">
+        <div class="stat-sub" id="stat-deals-sub">active opportunities</div>
+        <span id="delta-deals" class="stat-delta" style="display:none"></span>
+      </div>
     </div>
     <div class="stat-card clickable" onclick="scrollToSection('section-inquiries')" title="Jump to Fresh HubSpot Inquiries">
       <div class="stat-label">Fresh HubSpot Inquiries ↓</div>
@@ -943,7 +981,10 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
         <div class="stat-label">Active Pipeline ↓</div>
         <div class="stat-label" id="stat-cover-ratio" style="color:var(--green);letter-spacing:0">—</div>
       </div>
-      <div class="stat-value" id="stat-pipeline"><div class="stat-loading"></div></div>
+      <div style="display:flex;align-items:baseline;gap:0">
+        <div class="stat-value" id="stat-pipeline"><div class="stat-loading"></div></div>
+        <span id="delta-pipeline" class="stat-delta" style="display:none"></span>
+      </div>
       <div style="margin-top:2px">
         <div style="display:flex;justify-content:space-between;margin-bottom:5px">
           <div class="stat-sub" id="stat-pipeline-sub">of £6m target</div>
@@ -958,12 +999,18 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <div style="background: var(--black); border-radius: 14px 0 0 14px; padding: 20px 16px 20px 22px; border-right: 1px solid rgba(255,255,255,0.08);">
         <div class="stat-label">Upcoming</div>
         <div class="stat-value" id="stat-meetings-upcoming"><div class="stat-loading"></div></div>
-        <div class="stat-sub">next 30 days</div>
+        <div style="display:flex;align-items:center;gap:0">
+          <div class="stat-sub">next 30 days</div>
+          <span id="delta-meetings-upcoming" class="stat-delta" style="display:none"></span>
+        </div>
       </div>
       <div style="background: var(--black); border-radius: 0 14px 14px 0; padding: 20px 22px 20px 16px;">
         <div class="stat-label">Attended</div>
         <div class="stat-value" id="stat-meetings-attended"><div class="stat-loading"></div></div>
-        <div class="stat-sub">last 30 days</div>
+        <div style="display:flex;align-items:center;gap:0">
+          <div class="stat-sub">last 30 days</div>
+          <span id="delta-meetings-attended" class="stat-delta" style="display:none"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -1385,12 +1432,181 @@ async function loadFunnelStages() {
   }
 }
 
+// ─────────────────────────────────────────────
+// SNAPSHOTS — persist daily counts for delta indicators
+// ─────────────────────────────────────────────
+
+function deltaHTML(current, previous) {
+  if (previous === null || previous === undefined) return '';
+  const diff = current - previous;
+  if (diff === 0) return '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> —';
+  const sign   = diff > 0 ? '+' : '';
+  const arrow  = diff > 0
+    ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M2 5l3-3 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2v6M2 5l3 3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return `${arrow} ${sign}${diff}`;
+}
+
+function deltaValHTML(current, previous) {
+  // For pipeline value — format as £k/£m
+  if (previous === null || previous === undefined) return '';
+  const diff = current - previous;
+  if (diff === 0) return '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> —';
+  const sign  = diff > 0 ? '+' : '−';
+  const abs   = Math.abs(diff);
+  const label = abs >= 1000000 ? `£${(abs/1000000).toFixed(1)}m` : abs >= 1000 ? `£${Math.round(abs/1000)}k` : `£${Math.round(abs)}`;
+  const arrow = diff > 0
+    ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M2 5l3-3 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2v6M2 5l3 3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return `${arrow} ${sign}${label}`;
+}
+
+function applyDelta(elId, html, diff) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = html;
+  el.className = 'stat-delta ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat');
+  el.style.display = 'inline-flex';
+}
+
+async function saveSnapshot(data) {
+  // data: { deal_count, pipeline_value, meetings_upcoming, meetings_attended }
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/bd_snapshots`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ snapshot_date: today, ...data })
+    });
+  } catch(e) { console.warn('Snapshot save failed:', e); }
+}
+
+async function loadSnapshots() {
+  // Fetch last 35 days of snapshots so we can find closest to 7d and 30d ago
+  const since = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bd_snapshots?snapshot_date=gte.${since}&order=snapshot_date.desc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    return await res.json();
+  } catch(e) { console.warn('Snapshot load failed:', e); return []; }
+}
+
+function findSnapshot(snapshots, daysAgo) {
+  const target = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  // Find closest snapshot at or before the target date
+  return snapshots.find(s => s.snapshot_date <= target) || null;
+}
+
+function renderMomentumStrip(current, snap7d, snap30d) {
+  const el = document.getElementById('momentum-strip-text');
+  if (!el) return;
+
+  const parts = [];
+
+  // Deals delta (7d)
+  if (snap7d) {
+    const diff = current.deal_count - snap7d.deal_count;
+    if (diff > 0)       parts.push(`<strong>+${diff} deal${diff !== 1 ? 's' : ''}</strong> added to pipeline`);
+    else if (diff < 0)  parts.push(`<strong>${diff} deal${Math.abs(diff) !== 1 ? 's' : ''}</strong> left pipeline`);
+    else                parts.push(`Pipeline <strong>steady</strong> at ${current.deal_count} deals`);
+  } else {
+    parts.push(`<strong>${current.deal_count} open deal${current.deal_count !== 1 ? 's' : ''}</strong> in pipeline`);
+  }
+
+  // Pipeline value delta (7d)
+  if (snap7d && current.pipeline_value !== null) {
+    const diff = current.pipeline_value - snap7d.pipeline_value;
+    if (Math.abs(diff) >= 1000) {
+      const abs   = Math.abs(diff);
+      const label = abs >= 1000000 ? `£${(abs/1000000).toFixed(1)}m` : `£${Math.round(abs/1000)}k`;
+      parts.push(diff > 0 ? `pipeline value <strong>up ${label}</strong>` : `pipeline value <strong>down ${label}</strong>`);
+    }
+  }
+
+  // Meetings attended (30d)
+  const attendedNow = current.meetings_attended || 0;
+  if (snap30d && attendedNow > 0) {
+    const diff = attendedNow - (snap30d.meetings_attended || 0);
+    parts.push(diff > 0
+      ? `<strong>${attendedNow} meeting${attendedNow !== 1 ? 's' : ''}</strong> attended this month (↑ ${diff} vs last month)`
+      : `<strong>${attendedNow} meeting${attendedNow !== 1 ? 's' : ''}</strong> attended this month`);
+  } else if (attendedNow > 0) {
+    parts.push(`<strong>${attendedNow} meeting${attendedNow !== 1 ? 's' : ''}</strong> attended this month`);
+  }
+
+  // Upcoming meetings (7d)
+  const upcomingNow = current.meetings_upcoming || 0;
+  if (upcomingNow > 0) {
+    parts.push(`<strong>${upcomingNow} meeting${upcomingNow !== 1 ? 's' : ''}</strong> booked ahead`);
+  }
+
+  el.innerHTML = parts.length > 0 ? parts.join(' · ') : 'Loading activity data…';
+}
+
+async function applyDeltas() {
+  const snapshots = await loadSnapshots();
+  const snap7d  = findSnapshot(snapshots, 7);
+  const snap30d = findSnapshot(snapshots, 30);
+
+  const dealCount      = parseInt(document.getElementById('stat-deals')?.textContent) || 0;
+  const pipelineEl     = document.getElementById('stat-pipeline');
+  // Parse pipeline value back to number from display string
+  let pipelineVal = 0;
+  if (pipelineEl) {
+    const txt = pipelineEl.textContent.replace('£','').trim();
+    if (txt.endsWith('m')) pipelineVal = parseFloat(txt) * 1000000;
+    else if (txt.endsWith('k')) pipelineVal = parseFloat(txt) * 1000;
+    else pipelineVal = parseFloat(txt) || 0;
+  }
+  const upcomingCount  = parseInt(document.getElementById('stat-meetings-upcoming')?.textContent) || 0;
+  const attendedCount  = parseInt(document.getElementById('stat-meetings-attended')?.textContent) || 0;
+
+  // Save today's snapshot
+  await saveSnapshot({
+    deal_count: dealCount,
+    pipeline_value: pipelineVal,
+    meetings_upcoming: upcomingCount,
+    meetings_attended: attendedCount
+  });
+
+  // Apply delta indicators
+  if (snap7d) {
+    const dealDiff = dealCount - snap7d.deal_count;
+    applyDelta('delta-deals', deltaHTML(dealCount, snap7d.deal_count), dealDiff);
+
+    const pipeDiff = pipelineVal - snap7d.pipeline_value;
+    applyDelta('delta-pipeline', deltaValHTML(pipelineVal, snap7d.pipeline_value), pipeDiff);
+
+    const upcomingDiff = upcomingCount - snap7d.meetings_upcoming;
+    applyDelta('delta-meetings-upcoming', deltaHTML(upcomingCount, snap7d.meetings_upcoming), upcomingDiff);
+  }
+
+  if (snap30d) {
+    const attendedDiff = attendedCount - snap30d.meetings_attended;
+    applyDelta('delta-meetings-attended', deltaHTML(attendedCount, snap30d.meetings_attended), attendedDiff);
+  }
+
+  // Render momentum strip
+  renderMomentumStrip(
+    { deal_count: dealCount, pipeline_value: pipelineVal, meetings_upcoming: upcomingCount, meetings_attended: attendedCount },
+    snap7d,
+    snap30d
+  );
+}
+
 async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
     await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison()]);
     await loadFunnelStages(); // must run after loadDeals so dashboardData.deals is populated
+    await applyDeltas();      // must run after all data is loaded so stat values are populated
   } catch(e) { console.error(e); }
   btn.classList.remove('spinning');
 }
