@@ -1013,13 +1013,15 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   <!-- MEETINGS -->
   <div id="section-meetings" class="section-head">
     <div class="section-label">Meetings</div>
-    <div style="display:flex;gap:6px;margin-left:auto">
-      <button class="mtab active" id="mtab-upcoming" onclick="switchMeetingTab('upcoming')">
-        Upcoming <span class="mtab-count" id="mtab-count-upcoming">—</span>
-      </button>
-      <button class="mtab" id="mtab-attended" onclick="switchMeetingTab('attended')">
-        Attended <span class="mtab-count" id="mtab-count-attended">—</span>
-      </button>
+    <div id="meetings-section-head" style="display:flex;align-items:center;gap:10px;margin-left:auto">
+      <div style="display:flex;gap:6px">
+        <button class="mtab active" id="mtab-upcoming" onclick="switchMeetingTab('upcoming')">
+          Upcoming <span class="mtab-count" id="mtab-count-upcoming">—</span>
+        </button>
+        <button class="mtab" id="mtab-attended" onclick="switchMeetingTab('attended')">
+          Attended <span class="mtab-count" id="mtab-count-attended">—</span>
+        </button>
+      </div>
     </div>
   </div>
   <div id="meetings-grid"><div class="empty-state">Loading meetings…</div></div>
@@ -1422,20 +1424,150 @@ async function hsPost(path, body) {
 // ─────────────────────────────────────────────
 // MEETINGS — pulled from HubSpot meetings/engagements
 // ─────────────────────────────────────────────
+// ─── Persist meetings to Supabase so all visitors see them ───────────────
+async function persistMeetingsToSupabase(upcomingMeetings, attendedMeetings) {
+  try {
+    const now = new Date().toISOString();
+    const toRow = (ev, isUpcoming) => ({
+      id:             ev.id,
+      summary:        ev.summary || 'Untitled',
+      description:    ev.description || '',
+      start_datetime: ev.start?.dateTime || ev.start?.date || null,
+      end_datetime:   ev.end?.dateTime   || ev.end?.date   || null,
+      attendees:      JSON.stringify((ev.attendees || []).map(a => ({ name: a.displayName || '', email: a.email || '', self: !!a.self }))),
+      meeting_type:   (ev.description || '').toLowerCase().includes('#nbm') ? 'nbm' : 'netm',
+      is_upcoming:    isUpcoming,
+      synced_at:      now,
+      synced_by:      'Coris'
+    });
+
+    const rows = [
+      ...upcomingMeetings.map(ev => toRow(ev, true)),
+      ...attendedMeetings.map(ev => toRow(ev, false))
+    ];
+
+    // Upsert all rows; delete stale ones (no longer in either window)
+    const currentIds = rows.map(r => r.id);
+
+    // 1. Upsert current meetings
+    if (rows.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/bd_meetings`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify(rows)
+      });
+    }
+
+    // 2. Delete rows no longer in either window (stale meetings)
+    // Fetch all stored IDs, remove any not in currentIds
+    const storedRes = await fetch(`${SUPABASE_URL}/rest/v1/bd_meetings?select=id`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    const stored = await storedRes.json();
+    const staleIds = (stored || []).map(r => r.id).filter(id => !currentIds.includes(id));
+    if (staleIds.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/bd_meetings?id=in.(${staleIds.map(id => `"${id}"`).join(',')})`, {
+        method: 'DELETE',
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+      });
+    }
+
+    localStorage.setItem('meetings_last_synced', now);
+    console.log(`Meetings persisted: ${rows.length} rows, ${staleIds.length} stale removed`);
+  } catch(e) {
+    console.warn('Failed to persist meetings to Supabase:', e);
+  }
+}
+
+// ─── Load meetings from Supabase (for visitors without gcal connected) ────
+async function loadMeetingsFromSupabase() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bd_meetings?select=*&order=start_datetime.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows || rows.length === 0) return null;
+
+    // Reconstruct meeting objects that renderMeetings expects
+    const toEvent = row => ({
+      id:          row.id,
+      summary:     row.summary,
+      description: row.description,
+      start:       { dateTime: row.start_datetime },
+      end:         { dateTime: row.end_datetime },
+      attendees:   (() => { try { return JSON.parse(row.attendees || '[]'); } catch(e) { return []; } })()
+    });
+
+    const now = new Date();
+    const upcoming = rows.filter(r => r.is_upcoming).map(toEvent);
+    const attended = rows.filter(r => !r.is_upcoming).map(toEvent).reverse();
+
+    // Show sync timestamp
+    const syncedAt = rows[0]?.synced_at;
+    const syncedBy = rows[0]?.synced_by || 'Coris';
+    return { upcoming, attended, syncedAt, syncedBy };
+  } catch(e) {
+    console.warn('Could not load meetings from Supabase:', e);
+    return null;
+  }
+}
+
+function updateMeetingSyncBadge(syncedAt, syncedBy, isLive) {
+  let badge = document.getElementById('meetings-sync-badge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'meetings-sync-badge';
+    badge.style.cssText = 'font-family:"DM Mono",monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-left:auto;padding-right:2px;display:flex;align-items:center;gap:6px;';
+    const head = document.getElementById('meetings-section-head');
+    if (head) head.appendChild(badge);
+  }
+  if (isLive) {
+    badge.innerHTML = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);"></span> Live`;
+  } else if (syncedAt) {
+    const d = new Date(syncedAt);
+    const label = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    badge.innerHTML = `Synced by ${syncedBy} · ${label}`;
+  }
+}
+
 async function loadMeetings() {
   const container = document.getElementById('meetings-grid');
+
   if (!gcalIsConnected()) {
-    container.innerHTML = '<div class="empty-state">Connect Google Calendar above to see your BD meetings.</div>';
-    document.getElementById('stat-meetings-upcoming').textContent = '—';
-    document.getElementById('stat-meetings-attended').textContent = '—';
+    // Try to show persisted meetings from Supabase
+    const cached = await loadMeetingsFromSupabase();
+    if (cached && (cached.upcoming.length > 0 || cached.attended.length > 0)) {
+      dashboardData.meetings         = cached.upcoming;
+      dashboardData.attendedMeetings = cached.attended;
+
+      document.getElementById('stat-meetings-upcoming').textContent = cached.upcoming.length;
+      document.getElementById('stat-meetings-attended').textContent = cached.attended.length;
+      document.getElementById('mtab-count-upcoming').textContent    = cached.upcoming.length;
+      document.getElementById('mtab-count-attended').textContent    = cached.attended.length;
+
+      const activeTab = document.getElementById('mtab-upcoming').classList.contains('active') ? 'upcoming' : 'attended';
+      renderMeetings(activeTab);
+      updateMeetingSyncBadge(cached.syncedAt, cached.syncedBy, false);
+    } else {
+      container.innerHTML = '<div class="empty-state">Connect Google Calendar above to pull your #nbm and #netm meetings — they\'ll then be visible to everyone on the team.</div>';
+      document.getElementById('stat-meetings-upcoming').textContent = '—';
+      document.getElementById('stat-meetings-attended').textContent = '—';
+    }
     return;
   }
-  try {
-    const now      = new Date();
-    const future   = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    const past     = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Fetch upcoming (now → +30 days) and past (−30 days → now) in parallel
+  try {
+    const now    = new Date();
+    const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const past   = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
     const [upcomingRes, pastRes] = await Promise.all([
       fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(now.toISOString())}&timeMax=${encodeURIComponent(future.toISOString())}&singleEvents=true&orderBy=startTime&maxResults=50`,
         { headers: { 'Authorization': `Bearer ${gcalAccessToken}` } }),
@@ -1454,22 +1586,22 @@ async function loadMeetings() {
     };
 
     const upcomingMeetings = (upcomingData.items || []).filter(filterBD);
-    const attendedMeetings = (pastData.items || []).filter(filterBD).reverse(); // most recent first
+    const attendedMeetings = (pastData.items || []).filter(filterBD).reverse();
 
     dashboardData.meetings         = upcomingMeetings;
     dashboardData.attendedMeetings = attendedMeetings;
 
-    // Update stat cards
     document.getElementById('stat-meetings-upcoming').textContent = upcomingMeetings.length;
     document.getElementById('stat-meetings-attended').textContent = attendedMeetings.length;
+    document.getElementById('mtab-count-upcoming').textContent    = upcomingMeetings.length;
+    document.getElementById('mtab-count-attended').textContent    = attendedMeetings.length;
 
-    // Update tab counters
-    document.getElementById('mtab-count-upcoming').textContent = upcomingMeetings.length;
-    document.getElementById('mtab-count-attended').textContent = attendedMeetings.length;
-
-    // Render whichever tab is currently active
     const activeTab = document.getElementById('mtab-upcoming').classList.contains('active') ? 'upcoming' : 'attended';
     renderMeetings(activeTab);
+    updateMeetingSyncBadge(null, null, true);
+
+    // Persist to Supabase so other visitors see these meetings
+    persistMeetingsToSupabase(upcomingMeetings, attendedMeetings);
 
   } catch(e) {
     console.error('Meetings error:', e);
