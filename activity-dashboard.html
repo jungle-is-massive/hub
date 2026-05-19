@@ -3889,158 +3889,138 @@ function switchDrawerView(view, btn) {
   }
 }
 
-function renderFourWeek() {
+async function renderFourWeek() {
   const panel = document.getElementById('fourweek-panel');
-  const deals = allBoardDeals || dashboardData.deals || [];
 
+  // Reuse timeline cache if available; otherwise fetch milestones first
+  if (!timelineCache) {
+    panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Fetching milestones…</div>';
+    await loadTimeline(); // populates timelineCache and renders into timeline-panel
+    // Hide timeline-panel content since we're in fourweek mode
+    document.getElementById('timeline-panel').classList.remove('visible');
+  }
+
+  if (!timelineCache || timelineCache.length === 0) {
+    panel.innerHTML = '<div class="gantt-empty">No milestone tasks found on any open deals.<br><br>In HubSpot, open a deal → create a task with a due date → it will appear here.</div>';
+    return;
+  }
+
+  renderFourWeekGantt(panel, timelineCache);
+}
+
+function renderFourWeekGantt(panel, dealMilestones) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const in28 = new Date(today.getTime() + 28 * 86400000);
 
-  // Stage config for colours
-  const stageColour = {};
-  (AGENCY_STAGE_CONFIG || []).forEach(s => { stageColour[s.id] = s.accent; });
+  // Fixed window: today → today+28
+  const minDate = new Date(today);
+  const maxDate = new Date(in28);
+  const totalMs = maxDate - minDate;
 
-  const stageLabel = {};
-  (AGENCY_STAGE_CONFIG || []).forEach(s => { stageLabel[s.id] = s.label; });
+  function pct(date) {
+    return ((date - minDate) / totalMs) * 100;
+  }
 
-  // Split deals into: has a close date in next 28 days, and no close date / outside window
-  const withDate  = [];
-  const noDate    = [];
+  // Filter: only deals that have at least one milestone within the 28-day window
+  const filtered = dealMilestones.map(({ deal, milestones }) => ({
+    deal,
+    milestones: milestones.filter(m => m.date >= today && m.date <= in28)
+  })).filter(dm => dm.milestones.length > 0);
 
-  deals.forEach(d => {
-    const cd = d.properties?.closedate;
-    if (cd) {
-      const dt = new Date(cd);
-      dt.setHours(0, 0, 0, 0);
-      if (dt >= today && dt <= in28) {
-        withDate.push({ deal: d, closeDate: dt });
-      } else if (dt < today) {
-        // Overdue — still show at top of week 1 flagged
-        withDate.push({ deal: d, closeDate: dt, overdue: true });
-      }
-    } else {
-      noDate.push(d);
-    }
+  const stageMap = {};
+  AGENCY_STAGE_CONFIG.forEach(s => { stageMap[s.id] = s.label; });
+
+  // Week marker positions (every 7 days)
+  const weekMarkers = [0, 7, 14, 21, 28].map(d => {
+    const dt = new Date(today.getTime() + d * 86400000);
+    return {
+      pct: (d / 28) * 100,
+      label: d === 0 ? 'Today' : dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    };
   });
 
-  // Sort by close date ascending
-  withDate.sort((a, b) => a.closeDate - b.closeDate);
+  const todayPct = 0; // today is left edge
 
-  // Build 4 week buckets
-  const weeks = [0, 1, 2, 3].map(w => {
-    const start = new Date(today.getTime() + w * 7 * 86400000);
-    const end   = new Date(start.getTime() + 6 * 86400000);
-    return { start, end, deals: [] };
+  let html = `
+    <div class="timeline-header">
+      <div>
+        <div class="timeline-header-title">4-Week View</div>
+        <div class="timeline-header-sub">${filtered.length} deal${filtered.length !== 1 ? 's' : ''} with milestones in the next 28 days · tasks from HubSpot</div>
+      </div>
+    </div>`;
+
+  if (filtered.length === 0) {
+    html += `<div class="gantt-empty">No milestone tasks fall within the next 28 days.<br><br>Tasks due beyond this window appear in the full Timeline view.</div>`;
+    panel.innerHTML = html;
+    return;
+  }
+
+  html += `<div class="timeline-note">
+    Showing HubSpot task milestones due between <strong style="color:var(--black)">${today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}</strong> and <strong style="color:var(--black)">${in28.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}</strong>.
+    Hover a dot to see the full milestone name.
+  </div>
+  <div class="gantt-wrap" style="position:relative">`;
+
+  // Week header row
+  html += `<div style="display:flex;margin-left:200px;margin-bottom:10px;position:relative;height:20px;">`;
+  weekMarkers.forEach(m => {
+    if (m.pct > 100) return;
+    const isToday = m.pct === 0;
+    html += `<div style="position:absolute;left:${m.pct}%;font-family:'DM Mono',monospace;font-size:9px;font-weight:${isToday ? 700 : 500};letter-spacing:0.1em;text-transform:uppercase;color:${isToday ? 'var(--green)' : 'var(--grey-mid)'};border-left:1px dashed ${isToday ? 'rgba(135,251,102,0.4)' : 'rgba(0,0,0,0.1)'};padding-left:5px">${m.label}</div>`;
   });
+  html += `</div>`;
 
-  // Overdue bucket (before today)
-  const overdue = withDate.filter(d => d.overdue);
-  const inWindow = withDate.filter(d => !d.overdue);
+  // Deal rows
+  filtered.forEach(({ deal, milestones }) => {
+    const p = deal.properties;
+    const stageLabel = stageMap[p.dealstage] || p.dealstage || '—';
 
-  inWindow.forEach(item => {
-    for (const week of weeks) {
-      if (item.closeDate >= week.start && item.closeDate <= week.end) {
-        week.deals.push(item);
-        break;
-      }
-    }
-  });
+    html += `<div class="gantt-row">
+      <div class="gantt-label">
+        <div class="gantt-label-name" title="${p.dealname || ''}">${p.dealname || 'Untitled'}</div>
+        <div class="gantt-label-stage">${stageLabel}</div>
+      </div>
+      <div class="gantt-track" style="position:relative;">`;
 
-  const fmtDate  = dt => dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  const fmtVal   = v => {
-    const n = parseFloat(v) || 0;
-    if (!n) return null;
-    return n >= 1000000 ? `£${(n/1000000).toFixed(1)}m` : n >= 1000 ? `£${Math.round(n/1000)}k` : `£${Math.round(n)}`;
-  };
+    // Week divider lines inside track
+    [7, 14, 21].forEach(d => {
+      const lp = (d / 28) * 100;
+      html += `<div style="position:absolute;left:${lp}%;top:0;bottom:0;width:1px;background:rgba(0,0,0,0.06);z-index:1;"></div>`;
+    });
 
-  let html = `<div class="fw-intro">Close dates in the next 28 days — ${withDate.length} deal${withDate.length !== 1 ? 's' : ''} scheduled</div>`;
+    // Today line (left edge marker)
+    html += `<div style="position:absolute;left:0%;top:0;bottom:0;width:1.5px;background:rgba(135,251,102,0.4);z-index:2;"></div>`;
 
-  // Overdue deals
-  if (overdue.length > 0) {
-    html += `<div class="fw-week">
-      <div class="fw-week-header">
-        <div class="fw-week-label" style="color:var(--coral)">Overdue</div>
-        <div class="fw-week-dates">Close date passed</div>
-        <div class="fw-week-count">${overdue.length} deal${overdue.length !== 1 ? 's' : ''}</div>
-      </div>`;
-    overdue.forEach(item => {
-      const d = item.deal;
-      const colour = stageColour[d.properties?.dealstage] || 'var(--grey-mid)';
-      const stage  = stageLabel[d.properties?.dealstage]  || d.properties?.dealstage || '—';
-      const val    = fmtVal(d.properties?.amount);
-      html += `<div class="fw-deal-row">
-        <div class="fw-deal-date" style="color:var(--coral)">${fmtDate(item.closeDate)}</div>
-        <div class="fw-deal-dot" style="background:${colour}"></div>
-        <div class="fw-deal-body">
-          <div class="fw-deal-name">${d.properties?.dealname || 'Unnamed deal'}</div>
-          <div class="fw-deal-meta">
-            <span class="fw-deal-stage">${stage}</span>
-            ${val ? `<span class="fw-deal-value">${val}</span>` : ''}
-          </div>
+    milestones.forEach(m => {
+      const mp = pct(m.date);
+      const daysUntil = Math.round((m.date - today) / 86400000);
+      const isUrgent = daysUntil <= 7;
+      const dotClass = isUrgent ? 'urgent' : 'upcoming';
+      const dateStr = m.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const daysStr = daysUntil === 0 ? 'Today' : `in ${daysUntil}d`;
+      const statusIcon = m.status === 'COMPLETED' ? '✓' : isUrgent ? '⚠' : '◦';
+
+      html += `<div class="gantt-milestone ${dotClass}" style="left:${Math.min(95, Math.max(2, mp))}%;position:absolute;top:50%;transform:translate(-50%,-50%);">
+        <div class="gantt-milestone-dot"></div>
+        <div class="gantt-milestone-tooltip">
+          <strong>${statusIcon} ${m.subject}</strong>
+          <span>${dateStr} · ${daysStr}</span>
         </div>
       </div>`;
     });
-    html += `</div>`;
-  }
 
-  // Week buckets
-  weeks.forEach((week, i) => {
-    const weekLabel = i === 0 ? 'This week' : i === 1 ? 'Next week' : `Week ${i + 1}`;
-    html += `<div class="fw-week">
-      <div class="fw-week-header">
-        <div class="fw-week-label">${weekLabel}</div>
-        <div class="fw-week-dates">${fmtDate(week.start)} – ${fmtDate(week.end)}</div>
-        <div class="fw-week-count">${week.deals.length > 0 ? week.deals.length + ' deal' + (week.deals.length !== 1 ? 's' : '') : 'nothing due'}</div>
-      </div>`;
-    if (week.deals.length === 0) {
-      html += `<div class="fw-empty">No deals closing this week.</div>`;
-    } else {
-      week.deals.forEach(item => {
-        const d = item.deal;
-        const colour = stageColour[d.properties?.dealstage] || 'var(--grey-mid)';
-        const stage  = stageLabel[d.properties?.dealstage]  || d.properties?.dealstage || '—';
-        const val    = fmtVal(d.properties?.amount);
-        html += `<div class="fw-deal-row">
-          <div class="fw-deal-date">${fmtDate(item.closeDate)}</div>
-          <div class="fw-deal-dot" style="background:${colour}"></div>
-          <div class="fw-deal-body">
-            <div class="fw-deal-name">${d.properties?.dealname || 'Unnamed deal'}</div>
-            <div class="fw-deal-meta">
-              <span class="fw-deal-stage">${stage}</span>
-              ${val ? `<span class="fw-deal-value">${val}</span>` : ''}
-            </div>
-          </div>
-        </div>`;
-      });
-    }
-    html += `</div>`;
+    html += `</div></div>`;
   });
 
-  // Deals with no close date
-  if (noDate.length > 0) {
-    html += `<div class="fw-no-dates">
-      <div class="fw-no-dates-label">No close date set · ${noDate.length} deal${noDate.length !== 1 ? 's' : ''}</div>`;
-    noDate.forEach(d => {
-      const colour = stageColour[d.properties?.dealstage] || 'var(--grey-mid)';
-      const stage  = stageLabel[d.properties?.dealstage]  || '—';
-      const val    = fmtVal(d.properties?.amount);
-      html += `<div class="fw-deal-row">
-        <div class="fw-deal-date">—</div>
-        <div class="fw-deal-dot" style="background:${colour}"></div>
-        <div class="fw-deal-body">
-          <div class="fw-deal-name">${d.properties?.dealname || 'Unnamed deal'}</div>
-          <div class="fw-deal-meta">
-            <span class="fw-deal-stage">${stage}</span>
-            ${val ? `<span class="fw-deal-value">${val}</span>` : ''}
-          </div>
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
+  // Today line across full gantt (left edge)
+  html += `<div class="gantt-today-line" style="left:200px">
+    <div class="gantt-today-label">Today</div>
+  </div>`;
 
+  html += `</div>`; // gantt-wrap
   panel.innerHTML = html;
+}
 }
 
 async function loadTimeline() {
