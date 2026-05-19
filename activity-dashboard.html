@@ -790,6 +790,80 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 }
 #timeline-panel.visible { display: flex; }
 
+/* 4-WEEK VIEW */
+#fourweek-panel {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 20px 24px 32px;
+  display: none; flex-direction: column; gap: 0;
+}
+#fourweek-panel.visible { display: flex; }
+.fw-week {
+  margin-bottom: 24px; flex-shrink: 0;
+}
+.fw-week-header {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 10px; padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.fw-week-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--green);
+}
+.fw-week-dates {
+  font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid);
+  letter-spacing: 0.08em;
+}
+.fw-week-count {
+  font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid);
+  margin-left: auto;
+}
+.fw-deal-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.fw-deal-row:last-child { border-bottom: none; }
+.fw-deal-date {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey-mid);
+  width: 52px; flex-shrink: 0; padding-top: 2px; letter-spacing: 0.04em;
+}
+.fw-deal-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+}
+.fw-deal-body { flex: 1; min-width: 0; }
+.fw-deal-name {
+  font-size: 12px; font-weight: 700; color: var(--cream);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fw-deal-meta {
+  display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap;
+}
+.fw-deal-stage {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--grey-mid);
+}
+.fw-deal-value {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600;
+  color: var(--green);
+}
+.fw-empty {
+  font-size: 11px; color: var(--grey-mid); padding: 10px 0 20px;
+  font-style: italic;
+}
+.fw-intro {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--grey-mid);
+  margin-bottom: 18px; flex-shrink: 0;
+}
+.fw-no-dates {
+  background: rgba(255,255,255,0.04); border-radius: 10px;
+  padding: 14px 16px; margin-top: 8px;
+}
+.fw-no-dates-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid);
+  margin-bottom: 8px;
+}
+
 .timeline-header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-shrink: 0;
 }
@@ -3791,20 +3865,182 @@ function switchDrawerView(view, btn) {
   document.querySelectorAll('.drawer-view-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
-  const board = document.getElementById('deal-board');
-  const filter = document.getElementById('deal-drawer-filter');
-  const timelinePanel = document.getElementById('timeline-panel');
+  const board        = document.getElementById('deal-board');
+  const filter       = document.getElementById('deal-drawer-filter');
+  const timelinePanel  = document.getElementById('timeline-panel');
+  const fourweekPanel  = document.getElementById('fourweek-panel');
+
+  // Reset all panels
+  board.style.display = '';
+  filter.style.display = '';
+  timelinePanel.classList.remove('visible');
+  fourweekPanel.classList.remove('visible');
 
   if (view === 'timeline') {
     board.style.display = 'none';
     filter.style.display = 'none';
     timelinePanel.classList.add('visible');
     loadTimeline();
-  } else {
-    board.style.display = '';
-    filter.style.display = '';
-    timelinePanel.classList.remove('visible');
+  } else if (view === 'fourweek') {
+    board.style.display = 'none';
+    filter.style.display = 'none';
+    fourweekPanel.classList.add('visible');
+    renderFourWeek();
   }
+}
+
+function renderFourWeek() {
+  const panel = document.getElementById('fourweek-panel');
+  const deals = allBoardDeals || dashboardData.deals || [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const in28 = new Date(today.getTime() + 28 * 86400000);
+
+  // Stage config for colours
+  const stageColour = {};
+  (AGENCY_STAGE_CONFIG || []).forEach(s => { stageColour[s.id] = s.accent; });
+
+  const stageLabel = {};
+  (AGENCY_STAGE_CONFIG || []).forEach(s => { stageLabel[s.id] = s.label; });
+
+  // Split deals into: has a close date in next 28 days, and no close date / outside window
+  const withDate  = [];
+  const noDate    = [];
+
+  deals.forEach(d => {
+    const cd = d.properties?.closedate;
+    if (cd) {
+      const dt = new Date(cd);
+      dt.setHours(0, 0, 0, 0);
+      if (dt >= today && dt <= in28) {
+        withDate.push({ deal: d, closeDate: dt });
+      } else if (dt < today) {
+        // Overdue — still show at top of week 1 flagged
+        withDate.push({ deal: d, closeDate: dt, overdue: true });
+      }
+    } else {
+      noDate.push(d);
+    }
+  });
+
+  // Sort by close date ascending
+  withDate.sort((a, b) => a.closeDate - b.closeDate);
+
+  // Build 4 week buckets
+  const weeks = [0, 1, 2, 3].map(w => {
+    const start = new Date(today.getTime() + w * 7 * 86400000);
+    const end   = new Date(start.getTime() + 6 * 86400000);
+    return { start, end, deals: [] };
+  });
+
+  // Overdue bucket (before today)
+  const overdue = withDate.filter(d => d.overdue);
+  const inWindow = withDate.filter(d => !d.overdue);
+
+  inWindow.forEach(item => {
+    for (const week of weeks) {
+      if (item.closeDate >= week.start && item.closeDate <= week.end) {
+        week.deals.push(item);
+        break;
+      }
+    }
+  });
+
+  const fmtDate  = dt => dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const fmtVal   = v => {
+    const n = parseFloat(v) || 0;
+    if (!n) return null;
+    return n >= 1000000 ? `£${(n/1000000).toFixed(1)}m` : n >= 1000 ? `£${Math.round(n/1000)}k` : `£${Math.round(n)}`;
+  };
+
+  let html = `<div class="fw-intro">Close dates in the next 28 days — ${withDate.length} deal${withDate.length !== 1 ? 's' : ''} scheduled</div>`;
+
+  // Overdue deals
+  if (overdue.length > 0) {
+    html += `<div class="fw-week">
+      <div class="fw-week-header">
+        <div class="fw-week-label" style="color:var(--coral)">Overdue</div>
+        <div class="fw-week-dates">Close date passed</div>
+        <div class="fw-week-count">${overdue.length} deal${overdue.length !== 1 ? 's' : ''}</div>
+      </div>`;
+    overdue.forEach(item => {
+      const d = item.deal;
+      const colour = stageColour[d.properties?.dealstage] || 'var(--grey-mid)';
+      const stage  = stageLabel[d.properties?.dealstage]  || d.properties?.dealstage || '—';
+      const val    = fmtVal(d.properties?.amount);
+      html += `<div class="fw-deal-row">
+        <div class="fw-deal-date" style="color:var(--coral)">${fmtDate(item.closeDate)}</div>
+        <div class="fw-deal-dot" style="background:${colour}"></div>
+        <div class="fw-deal-body">
+          <div class="fw-deal-name">${d.properties?.dealname || 'Unnamed deal'}</div>
+          <div class="fw-deal-meta">
+            <span class="fw-deal-stage">${stage}</span>
+            ${val ? `<span class="fw-deal-value">${val}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Week buckets
+  weeks.forEach((week, i) => {
+    const weekLabel = i === 0 ? 'This week' : i === 1 ? 'Next week' : `Week ${i + 1}`;
+    html += `<div class="fw-week">
+      <div class="fw-week-header">
+        <div class="fw-week-label">${weekLabel}</div>
+        <div class="fw-week-dates">${fmtDate(week.start)} – ${fmtDate(week.end)}</div>
+        <div class="fw-week-count">${week.deals.length > 0 ? week.deals.length + ' deal' + (week.deals.length !== 1 ? 's' : '') : 'nothing due'}</div>
+      </div>`;
+    if (week.deals.length === 0) {
+      html += `<div class="fw-empty">No deals closing this week.</div>`;
+    } else {
+      week.deals.forEach(item => {
+        const d = item.deal;
+        const colour = stageColour[d.properties?.dealstage] || 'var(--grey-mid)';
+        const stage  = stageLabel[d.properties?.dealstage]  || d.properties?.dealstage || '—';
+        const val    = fmtVal(d.properties?.amount);
+        html += `<div class="fw-deal-row">
+          <div class="fw-deal-date">${fmtDate(item.closeDate)}</div>
+          <div class="fw-deal-dot" style="background:${colour}"></div>
+          <div class="fw-deal-body">
+            <div class="fw-deal-name">${d.properties?.dealname || 'Unnamed deal'}</div>
+            <div class="fw-deal-meta">
+              <span class="fw-deal-stage">${stage}</span>
+              ${val ? `<span class="fw-deal-value">${val}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  });
+
+  // Deals with no close date
+  if (noDate.length > 0) {
+    html += `<div class="fw-no-dates">
+      <div class="fw-no-dates-label">No close date set · ${noDate.length} deal${noDate.length !== 1 ? 's' : ''}</div>`;
+    noDate.forEach(d => {
+      const colour = stageColour[d.properties?.dealstage] || 'var(--grey-mid)';
+      const stage  = stageLabel[d.properties?.dealstage]  || '—';
+      const val    = fmtVal(d.properties?.amount);
+      html += `<div class="fw-deal-row">
+        <div class="fw-deal-date">—</div>
+        <div class="fw-deal-dot" style="background:${colour}"></div>
+        <div class="fw-deal-body">
+          <div class="fw-deal-name">${d.properties?.dealname || 'Unnamed deal'}</div>
+          <div class="fw-deal-meta">
+            <span class="fw-deal-stage">${stage}</span>
+            ${val ? `<span class="fw-deal-value">${val}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  panel.innerHTML = html;
 }
 
 async function loadTimeline() {
@@ -4068,6 +4304,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="6" x2="11" y2="6"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
       Timeline
     </button>
+    <button class="drawer-view-btn" id="view-btn-fourweek" onclick="switchDrawerView('fourweek',this)">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="2" width="10" height="9" rx="1"/><line x1="1" y1="5" x2="11" y2="5"/><line x1="4" y1="2" x2="4" y2="1"/><line x1="8" y1="2" x2="8" y2="1"/></svg>
+      4-week view
+    </button>
   </div>
   <div id="deal-drawer-filter">
     <button class="drawer-filter-btn active" data-stage="all" onclick="filterDrawer('all',this)">All stages</button>
@@ -4083,6 +4323,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
   </div>
   <div id="deal-board"></div>
   <div id="timeline-panel"></div>
+  <div id="fourweek-panel"></div>
   <div id="deal-drawer-footer">
     <div class="drawer-footer-note" id="drawer-total-note">—</div>
     <a class="drawer-hs-link" href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board?noprefetch=" target="_blank" rel="noopener">Open in HubSpot ↗</a>
