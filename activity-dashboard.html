@@ -4391,7 +4391,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
 
 <script>
 // ── GROWTH STATUS ─────────────────────────────────────────────────────────
-const GS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLclIwrsLfPQbfEHnOnSLF-BUKRRRVgd3viTk-DChw5PVXCzsoa2K1pxM2n5gawoh3/exec';
+const GS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyIQCh7v90qANWV8OmtfuQn-N0jacvGa-0OOliVG7qbDBj2wresbWfbQzSNeWArtXh/exec';
 
 const GS_STATUS_COLOURS = {
   'in progress':           { bg:'rgba(135,251,102,0.14)', border:'rgba(135,251,102,0.45)', text:'#2a6600' },
@@ -4785,12 +4785,11 @@ async function gsSubmitEdit() {
   saveBtn.style.pointerEvents = 'none';
 
   try {
-    // Write to Google Sheet via Apps Script
-    await fetch(GS_APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors', // Apps Script doesn't send CORS headers by default
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    // Write to Google Sheet via Apps Script using GET + URL params (avoids CORS/redirect issues with POST)
+    const params = new URLSearchParams({ payload: JSON.stringify(payload) });
+    await fetch(`${GS_APPS_SCRIPT_URL}?${params.toString()}`, {
+      method: 'GET',
+      mode: 'no-cors'
     });
 
     // Optimistically update local data so UI reflects change immediately
@@ -5056,3 +5055,4 @@ document.addEventListener('keydown', function(e) {
 
 </body>
 </html>
+
