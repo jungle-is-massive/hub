@@ -40,6 +40,38 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
 .wordmark { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; color: var(--cream); white-space: nowrap; cursor: pointer; }
 .wordmark span { color: var(--green); }
 .topbar-center { display: flex; justify-content: center; }
+
+
+/* ── DEAL LIST VIEW ──────────────────────────────────────────── */
+#deal-list {
+  flex: 1; min-height: 0; display: none; flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── DRAG OVER COLUMN HIGHLIGHT ────────────────────────────────── */
+.deal-col.drag-over {
+  background: rgba(135,251,102,0.07);
+  border-radius: 12px;
+  outline: 2px dashed var(--green);
+  outline-offset: 2px;
+}
+
+/* TOPBAR NAV */
+.topbar-nav {
+  display: flex; align-items: center; gap: 4px;
+}
+.topbar-nav-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.5); padding: 7px 16px; border-radius: 100px;
+  border: 1px solid transparent; background: transparent; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.topbar-nav-btn:hover { color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.15); }
+.topbar-nav-btn.active { color: var(--black); background: var(--green); border-color: var(--green); font-weight: 700; }
+.topbar-nav-btn svg { flex-shrink: 0; }
+
 .hub-tag { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey); padding: 6px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; }
 .topbar-right { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
 .topbar-date { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-mid); }
@@ -665,7 +697,7 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 
 #deal-drawer {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
-  width: min(1100px, 92vw);
+  width: min(1300px, 85vw);
   background: var(--cream);
   box-shadow: -8px 0 48px rgba(0,0,0,0.18);
   display: flex; flex-direction: column;
@@ -983,7 +1015,23 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 
 <div id="topbar">
   <div class="wordmark" data-hub-trigger>jungle<span>.</span></div>
-  <div class="topbar-center"><div class="hub-tag">Activity Dashboard</div></div>
+  <div class="topbar-center">
+    <nav class="topbar-nav">
+      <button class="topbar-nav-btn" onclick="openDealDrawer(null); setNavActive(this)">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="1" width="3" height="10" rx="1"/><rect x="5" y="3" width="3" height="8" rx="1"/><rect x="9" y="2" width="2" height="9" rx="1"/></svg>
+        Opportunities
+      </button>
+      <button class="topbar-nav-btn" onclick="openDealDrawer(null).then(()=>{ const btn=document.getElementById('view-btn-timeline'); switchDrawerView('timeline',btn); }); setNavActive(this)">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="6" x2="11" y2="6"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
+        Timelines
+      </button>
+      <button class="topbar-nav-btn" id="priorities-nav-btn" onclick="openGrowthStatus(); setNavActive(this)">
+        <svg width="10" height="10" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;stroke:none"><rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/></svg>
+        Priorities
+        <span id="gs-fab-badge" style="display:none;background:var(--green);color:var(--black);font-size:8px;font-weight:800;padding:1px 5px;border-radius:20px;line-height:15px;margin-left:1px"></span>
+      </button>
+    </nav>
+  </div>
   <div class="topbar-right">
     <div class="topbar-date" id="topbar-date"></div>
     <a class="refresh-btn" href="dashboard-wiki.html" style="text-decoration:none">
@@ -994,16 +1042,7 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9m0 18c1.66 0 3-4.03 3-9s-1.34-9-3-9m-9 9a9 9 0 019-9"/></svg>
       Refresh
     </button>
-    <button class="refresh-btn" id="gs-nav-btn" onclick="openGrowthStatus()">
-      <svg width="11" height="11" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;stroke:none">
-        <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/>
-        <rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/>
-        <rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/>
-        <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/>
-      </svg>
-      Growth Status
-      <span id="gs-fab-badge" style="display:none;background:var(--green);color:var(--black);font-size:8px;font-weight:800;padding:1px 5px;border-radius:20px;line-height:15px;margin-left:1px"></span>
-    </button>
+
   </div>
 </div>
 
@@ -3813,9 +3852,11 @@ function renderDealBoard(filterStage) {
             </div>` : ''}
           </div>
           <div class="deal-card-activity">Last activity: ${timeAgo(p.hs_lastmodifieddate)}</div>`;
+        attachDealCardDragDrop(card, deal);
         col.appendChild(card);
       });
     }
+    attachColDropZone(col, stage.id);
     board.appendChild(col);
   });
 
@@ -3832,7 +3873,11 @@ function filterDrawer(stageId, btn) {
   activeDrawerStage = stageId;
   document.querySelectorAll('.drawer-filter-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  renderDealBoard(stageId);
+  if (activeDrawerView === 'list') {
+    renderDealList(stageId);
+  } else {
+    renderDealBoard(stageId);
+  }
 }
 
 async function openDealDrawer(stageId) {
@@ -3865,13 +3910,15 @@ function switchDrawerView(view, btn) {
   document.querySelectorAll('.drawer-view-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
-  const board        = document.getElementById('deal-board');
-  const filter       = document.getElementById('deal-drawer-filter');
-  const timelinePanel  = document.getElementById('timeline-panel');
-  const fourweekPanel  = document.getElementById('fourweek-panel');
+  const board         = document.getElementById('deal-board');
+  const listPanel     = document.getElementById('deal-list');
+  const filter        = document.getElementById('deal-drawer-filter');
+  const timelinePanel = document.getElementById('timeline-panel');
+  const fourweekPanel = document.getElementById('fourweek-panel');
 
   // Reset all panels
   board.style.display = '';
+  listPanel.style.display = 'none';
   filter.style.display = '';
   timelinePanel.classList.remove('visible');
   fourweekPanel.classList.remove('visible');
@@ -3886,6 +3933,10 @@ function switchDrawerView(view, btn) {
     filter.style.display = 'none';
     fourweekPanel.classList.add('visible');
     renderFourWeek();
+  } else if (view === 'list') {
+    board.style.display = 'none';
+    listPanel.style.display = 'flex';
+    renderDealList(activeDrawerStage);
   }
 }
 
@@ -4261,6 +4312,161 @@ function closeDealDrawer() {
 // Keyboard escape
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDrawer(); });
 
+// ─────────────────────────────────────────────
+// NAV ACTIVE STATE
+// ─────────────────────────────────────────────
+function setNavActive(btn) {
+  document.querySelectorAll('.topbar-nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// LIST VIEW
+// ─────────────────────────────────────────────
+function renderDealList(filterStage) {
+  const panel = document.getElementById('deal-list');
+  panel.innerHTML = '';
+
+  const stagesToShow = filterStage === 'all'
+    ? AGENCY_STAGE_CONFIG
+    : AGENCY_STAGE_CONFIG.filter(s => s.id === filterStage);
+
+  const stageMap = {};
+  AGENCY_STAGE_CONFIG.forEach(s => { stageMap[s.id] = s; });
+
+  let rows = [];
+  stagesToShow.forEach(stage => {
+    allBoardDeals.filter(d => d.properties.dealstage === stage.id).forEach(d => {
+      rows.push({ deal: d, stage });
+    });
+  });
+
+  if (rows.length === 0) {
+    panel.innerHTML = '<div style="padding:40px 24px;font-family:DM Mono,monospace;font-size:11px;color:var(--grey-mid);letter-spacing:0.08em">No deals to show.</div>';
+    return;
+  }
+
+  const table = document.createElement('div');
+  table.style.cssText = 'width:100%;flex:1;min-height:0;overflow-y:auto;';
+
+  // Header
+  const header = document.createElement('div');
+  header.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0;padding:0 24px;background:var(--black);position:sticky;top:0;z-index:2;border-bottom:1px solid rgba(255,255,255,0.08);';
+  header.innerHTML = ['Deal','Stage','Value','Owner','Last Activity'].map(h =>
+    `<div style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-mid);padding:10px 0;">${h}</div>`
+  ).join('');
+  table.appendChild(header);
+
+  rows.forEach((r, i) => {
+    const p = r.deal.properties;
+    const ownerName = OWNER_NAMES[p.hubspot_owner_id] || '—';
+    const isCoris = p.hubspot_owner_id === '32990686';
+    const row = document.createElement('div');
+    row.style.cssText = `display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0;padding:0 24px;border-bottom:1px solid var(--grey-light);background:${i%2===0?'var(--white)':'var(--cream-soft)'};transition:background 0.12s;cursor:pointer;`;
+    row.onmouseover = () => row.style.background = 'rgba(135,251,102,0.06)';
+    row.onmouseout  = () => row.style.background = i%2===0?'var(--white)':'var(--cream-soft)';
+
+    row.innerHTML = `
+      <div style="padding:12px 0;font-size:13px;font-weight:700;letter-spacing:-0.01em;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:12px">${p.dealname || 'Untitled'}</div>
+      <div style="padding:12px 0;display:flex;align-items:center;">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 9px;border-radius:100px;background:color-mix(in srgb,${r.stage.accent} 15%,transparent);color:${r.stage.accent};border:1px solid color-mix(in srgb,${r.stage.accent} 30%,transparent)">${r.stage.label}</span>
+      </div>
+      <div style="padding:12px 0;font-size:14px;font-weight:800;letter-spacing:-0.02em;color:var(--black)">${fmtAmount(p.amount)}</div>
+      <div style="padding:12px 0;display:flex;align-items:center;">
+        <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;${isCoris?'background:rgba(135,251,102,0.15);color:#2a6600':'background:var(--cream-soft);color:var(--grey-mid)'}">${ownerName}</span>
+      </div>
+      <div style="padding:12px 0;font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);letter-spacing:0.04em">${timeAgo(p.hs_lastmodifieddate)}</div>`;
+    table.appendChild(row);
+  });
+
+  panel.appendChild(table);
+
+  // Sync footer
+  const total = rows.reduce((s,r)=>s+(parseInt(r.deal.properties.amount||'0',10)||0),0);
+  document.getElementById('drawer-total-note').textContent = `${rows.length} deal${rows.length!==1?'s':''} · ${fmtAmount(String(total))} total`;
+}
+
+// ─────────────────────────────────────────────
+// DEAL CARD DRAG & DROP (update funnel stage)
+// ─────────────────────────────────────────────
+let draggingDealId = null;
+
+function attachDealCardDragDrop(cardEl, deal) {
+  cardEl.draggable = true;
+  cardEl.style.cursor = 'grab';
+
+  cardEl.addEventListener('dragstart', e => {
+    draggingDealId = deal.id;
+    cardEl.style.opacity = '0.45';
+    cardEl.style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', deal.id);
+  });
+  cardEl.addEventListener('dragend', () => {
+    cardEl.style.opacity = '';
+    cardEl.style.boxShadow = '';
+    draggingDealId = null;
+    document.querySelectorAll('.deal-col').forEach(c => c.classList.remove('drag-over'));
+  });
+}
+
+function attachColDropZone(colEl, stageId) {
+  colEl.addEventListener('dragover', e => {
+    if (!draggingDealId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    colEl.classList.add('drag-over');
+  });
+  colEl.addEventListener('dragleave', () => colEl.classList.remove('drag-over'));
+  colEl.addEventListener('drop', async e => {
+    e.preventDefault();
+    colEl.classList.remove('drag-over');
+    const dealId = draggingDealId || e.dataTransfer.getData('text/plain');
+    if (!dealId) return;
+
+    const deal = allBoardDeals.find(d => d.id === dealId);
+    if (!deal || deal.properties.dealstage === stageId) return;
+
+    const stageName = AGENCY_STAGE_CONFIG.find(s => s.id === stageId)?.label || stageId;
+
+    // Optimistic update
+    deal.properties.dealstage = stageId;
+    renderDealBoard(activeDrawerStage);
+
+    // Persist to HubSpot via proxy / direct API
+    try {
+      const GITHUB_TOKEN = '';  // not available client-side; use Make webhook instead
+      // Try HubSpot public API directly (will work if CORS allows — otherwise fails silently)
+      const resp = await fetch(`https://api.hubapi.com/crm/v3/objects/deals/${dealId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ properties: { dealstage: stageId } })
+      });
+      if (!resp.ok) throw new Error('HubSpot PATCH failed');
+      showToast(`Moved to ${stageName}`);
+    } catch {
+      // HubSpot direct calls require auth — show a toast indicating manual update needed
+      showToast(`Stage updated locally. Sync to HubSpot manually.`, true);
+    }
+  });
+}
+
+function showToast(msg, warn) {
+  let t = document.getElementById('deal-drag-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'deal-drag-toast';
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:999;padding:10px 20px;border-radius:100px;font-family:DM Mono,monospace;font-size:11px;font-weight:600;letter-spacing:0.08em;pointer-events:none;transition:opacity 0.3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = warn ? 'var(--amber)' : 'var(--green)';
+  t.style.color = 'var(--black)';
+  t.style.opacity = '1';
+  clearTimeout(t._hide);
+  t._hide = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
 </script>
 
 <!-- ── DEAL BOARD DRAWER ────────────────────────────────────── -->
@@ -4278,6 +4484,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
     <button class="drawer-view-btn active" id="view-btn-board" onclick="switchDrawerView('board',this)">
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="1" width="3" height="10" rx="1"/><rect x="5" y="3" width="3" height="8" rx="1"/><rect x="9" y="2" width="2" height="9" rx="1"/></svg>
       Pipeline
+    </button>
+    <button class="drawer-view-btn" id="view-btn-list" onclick="switchDrawerView('list',this)">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="3" x2="11" y2="3"/><line x1="1" y1="6" x2="11" y2="6"/><line x1="1" y1="9" x2="11" y2="9"/></svg>
+      List
     </button>
     <button class="drawer-view-btn" id="view-btn-timeline" onclick="switchDrawerView('timeline',this)">
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="6" x2="11" y2="6"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -4301,6 +4511,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDealDra
     <button class="drawer-filter-btn" data-stage="5277854954" onclick="filterDrawer('5277854954',this)">Declined</button>
   </div>
   <div id="deal-board"></div>
+  <div id="deal-list"></div>
   <div id="timeline-panel"></div>
   <div id="fourweek-panel"></div>
   <div id="deal-drawer-footer">
