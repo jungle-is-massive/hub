@@ -4430,23 +4430,29 @@ function attachColDropZone(colEl, stageId) {
     const stageName = AGENCY_STAGE_CONFIG.find(s => s.id === stageId)?.label || stageId;
 
     // Optimistic update
+    const previousStage = deal.properties.dealstage;
     deal.properties.dealstage = stageId;
     renderDealBoard(activeDrawerStage);
 
-    // Persist to HubSpot via proxy / direct API
+    // Persist to HubSpot via the same hs-proxy used by the rest of the dashboard
     try {
-      const GITHUB_TOKEN = '';  // not available client-side; use Make webhook instead
-      // Try HubSpot public API directly (will work if CORS allows — otherwise fails silently)
-      const resp = await fetch(`https://api.hubapi.com/crm/v3/objects/deals/${dealId}`, {
+      const resp = await fetch(`${HS_PROXY}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'x-proxy-target': 'hubspot',
+          'x-hs-path': `/crm/v3/objects/deals/${dealId}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ properties: { dealstage: stageId } })
       });
-      if (!resp.ok) throw new Error('HubSpot PATCH failed');
-      showToast(`Moved to ${stageName}`);
-    } catch {
-      // HubSpot direct calls require auth — show a toast indicating manual update needed
-      showToast(`Stage updated locally. Sync to HubSpot manually.`, true);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      showToast(`Moved to ${stageName} ✓`);
+    } catch(err) {
+      // Revert optimistic update on failure
+      deal.properties.dealstage = previousStage;
+      renderDealBoard(activeDrawerStage);
+      showToast(`Failed to update — try again`, true);
     }
   });
 }
