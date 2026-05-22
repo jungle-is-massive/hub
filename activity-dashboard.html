@@ -3669,11 +3669,8 @@ function buildGrowthStatusEmailSection() {
       const statusBadge = r.status
         ? ` <span style="background:${sc}22;color:${sc};border:1px solid ${sc}55;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600">${r.status.replace(/^[^\w]+/,'')}</span>`
         : '';
-      const owner   = r.owner   ? `<br><span style="color:#888;font-size:12px">Owner: ${r.owner.split('\n')[0]}</span>` : '';
-      const focus   = r.update  ? `<br><span style="color:#555;font-size:12px;font-style:italic">Focus: ${r.update.substring(0,160)}${r.update.length>160?'…':''}</span>` : '';
-      const nextstep= r.next_steps ? `<br><span style="color:#777;font-size:12px">Next: ${r.next_steps.substring(0,120)}${r.next_steps.length>120?'…':''}</span>` : '';
-      const deadline= r.hard_deadline ? `<br><span style="color:#aaa;font-size:11px">Due: ${r.hard_deadline}</span>` : '';
-      return li(`${dot} <b>${r.name}</b>${statusBadge}${owner}${focus}${nextstep}${deadline}`);
+      const update  = r.update  ? `<br><span style="color:#555;font-size:12px;font-style:italic">${r.update.substring(0,200)}${r.update.length>200?'…':''}</span>` : '';
+      return li(`${dot} <b>${r.name}</b>${statusBadge}${update}`);
     }));
   });
 
