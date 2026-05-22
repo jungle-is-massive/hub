@@ -1722,7 +1722,7 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison()]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison(), gsLoad()]);
     await loadFunnelStages(); // must run after loadDeals so dashboardData.deals is populated
     await applyDeltas();      // must run after all data is loaded so stat values are populated
   } catch(e) { console.error(e); }
