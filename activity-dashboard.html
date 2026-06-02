@@ -4729,15 +4729,52 @@ async function prDeleteRow(id){
 }
 
 // ── open / close / refresh ─────────────────────────────────────────────────
+// ── hash deep-linking: #priorities, #priorities/timeline, #priorities/timeline/calendar ──
+function prParseHash(){
+  const h = (location.hash||'').replace(/^#/,'');
+  if (!h) return null;
+  const seg = h.split('/').filter(Boolean);
+  if (seg[0] !== 'priorities') return null;
+  let view='list', tl='bars';
+  if (seg[1]==='timeline'){ view='timeline'; tl = (seg[2]==='calendar') ? 'calendar' : 'bars'; }
+  return { view, tl };
+}
+function prSyncHash(){
+  let h = '#priorities';
+  if (prView==='timeline') h += (prTlMode==='calendar') ? '/timeline/calendar' : '/timeline';
+  if (location.hash !== h) history.replaceState(null, '', h);
+}
+function prClearHash(){
+  if (((location.hash||'').replace(/^#/,'').split('/')[0]) === 'priorities'){
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+}
+function prHashRoute(){
+  const m = prParseHash();
+  const page = document.getElementById('pr-page');
+  if (m){
+    prView = m.view; prTlMode = m.tl;
+    const isOpen = page && page.style.display && page.style.display!=='none';
+    if (!isOpen){
+      const btn = document.getElementById('priorities-nav-btn');
+      if (btn && typeof setNavActive==='function') setNavActive(btn);
+      openPriorities();
+    } else { prRender(); prSyncHash(); }
+    return true;
+  }
+  return false;
+}
 function openPriorities(){
   document.getElementById('pr-page').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  prSyncHash();
   prRefresh();
 }
 function closePriorities(){
   document.getElementById('pr-page').style.display = 'none';
   document.body.style.overflow = '';
   prCloseEdit();
+  prClearHash();
 }
 async function prRefresh(){
   prSetLoading(true);
@@ -4813,8 +4850,8 @@ function prRenderToolbar(){
       </div>
     </div>`;
 }
-function prSetView(v){ prView=v; prRender(); }
-function prSetTl(m){ prTlMode=m; prRender(); }
+function prSetView(v){ prView=v; prRender(); prSyncHash(); }
+function prSetTl(m){ prTlMode=m; prRender(); prSyncHash(); }
 function prSetPrio(v){ prFilterPrio=v; prRender(); }
 function prSetCat(v){ prFilterCat=v; prRender(); }
 
@@ -5206,7 +5243,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btn.id==='priorities-nav-btn') return;
     btn.addEventListener('click', () => { if (document.getElementById('pr-page').style.display!=='none') closePriorities(); });
   });
+  prHashRoute();
 });
+window.addEventListener('hashchange', () => {
+  if (!prHashRoute()){
+    const page = document.getElementById('pr-page');
+    if (page && page.style.display!=='none') closePriorities();
+  }
+});
+if (document.readyState!=='loading') prHashRoute();
 document.addEventListener('keydown', e => {
   if (e.key!=='Escape') return;
   const panel = document.getElementById('pr-edit-panel');
