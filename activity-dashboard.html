@@ -4677,6 +4677,15 @@ function prDaysBetween(a,b){ return Math.round((b-a)/86400000); }
 function prPrioKey(r){ return (r.priority_tier||'').toLowerCase(); }
 function prToday0(){ const t=new Date(); t.setHours(0,0,0,0); return t; }
 
+// milestones: each item carries milestones:[{id,date,label}]
+let prMsDraft = [];
+function prUid(){ try { return crypto.randomUUID(); } catch(_){ return 'm'+Date.now().toString(36)+Math.random().toString(16).slice(2,8); } }
+function prMs(r){ const a = Array.isArray(r.milestones) ? r.milestones : []; return a.filter(m=>m && m.date).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date))); }
+function prMsDates(r){ return prMs(r).map(m=>prParse(m.date)).filter(Boolean); }
+function prMsMin(r){ const d=prMsDates(r); return d.length?d[0]:null; }
+function prMsMax(r){ const d=prMsDates(r); return d.length?d[d.length-1]:null; }
+function prNextMs(r){ const t=prToday0(); const ms=prMs(r); return ms.find(m=>{ const pp=prParse(m.date); return pp && pp>=t; }) || ms[ms.length-1] || null; }
+
 const SB_H  = () => ({ apikey: SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` });
 const SB_HJ = () => ({ ...SB_H(), 'Content-Type':'application/json' });
 
@@ -4854,7 +4863,16 @@ function prListCard(r){
   const st    = prStatusStyle(r.status);
   const stTxt = prStatusClean(r.status);
   const status= stTxt ? `<span style="background:${st.bg};color:${st.text};border:1px solid ${st.border};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600">${prEsc(stTxt)}</span>` : '';
-  const due   = r.due_date ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">⏱ ${prFmtDate(r.due_date)}</span>` : (r.hard_deadline ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">⏱ ${prEsc(r.hard_deadline)}</span>` : '');
+  const due   = (() => {
+    const ms = prMs(r);
+    if (ms.length){
+      const nxt = prNextMs(r);
+      let h = ms.slice(0,3).map(m=>{ const isNext = nxt && m.date===nxt.date && (m.label||'')===(nxt.label||''); return `<span style="font-family:'DM Mono',monospace;font-size:10px;color:${isNext?'var(--black)':'var(--grey-mid)'};font-weight:${isNext?'700':'400'}">⏱ ${prFmtDate(m.date)}${m.label?' '+prEsc(m.label):''}</span>`; }).join('');
+      if (ms.length>3) h += `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">+${ms.length-3} more</span>`;
+      return h;
+    }
+    return r.hard_deadline ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">⏱ ${prEsc(r.hard_deadline)}</span>` : '';
+  })();
   const owner = r.owner ? `<span style="font-size:11px;color:var(--grey-mid)">${prEsc(r.owner)}</span>` : '';
   const blocked = prIsBlocked(r) ? `<span title="Blocked" style="color:#FF6B4A;font-size:11px">⚠</span>` : '';
   return `<div class="pr-card" draggable="true" data-id="${r.id}" data-prio="${prPrioKey(r)}" onclick="prOpenEdit('${r.id}')"
@@ -4919,15 +4937,15 @@ async function prGroupDrop(e, body){
 const PR_DAY_W = 26;
 function prRenderBars(){
   const all   = prFiltered();
-  const dated = all.filter(r => r.start_date || r.due_date);
-  const undated = all.filter(r => !r.start_date && !r.due_date);
+  const dated   = all.filter(r => prMs(r).length>0);
+  const undated = all.filter(r => prMs(r).length===0);
   if (!dated.length){
-    document.getElementById('pr-body').innerHTML = prEmpty('No items have dates yet. Open an item and add a start or due date to see it on the timeline.') + prUndatedTray(undated);
+    document.getElementById('pr-body').innerHTML = prEmpty('No items have dates yet. Open an item and add one or more dates to see it on the timeline.') + prUndatedTray(undated);
     return;
   }
-  // window
+  // window across every milestone date
   let min=null, max=null;
-  dated.forEach(r => { [r.start_date, r.due_date].forEach(d => { const dt=prParse(d); if(!dt) return; if(!min||dt<min)min=dt; if(!max||dt>max)max=dt; }); });
+  dated.forEach(r => prMsDates(r).forEach(dt => { if(!min||dt<min)min=dt; if(!max||dt>max)max=dt; }));
   // snap min back to Monday, ensure a sensible span
   const dow = (min.getDay()+6)%7; min = new Date(min); min.setDate(min.getDate()-dow);
   if (prDaysBetween(min,max) < 35){ max = new Date(min); max.setDate(max.getDate()+41); }
@@ -4949,23 +4967,25 @@ function prRenderBars(){
   if (today>=min && today<=max){ todayLine = `<div style="position:absolute;left:${xOf(today)}px;top:0;bottom:0;width:2px;background:var(--green);opacity:0.9;z-index:2"></div>`; }
 
   const LABEL_W = 220, ROW_H = 40;
-  const rows = dated.sort((a,b)=>{
-    const da = prParse(a.start_date||a.due_date), db = prParse(b.start_date||b.due_date);
-    return (da?da.getTime():0) - (db?db.getTime():0);
-  });
+  const rows = dated.sort((a,b)=>{ const da=prMsMin(a), db=prMsMin(b); return (da?da.getTime():0)-(db?db.getTime():0); });
   let body = '';
   rows.forEach(r => {
-    const s = prParse(r.start_date), d = prParse(r.due_date);
+    const ms  = prMs(r);
+    const dts = prMsDates(r);
     const col = r.category ? PR_CAT_COLOUR[r.category] : (PR_PRIO_COLOUR[prPrioKey(r)]||'#8A8880');
+    const lo  = dts[0], hi = dts[dts.length-1];
+    const titleAll = ms.map(m=>`${prFmtDate(m.date)}${m.label?': '+m.label:''}`).join(' · ');
     let mark = '';
-    if (s && d){
-      const x = xOf(s), w = Math.max(PR_DAY_W, (prDaysBetween(s,d)+1)*PR_DAY_W);
-      mark = `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)}" style="position:absolute;left:${x}px;top:9px;width:${w}px;height:22px;background:${col};border-radius:7px;cursor:pointer;display:flex;align-items:center;padding:0 8px;box-shadow:0 1px 5px rgba(0,0,0,0.12)">
-        <span style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.name)}</span></div>`;
+    if (dts.length>=2 && hi>lo){
+      const x = xOf(lo), w = Math.max(PR_DAY_W, (prDaysBetween(lo,hi)+1)*PR_DAY_W);
+      let dots='';
+      ms.forEach(m=>{ const pp=prParse(m.date); if(!pp) return; const dx=prDaysBetween(lo,pp)*PR_DAY_W; dots+=`<div title="${prEsc((m.label?m.label+' · ':'')+prFmtDate(m.date))}" style="position:absolute;left:${dx}px;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid ${col}"></div>`; });
+      mark = `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)} — ${prEsc(titleAll)}" style="position:absolute;left:${x}px;top:9px;width:${w}px;height:22px;background:${col};border-radius:7px;cursor:pointer;display:flex;align-items:center;padding:0 8px;box-shadow:0 1px 5px rgba(0,0,0,0.12)">
+        <span style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;z-index:1">${prEsc(r.name)}</span>
+        <div style="position:absolute;inset:0">${dots}</div></div>`;
     } else {
-      const only = d || s;
-      const x = xOf(only);
-      mark = `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)} · ${d?'due':'start'} ${prFmtDate(only===d?r.due_date:r.start_date)}" style="position:absolute;left:${x+3}px;top:10px;width:18px;height:18px;background:${col};border-radius:50%;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,0.18);border:2px solid #fff"></div>`;
+      const x = xOf(lo);
+      mark = `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)} — ${prEsc(titleAll)}" style="position:absolute;left:${x+3}px;top:10px;width:18px;height:18px;background:${col};border-radius:50%;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,0.18);border:2px solid #fff"></div>`;
     }
     body += `<div style="display:flex;height:${ROW_H}px;border-bottom:1px solid var(--cream-soft)">
       <div onclick="prOpenEdit('${r.id}')" style="width:${LABEL_W}px;flex-shrink:0;position:sticky;left:0;background:var(--cream);z-index:3;display:flex;align-items:center;gap:7px;padding:0 12px;border-right:1px solid var(--grey-light);cursor:pointer">
@@ -5011,9 +5031,10 @@ function prRenderCalendar(){
   const rows = prFiltered();
   const byDay = {};
   rows.forEach(r => {
-    const d = r.due_date || r.start_date; if(!d) return;
-    const dt = prParse(d); if(!dt || dt.getFullYear()!==y || dt.getMonth()!==m) return;
-    (byDay[dt.getDate()] = byDay[dt.getDate()] || []).push(r);
+    prMs(r).forEach(ms => {
+      const dt = prParse(ms.date); if(!dt || dt.getFullYear()!==y || dt.getMonth()!==m) return;
+      (byDay[dt.getDate()] = byDay[dt.getDate()] || []).push({ r, ms });
+    });
   });
   const monthName = first.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
   const dows = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -5027,12 +5048,13 @@ function prRenderCalendar(){
     const iso = prToISO(new Date(y,m,dayNum));
     const isToday = iso===todayStr;
     const items = byDay[dayNum] || [];
-    const chips = items.map(r => {
+    const chips = items.map(({r,ms}) => {
       const col = PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8';
-      return `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)}" style="display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:6px;background:${col}1f;border-left:3px solid ${col};cursor:pointer;margin-top:3px;overflow:hidden">
-        <span style="font-size:11px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.name)}</span></div>`;
+      const label = ms.label ? ms.label : r.name;
+      return `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)}${ms.label?' — '+prEsc(ms.label):''}" style="display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:6px;background:${col}1f;border-left:3px solid ${col};cursor:pointer;margin-top:3px;overflow:hidden">
+        <span style="font-size:11px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(label)}</span></div>`;
     }).join('');
-    cells += `<div onclick="prOpenCreate({due_date:'${iso}'})" style="min-height:96px;background:var(--white);border:1px solid var(--grey-light);padding:5px 6px;cursor:pointer;position:relative" onmouseover="this.style.background='rgba(135,251,102,0.05)'" onmouseout="this.style.background='var(--white)'">
+    cells += `<div onclick="prOpenCreate({milestones:[{date:'${iso}',label:''}]})" style="min-height:96px;background:var(--white);border:1px solid var(--grey-light);padding:5px 6px;cursor:pointer;position:relative" onmouseover="this.style.background='rgba(135,251,102,0.05)'" onmouseout="this.style.background='var(--white)'">
       <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:${isToday?'800':'500'};color:${isToday?'var(--black)':'var(--grey-mid)'};${isToday?'background:var(--green);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center':''}">${dayNum}</div>
       ${chips}
     </div>`;
@@ -5070,16 +5092,26 @@ function prSelect(id, val, opts){
   })).join('');
   return `<select id="pr-f-${id}" style="width:100%;padding:9px 11px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);color:var(--black);outline:none">${o}</select>`;
 }
+function prMsAdd(){ prMsDraft.push({ id: prUid(), date:'', label:'' }); prRenderMs(); setTimeout(()=>{ const rows=document.querySelectorAll('#pr-milestones .pr-ms-row'); const last=rows[rows.length-1]; if(last){ const inp=last.querySelector('input[type=date]'); if(inp) inp.focus(); } },0); }
+function prMsRemove(i){ prMsDraft.splice(i,1); prRenderMs(); }
+function prMsSet(i,f,v){ if(prMsDraft[i]) prMsDraft[i][f]=v; }
+function prRenderMs(){
+  const c=document.getElementById('pr-milestones'); if(!c) return;
+  if(!prMsDraft.length){ c.innerHTML='<div style="font-size:12px;color:var(--grey-mid);padding:2px 0">No dates yet — add one below.</div>'; return; }
+  c.innerHTML = prMsDraft.map((m,i)=>`
+    <div class="pr-ms-row" style="display:flex;gap:6px;align-items:center">
+      <input type="date" value="${m.date?String(m.date).slice(0,10):''}" oninput="prMsSet(${i},'date',this.value)" style="width:142px;padding:8px 9px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;box-sizing:border-box">
+      <input type="text" value="${prEsc(m.label)}" placeholder="What's this date?" oninput="prMsSet(${i},'label',this.value)" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;box-sizing:border-box">
+      <button type="button" onclick="prMsRemove(${i})" title="Remove" style="flex-shrink:0;width:30px;height:30px;border:1.5px solid var(--grey-light);border-radius:8px;background:var(--white);color:var(--grey-mid);cursor:pointer;font-size:13px;line-height:1">✕</button>
+    </div>`).join('');
+}
 function prRenderForm(r){
   return prField('Name', prInput('name', r.name||'', 'What is this item?'))
     + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">`
       + prField('Priority', prSelect('priority_tier', r.priority_tier||'', PR_PRIOS.map(p=>p.label)))
       + prField('Category', prSelect('category', r.category||'', PR_CATS.map(c=>({value:c.key,label:c.label}))))
     + `</div>`
-    + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">`
-      + prField('Start date', prDate('start_date', r.start_date))
-      + prField('Due date', prDate('due_date', r.due_date))
-    + `</div>`
+    + prField('Dates / milestones', `<div id="pr-milestones" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div><button type="button" onclick="prMsAdd()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1.5px dashed var(--grey-light);background:var(--white);color:var(--black);font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">+ Add date</button>`)
     + prField('Status', prSelect('status', prStatusClean(r.status||''), PR_STATUSES))
     + prField('Owner', prInput('owner', r.owner||'', 'Who owns this?'))
     + prField('Goal', prArea('goal', r.goal||''))
@@ -5093,16 +5125,20 @@ function prRenderForm(r){
 function prOpenEdit(id){
   const r = gsData.find(x => x.id===id); if(!r) return;
   prEditingId = id; prCreating = false;
+  prMsDraft = prMs(r).map(m=>({ id:m.id||prUid(), date:String(m.date).slice(0,10), label:m.label||'' }));
   document.getElementById('pr-edit-title').textContent = r.name || 'Edit item';
   document.getElementById('pr-edit-form').innerHTML = prRenderForm(r);
+  prRenderMs();
   document.getElementById('pr-edit-delete').style.display = 'inline-flex';
   prShowEdit();
 }
 function prOpenCreate(prefill){
   prEditingId = null; prCreating = true;
   const r = Object.assign({ priority_tier:'Medium', status:'In progress' }, prefill||{});
+  prMsDraft = prMs(r).map(m=>({ id:m.id||prUid(), date:String(m.date).slice(0,10), label:m.label||'' }));
   document.getElementById('pr-edit-title').textContent = 'New item';
   document.getElementById('pr-edit-form').innerHTML = prRenderForm(r);
+  prRenderMs();
   document.getElementById('pr-edit-delete').style.display = 'none';
   prShowEdit();
 }
@@ -5122,9 +5158,10 @@ function prCloseEdit(){
 }
 function prFormVal(id){ const el=document.getElementById('pr-f-'+id); return el?el.value:undefined; }
 async function prSave(){
-  const KEYS = ['name','priority_tier','category','start_date','due_date','status','owner','goal','update','any_blockers','next_steps','workstream','hard_deadline','links'];
+  const KEYS = ['name','priority_tier','category','status','owner','goal','update','any_blockers','next_steps','workstream','hard_deadline','links'];
   const payload = {};
-  KEYS.forEach(k => { let v = prFormVal(k); if (v===undefined) return; if ((k==='start_date'||k==='due_date') && v==='') v=null; payload[k]=v; });
+  KEYS.forEach(k => { let v = prFormVal(k); if (v===undefined) return; payload[k]=v; });
+  payload.milestones = prMsDraft.map(m=>({ id:m.id||prUid(), date:(m.date||'').slice(0,10), label:(m.label||'').trim() })).filter(m=>m.date).sort((a,b)=>a.date.localeCompare(b.date));
   if (!payload.name || !payload.name.trim()){ prToast('Name is required', true); return; }
   const btn = document.getElementById('pr-edit-save'); const orig = btn.textContent;
   btn.textContent='Saving…'; btn.style.pointerEvents='none';
