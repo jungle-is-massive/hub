@@ -4858,36 +4858,36 @@ function prRenderList(){
   prWireDnD();
 }
 function prListCard(r){
-  const cat   = r.category && PR_CAT_LABEL[r.category]
-    ? `<span style="background:${PR_CAT_COLOUR[r.category]}1a;color:${PR_CAT_COLOUR[r.category]};border:1px solid ${PR_CAT_COLOUR[r.category]}55;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600">${PR_CAT_LABEL[r.category]}</span>` : '';
-  const st    = prStatusStyle(r.status);
-  const stTxt = prStatusClean(r.status);
-  const status= stTxt ? `<span style="background:${st.bg};color:${st.text};border:1px solid ${st.border};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600">${prEsc(stTxt)}</span>` : '';
-  const due   = (() => {
-    const ms = prMs(r);
-    if (ms.length){
-      const nxt = prNextMs(r);
-      let h = ms.slice(0,3).map(m=>{ const isNext = nxt && m.date===nxt.date && (m.label||'')===(nxt.label||''); return `<span style="font-family:'DM Mono',monospace;font-size:10px;color:${isNext?'var(--black)':'var(--grey-mid)'};font-weight:${isNext?'700':'400'}">⏱ ${prFmtDate(m.date)}${m.label?' '+prEsc(m.label):''}</span>`; }).join('');
-      if (ms.length>3) h += `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">+${ms.length-3} more</span>`;
-      return h;
-    }
-    return r.hard_deadline ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">⏱ ${prEsc(r.hard_deadline)}</span>` : '';
-  })();
-  const owner = r.owner ? `<span style="font-size:11px;color:var(--grey-mid)">${prEsc(r.owner)}</span>` : '';
-  const blocked = prIsBlocked(r) ? `<span title="Blocked" style="color:#FF6B4A;font-size:11px">⚠</span>` : '';
+  const cat = r.category && PR_CAT_LABEL[r.category]
+    ? `<span style="background:${PR_CAT_COLOUR[r.category]}1a;color:${PR_CAT_COLOUR[r.category]};border:1px solid ${PR_CAT_COLOUR[r.category]}55;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap">${PR_CAT_LABEL[r.category]}</span>` : '';
+  const st     = prStatusStyle(r.status);
+  const stTxt  = prStatusClean(r.status);
+  const status = stTxt ? `<span style="background:${st.bg};color:${st.text};border:1px solid ${st.border};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap">${prEsc(stTxt)}</span>` : '';
+  const ms = prMs(r);
+  let dateChip = '';
+  if (ms.length){
+    const nxt  = prNextMs(r) || ms[0];
+    const lbl  = nxt.label ? ` ${prEsc(nxt.label)}` : '';
+    const more = ms.length>1 ? `<span style="color:var(--grey-mid);font-weight:400"> +${ms.length-1}</span>` : '';
+    const full = ms.map(m=>prFmtDate(m.date)+(m.label?': '+m.label:'')).join(' \u00b7 ');
+    dateChip = `<span title="${prEsc(full)}" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--black);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle">\u23f1 ${prFmtDate(nxt.date)}${lbl}${more}</span>`;
+  } else if (r.hard_deadline){
+    dateChip = `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);white-space:nowrap">\u23f1 ${prEsc(r.hard_deadline)}</span>`;
+  }
+  const owner   = r.owner ? `<span style="font-size:11px;color:var(--grey-mid);white-space:nowrap">${prEsc(r.owner)}</span>` : '';
+  const blocked = prIsBlocked(r) ? `<span title="Blocked" style="color:#FF6B4A;font-size:11px;flex-shrink:0">\u26a0</span>` : '';
+  const desc    = r.goal ? `<div style="font-size:12px;color:#6a675f;margin-top:1px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.goal)}</div>` : '';
   return `<div class="pr-card" draggable="true" data-id="${r.id}" data-prio="${prPrioKey(r)}" onclick="prOpenEdit('${r.id}')"
-      style="background:var(--white);border:1.5px solid var(--grey-light);border-left:3px solid ${PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8'};border-radius:11px;padding:13px 15px;cursor:pointer;transition:border-color .12s,box-shadow .12s"
-      onmouseover="this.style.boxShadow='0 4px 18px rgba(0,0,0,0.07)'" onmouseout="this.style.boxShadow='none'">
-    <div style="display:flex;align-items:flex-start;gap:10px">
-      <span class="pr-drag" style="cursor:grab;color:var(--grey-light);font-size:14px;line-height:1.2;margin-top:1px;flex-shrink:0" title="Drag to reorder">⠿</span>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-          <span style="font-size:14px;font-weight:700;letter-spacing:-0.01em;color:var(--black)">${prEsc(r.name)}</span>${blocked}
-        </div>
-        ${r.goal ? `<div style="font-size:12px;color:#555;margin-top:3px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${prEsc(r.goal)}</div>`:''}
-        <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:8px">${cat}${status}${due}${owner}</div>
+      style="background:var(--white);border:1.5px solid var(--grey-light);border-left:3px solid ${PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8'};border-radius:10px;padding:8px 14px;cursor:pointer;transition:border-color .12s,box-shadow .12s;display:flex;align-items:center;gap:12px"
+      onmouseover="this.style.boxShadow='0 3px 14px rgba(0,0,0,0.06)'" onmouseout="this.style.boxShadow='none'">
+    <span class="pr-drag" style="cursor:grab;color:var(--grey-light);font-size:14px;line-height:1;flex-shrink:0" title="Drag to reorder">\u2807</span>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px;min-width:0">
+        <span title="${prEsc(r.name)}" style="font-size:13.5px;font-weight:700;letter-spacing:-0.01em;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.name)}</span>${blocked}
       </div>
+      ${desc}
     </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">${dateChip}${owner}${cat}${status}</div>
   </div>`;
 }
 function prWireDnD(){
