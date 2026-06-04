@@ -1010,90 +1010,6 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 }
 .timeline-add-hint strong { color: var(--black); }
 
-/* MAD MEETS PANEL */
-#mad-meets-panel {
-  background: var(--black);
-  border-radius: 16px;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-.mad-meets-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.mad-meets-table thead th {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--grey-mid);
-  padding: 12px 16px 10px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  white-space: nowrap;
-}
-.mad-meets-table tbody tr {
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  transition: background 0.12s;
-}
-.mad-meets-table tbody tr:last-child { border-bottom: none; }
-.mad-meets-table tbody tr:hover { background: rgba(255,255,255,0.04); }
-.mad-meets-table td {
-  padding: 10px 16px;
-  color: var(--cream);
-  vertical-align: middle;
-}
-.mm-name { font-weight: 600; font-size: 13px; }
-.mm-title { font-size: 11px; color: var(--grey-mid); margin-top: 1px; }
-.mm-brand { font-size: 13px; }
-.mm-event-pill {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
-  font-weight: 500;
-}
-.mm-event-feb { background: rgba(74,191,255,0.15); color: #4ABFFF; }
-.mm-event-mar { background: rgba(135,251,102,0.13); color: var(--green); }
-.mm-status-pill {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
-  font-weight: 500;
-}
-.mm-status-new { background: rgba(255,255,255,0.08); color: var(--grey); }
-.mm-status-attempted { background: rgba(240,180,41,0.15); color: var(--amber); }
-.mm-status-bad-timing { background: rgba(255,107,74,0.15); color: var(--coral); }
-.mm-status-in-progress { background: rgba(62,207,142,0.15); color: var(--teal); }
-.mm-last-contact { font-size: 12px; color: var(--grey-mid); }
-.mm-last-contact.recent { color: var(--teal); }
-.mm-last-contact.stale { color: var(--amber); }
-.mm-last-contact.never { color: rgba(255,255,255,0.2); font-style: italic; }
-.mm-notes { font-size: 12px; color: var(--grey); max-width: 220px; }
-.mm-next-action { font-size: 12px; color: var(--cream); font-style: italic; max-width: 180px; }
-.mm-hs-link {
-  display: inline-block;
-  width: 22px; height: 22px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 6px;
-  text-align: center;
-  line-height: 22px;
-  font-size: 11px;
-  text-decoration: none;
-  color: var(--grey-mid);
-  transition: background 0.12s, color 0.12s;
-}
-.mm-hs-link:hover { background: rgba(255,107,41,0.2); color: #FF6B29; }
-
 /* ── PROSPECTS PAGE ─────────────────────────────────────────── */
 #prospects-page {
   display: none;
@@ -1660,13 +1576,6 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   </div>
   <div id="events-list"><div class="empty-state">Loading events…</div></div>
 
-  <div class="section-head" id="section-mad-meets">
-    <div class="section-label">MAD Meets — Ingenuity</div>
-    <div class="section-count" id="mad-meets-count">—</div>
-  </div>
-  <div id="mad-meets-panel">
-    <div id="mad-meets-loading">Loading contacts…</div>
-  </div>
 
 </main>
 
@@ -2131,7 +2040,7 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison(), prLoad(true), loadMadMeets()]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison(), prLoad(true)]);
     await loadFunnelStages(); // must run after loadDeals so dashboardData.deals is populated
     await applyDeltas();      // must run after all data is loaded so stat values are populated
   } catch(e) { console.error(e); }
@@ -5907,115 +5816,37 @@ const HS_STATUS_MAP = {
   'null':                 { label: 'No Status',       cls: 'mm-status-new' },
 };
 
+// Fetches live HubSpot status for MAD Meets contacts and caches onto objects.
+// Pure data fetch — no DOM side effects. Called on demand by renderPrspMadMeets.
 async function loadMadMeets() {
-  const panel = document.getElementById('mad-meets-panel');
-  const countEl = document.getElementById('mad-meets-count');
-
   try {
     const SUPABASE_URL = 'https://iehkvlyjumkzccoqqgxl.supabase.co';
     const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
-
     const ids = MAD_MEETS_CONTACTS.map(c => c.id);
-
-    // Batch fetch from HubSpot via hs-proxy
-    const searchPayload = {
-      method: 'POST',
-      path: '/crm/v3/objects/contacts/batch/read',
-      body: {
-        inputs: ids.map(id => ({ id })),
-        properties: ['firstname','lastname','hs_lead_status','notes_last_contacted']
-      }
-    };
-
     const res = await fetch(`${SUPABASE_URL}/functions/v1/hs-proxy`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(searchPayload)
+      body: JSON.stringify({
+        method: 'POST',
+        path: '/crm/v3/objects/contacts/batch/read',
+        body: { inputs: ids.map(id => ({ id })), properties: ['hs_lead_status','notes_last_contacted'] }
+      })
     });
-
-    let hsData = {};
     if (res.ok) {
       const json = await res.json();
       if (json.results) {
-        json.results.forEach(r => { hsData[r.id] = r.properties; });
+        json.results.forEach(r => {
+          const c = MAD_MEETS_CONTACTS.find(x => x.id === r.id);
+          if (c) {
+            c._hsStatus = r.properties?.hs_lead_status || 'null';
+            c._hsLastContacted = r.properties?.notes_last_contacted || null;
+          }
+        });
       }
     }
-
-    // Cache live HS data on contact objects so Prospects page can use it
-    MAD_MEETS_CONTACTS.forEach(c => {
-      const d = hsData[c.id];
-      if (d) {
-        c._hsStatus = d.hs_lead_status || 'null';
-        c._hsLastContacted = d.notes_last_contacted || null;
-      }
-    });
-    renderMadMeets(hsData);
-    countEl.textContent = MAD_MEETS_CONTACTS.filter(c => !c.dead).length;
-
   } catch(e) {
-    console.warn('MAD Meets: falling back to static data', e);
-    renderMadMeets({});
-    countEl.textContent = MAD_MEETS_CONTACTS.filter(c => !c.dead).length;
+    console.warn('MAD Meets HS fetch failed, using static data:', e);
   }
-}
-
-function renderMadMeets(hsData) {
-  const panel = document.getElementById('mad-meets-panel');
-  const now = Date.now();
-  const DAY = 86400000;
-
-  const rows = MAD_MEETS_CONTACTS.map(contact => {
-    const hs = hsData[contact.id] || {};
-    const rawStatus = hs.hs_lead_status || 'null';
-    const statusInfo = HS_STATUS_MAP[rawStatus] || { label: rawStatus, cls: 'mm-status-new' };
-    const lastContactedRaw = hs.notes_last_contacted;
-
-    let lastContactedLabel = '<span class="mm-last-contact never">—</span>';
-    if (lastContactedRaw) {
-      const d = new Date(lastContactedRaw);
-      const daysAgo = Math.floor((now - d.getTime()) / DAY);
-      const fmt = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-      const cls = daysAgo <= 7 ? 'recent' : daysAgo <= 21 ? '' : 'stale';
-      const ago = daysAgo === 0 ? 'today' : daysAgo === 1 ? '1d ago' : `${daysAgo}d ago`;
-      lastContactedLabel = `<span class="mm-last-contact ${cls}">${fmt} <span style="opacity:0.5">${ago}</span></span>`;
-    }
-
-    const eventCls = contact.event === 'feb' ? 'mm-event-feb' : 'mm-event-mar';
-    const rowStyle = contact.dead ? 'opacity:0.45' : '';
-
-    return `<tr style="${rowStyle}">
-      <td>
-        <div class="mm-name">${contact.name}</div>
-        <div class="mm-title">${contact.title}</div>
-      </td>
-      <td class="mm-brand">${contact.brand}</td>
-      <td><span class="mm-event-pill ${eventCls}">${contact.eventLabel}</span></td>
-      <td><span class="mm-status-pill ${statusInfo.cls}">${statusInfo.label}</span></td>
-      <td>${lastContactedLabel}</td>
-      <td class="mm-notes">${contact.status_notes || '—'}</td>
-      <td class="mm-next-action">${contact.next_action}</td>
-      <td style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        ${contact.email ? `<button class="mm-email-btn" onclick="openEmailModal(${JSON.stringify({name:contact.name,company:contact.brand,email:contact.email||'',title:contact.title}).replace(/"/g,'&quot;')})">✉ Email</button>` : `<button class="mm-email-btn" style="opacity:0.3;cursor:not-allowed" disabled title="No email on record">✉</button>`}
-        <a class="mm-hs-link" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a>
-      </td>
-    </tr>`;
-  }).join('');
-
-  panel.innerHTML = `<table class="mad-meets-table">
-    <thead>
-      <tr>
-        <th>Contact</th>
-        <th>Brand</th>
-        <th>Event</th>
-        <th>Status</th>
-        <th>Last Contacted</th>
-        <th>Last Response / Notes</th>
-        <th>Next Action</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>`;
 }
 
 
@@ -6193,58 +6024,75 @@ function prspFilterContacts() {
 }
 
 // ── MAD Meets tab inside Prospects page ──────────────────────────────────────
-function renderPrspMadMeets() {
+async function renderPrspMadMeets() {
   const panel = document.getElementById('prsp-mm-panel');
-  const loading = document.getElementById('prsp-mm-loading');
-  // Re-use the same MAD_MEETS_CONTACTS data and render function from the dashboard
-  // but output into the prospects page panel
+
+  // If HS data hasn't been fetched yet, trigger it now and wait
+  if (!MAD_MEETS_CONTACTS[0]._hsStatus) {
+    panel.innerHTML = '<div class="prsp-loading"><div class="prsp-spinner"></div>Loading HubSpot data…</div>';
+    await loadMadMeets();
+  }
+
   const now = Date.now();
   const DAY = 86400000;
+
+  // Status pill styles for cream background (light versions)
+  const STATUS_LIGHT = {
+    'NEW':                  { label: 'New',          cls: 'background:#f0f0ee;color:#888' },
+    'ATTEMPTED_TO_CONTACT': { label: 'Attempted',    cls: 'background:rgba(240,180,41,0.12);color:#b8860b' },
+    'BAD_TIMING':           { label: 'Bad Timing',   cls: 'background:rgba(255,107,74,0.1);color:#c0392b' },
+    'IN_PROGRESS':          { label: 'In Progress',  cls: 'background:rgba(62,207,142,0.12);color:#1a7a4a' },
+    'null':                 { label: 'No Status',    cls: 'background:#f0f0ee;color:#aaa' },
+  };
+
   const rows = MAD_MEETS_CONTACTS.map(contact => {
-    const hs = {};
     const rawStatus = contact._hsStatus || 'null';
-    const statusInfo = HS_STATUS_MAP[rawStatus] || { label: rawStatus, cls: 'mm-status-new' };
+    const statusInfo = STATUS_LIGHT[rawStatus] || STATUS_LIGHT['null'];
     const lastContactedRaw = contact._hsLastContacted || null;
 
-    let lastContactedLabel = '<span class="mm-last-contact never">—</span>';
+    let lastContactedLabel = '<span style="color:#bbb;font-style:italic">—</span>';
     if (lastContactedRaw) {
       const d = new Date(lastContactedRaw);
       const daysAgo = Math.floor((now - d.getTime()) / DAY);
       const fmt = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-      const cls = daysAgo <= 7 ? 'recent' : daysAgo <= 21 ? '' : 'stale';
+      const colour = daysAgo <= 7 ? '#1a7a4a' : daysAgo <= 21 ? '#555' : '#b8860b';
       const ago = daysAgo === 0 ? 'today' : daysAgo === 1 ? '1d ago' : `${daysAgo}d ago`;
-      lastContactedLabel = `<span class="mm-last-contact ${cls}">${fmt} <span style="opacity:0.5">${ago}</span></span>`;
+      lastContactedLabel = `<span style="font-size:12px;color:${colour}">${fmt} <span style="opacity:0.5;font-size:11px">${ago}</span></span>`;
     }
 
-    const eventCls = contact.event === 'feb' ? 'mm-event-feb' : 'mm-event-mar';
-    const rowStyle = contact.dead ? 'opacity:0.45' : '';
+    const eventStyle = contact.event === 'feb'
+      ? 'background:rgba(74,191,255,0.12);color:#1a6fa8'
+      : 'background:rgba(30,160,60,0.1);color:#1a6a30';
+    const rowOpacity = contact.dead ? 'opacity:0.4' : '';
+
     const contactData = JSON.stringify({
       name: contact.name,
       company: contact.brand,
       email: contact.email || '',
       title: contact.title
     }).replace(/"/g,'&quot;');
-    const emailBtn = contact.email
-      ? `<button class="mm-email-btn" onclick="openEmailModal(${contactData})">✉ Email</button>`
-      : `<button class="mm-email-btn" style="opacity:0.3;cursor:not-allowed" disabled title="No email on record">✉ Email</button>`;
 
-    return `<tr style="${rowStyle}">
+    const emailBtn = contact.email
+      ? `<button class="mm-email-btn" style="background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.1);color:var(--black)" onclick="openEmailModal(${contactData})">✉ Email</button>`
+      : `<button class="mm-email-btn" style="opacity:0.25;cursor:not-allowed;background:rgba(0,0,0,0.04);border-color:transparent;color:#999" disabled>✉ Email</button>`;
+
+    return `<tr style="${rowOpacity}">
       <td>
-        <div class="mm-name">${contact.name}</div>
-        <div class="mm-title">${contact.title}</div>
+        <div style="font-weight:600;font-size:13px;color:var(--black)">${contact.name}</div>
+        <div style="font-size:11px;color:var(--grey-mid);margin-top:1px">${contact.title}</div>
         <div style="margin-top:5px">${emailBtn}</div>
       </td>
-      <td class="mm-brand">${contact.brand}</td>
-      <td><span class="mm-event-pill ${eventCls}">${contact.eventLabel}</span></td>
-      <td><span class="mm-status-pill ${statusInfo.cls}">${statusInfo.label}</span></td>
+      <td style="font-size:13px;color:var(--black)">${contact.brand}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;${eventStyle}">${contact.eventLabel}</span></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;${statusInfo.cls}">${statusInfo.label}</span></td>
       <td>${lastContactedLabel}</td>
-      <td class="mm-notes">${contact.status_notes || '—'}</td>
-      <td class="mm-next-action">${contact.next_action}</td>
-      <td><a class="mm-hs-link" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a></td>
+      <td style="font-size:12px;color:#555;max-width:220px">${contact.status_notes || '—'}</td>
+      <td style="font-size:12px;color:var(--black);font-style:italic;max-width:180px">${contact.next_action}</td>
+      <td><a style="display:inline-block;width:22px;height:22px;background:var(--grey-light);border-radius:6px;text-align:center;line-height:22px;font-size:11px;text-decoration:none;color:var(--grey-mid)" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a></td>
     </tr>`;
   }).join('');
 
-  panel.innerHTML = `<table class="mad-meets-table">
+  panel.innerHTML = `<table class="prsp-table" style="table-layout:auto">
     <thead>
       <tr>
         <th>Contact</th>
