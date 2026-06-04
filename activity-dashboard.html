@@ -1093,6 +1093,319 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   transition: background 0.12s, color 0.12s;
 }
 .mm-hs-link:hover { background: rgba(255,107,41,0.2); color: #FF6B29; }
+
+/* ── PROSPECTS PAGE ─────────────────────────────────────────── */
+#prospects-page {
+  display: none;
+  position: fixed;
+  top: var(--header-h);
+  left: 0; right: 0; bottom: 0;
+  z-index: 90;
+  background: var(--cream);
+  flex-direction: column;
+  overflow: hidden;
+}
+.prsp-header {
+  flex-shrink: 0;
+  padding: 22px 32px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+.prsp-sub-tabs-bar {
+  flex-shrink: 0;
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 32px 0;
+  border-bottom: 1.5px solid var(--grey-light);
+  display: flex;
+  gap: 0;
+  align-items: flex-end;
+}
+.prsp-sub-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 18px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grey-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: -1.5px;
+  white-space: nowrap;
+}
+.prsp-sub-tab:hover { color: var(--black); }
+.prsp-sub-tab.active { color: var(--black); border-bottom-color: var(--black); }
+.prsp-body {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+.prsp-inner {
+  padding: 24px 32px 90px;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+/* Contacts table inside prospects page */
+.prsp-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.prsp-search {
+  flex: 1;
+  max-width: 360px;
+  border: 1.5px solid var(--grey-light);
+  border-radius: 100px;
+  padding: 9px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  color: var(--black);
+  background: var(--white);
+  transition: border-color 0.15s;
+}
+.prsp-search:focus { border-color: var(--black); }
+.prsp-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--grey-mid);
+  letter-spacing: 0.04em;
+}
+.prsp-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1.5px var(--grey-light);
+}
+.prsp-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  font-size: 12px;
+}
+.prsp-table th {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-mid);
+  padding: 10px 14px;
+  text-align: left;
+  background: var(--grey-light);
+  border-bottom: 1px solid var(--grey-light);
+  white-space: nowrap;
+}
+.prsp-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--grey-light);
+  vertical-align: top;
+  color: var(--black);
+  line-height: 1.4;
+}
+.prsp-table tbody tr:last-child td { border-bottom: none; }
+.prsp-table tbody tr:hover td { background: rgba(0,0,0,0.018); }
+.prsp-table td a {
+  color: var(--black);
+  text-decoration: none;
+  border-bottom: 1px solid var(--grey);
+  transition: border-color 0.15s;
+}
+.prsp-table td a:hover { border-color: var(--black); }
+.prsp-empty { text-align: center; padding: 32px; color: var(--grey-mid); font-size: 13px; font-style: italic; }
+.prsp-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 64px 0;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--grey-mid);
+}
+.prsp-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--grey-light);
+  border-top-color: var(--black);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+/* Email button in MAD Meets rows */
+.mm-email-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  background: rgba(135,251,102,0.12);
+  border: 1px solid rgba(135,251,102,0.25);
+  border-radius: 100px;
+  color: var(--green);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.mm-email-btn:hover { background: rgba(135,251,102,0.22); border-color: rgba(135,251,102,0.5); }
+.mm-email-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+/* Email compose modal */
+#email-compose-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(14,14,14,0.65);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+#email-compose-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+#email-compose-box {
+  background: var(--cream);
+  border-radius: 16px;
+  width: min(620px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  transform: translateY(16px);
+  transition: transform 0.2s;
+}
+#email-compose-modal.open #email-compose-box { transform: translateY(0); }
+.ecm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--grey-light);
+}
+.ecm-title { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.ecm-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 16px; color: var(--grey-mid); padding: 2px 6px;
+  border-radius: 6px; transition: color 0.12s, background 0.12s;
+}
+.ecm-close:hover { color: var(--black); background: var(--grey-light); }
+.ecm-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.ecm-templates {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ecm-template-pill {
+  height: 28px;
+  padding: 0 12px;
+  background: var(--grey-light);
+  border: 1.5px solid transparent;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-mid);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.ecm-template-pill:hover { background: var(--black); color: var(--green); }
+.ecm-template-pill.active { background: var(--black); color: var(--green); border-color: var(--green); }
+.ecm-field label {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-mid);
+  margin-bottom: 6px;
+}
+.ecm-field input, .ecm-field textarea {
+  width: 100%;
+  border: 1.5px solid var(--grey-light);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--black);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+  resize: vertical;
+}
+.ecm-field input:focus, .ecm-field textarea:focus { border-color: var(--black); }
+.ecm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px 20px;
+  gap: 10px;
+}
+.ecm-send-btn {
+  height: 38px;
+  padding: 0 22px;
+  background: var(--black);
+  color: var(--green);
+  border: none;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.ecm-send-btn:hover { opacity: 0.85; }
+.ecm-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ecm-cancel-btn {
+  height: 38px;
+  padding: 0 16px;
+  background: none;
+  border: 1.5px solid var(--grey-light);
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--grey-mid);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.ecm-cancel-btn:hover { border-color: var(--black); color: var(--black); }
+.ecm-no-token {
+  padding: 12px 14px;
+  background: rgba(240,180,41,0.1);
+  border: 1px solid rgba(240,180,41,0.25);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--grey-mid);
+  line-height: 1.5;
+}
+.ecm-no-token a { color: var(--black); font-weight: 600; }
+
 </style>
 </head>
 <body>
@@ -1108,6 +1421,10 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
       <button class="topbar-nav-btn" onclick="openDealDrawer(null).then(()=>{ const btn=document.getElementById('view-btn-timeline'); switchDrawerView('timeline',btn); }); setNavActive(this)">
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="6" x2="11" y2="6"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
         Timelines
+      </button>
+      <button class="topbar-nav-btn" id="prospects-nav-btn" onclick="openProspects(); setNavActive(this)">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="4.5" cy="4" r="2.5"/><path d="M1 11c0-2 1.6-3.5 3.5-3.5S8 9 8 11"/><circle cx="9.5" cy="4.5" r="1.8"/><path d="M8 11c0-1.4.9-2.5 2-2.8"/></svg>
+        Prospects
       </button>
       <button class="topbar-nav-btn" id="priorities-nav-btn" onclick="openPriorities(); setNavActive(this)">
         <svg width="10" height="10" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;stroke:none"><rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="1" y="9" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/></svg>
@@ -5567,19 +5884,19 @@ document.addEventListener('keydown', function(e) {
 
 // ── MAD MEETS PANEL ──────────────────────────────────────────────────────────
 const MAD_MEETS_CONTACTS = [
-  { id: '747364268226', name: 'Chris Waters',      title: 'CMO',                                  brand: 'GDK',                        event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747364268226', status_notes: 'No response. Jade chased 27 March.', next_action: 'Follow up — personalised angle' },
-  { id: '747114717412', name: 'Tom Sutton',         title: 'Marketing Director',                   brand: 'Gorilla Glue',               event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747114717412', status_notes: 'No response. Jade chased 27 March.', next_action: 'Follow up — personalised angle' },
-  { id: '745932079304', name: 'Alison Leigh',       title: 'Field Marketing Manager',              brand: 'Vodafone Automotive',         event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745932079304', status_notes: 'Responded — busy in planning mode, not considering agencies yet.', next_action: 'Nurture — re-engage Q3' },
-  { id: '745933501652', name: 'Michelle Stoodley',  title: 'Head of Marketing',                   brand: 'Craghoppers',                 event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745933501652', status_notes: '', next_action: 'Make first contact' },
-  { id: '745794924790', name: 'Kerry Grassick',     title: 'Head of European Marketing',           brand: 'The Artisanal Spirits Co.',   event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745794924790', status_notes: 'Meeting in diary: Wed 17 June, 11am.', next_action: 'Prep for 17 June meeting' },
+  { id: '747364268226', email: 'chris.waters@gdk.com', name: 'Chris Waters',      title: 'CMO',                                  brand: 'GDK',                        event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747364268226', status_notes: 'No response. Jade chased 27 March.', next_action: 'Follow up — personalised angle' },
+  { id: '747114717412', email: 'tomsutton@gorillaglue.com', name: 'Tom Sutton',         title: 'Marketing Director',                   brand: 'Gorilla Glue',               event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747114717412', status_notes: 'No response. Jade chased 27 March.', next_action: 'Follow up — personalised angle' },
+  { id: '745932079304', email: 'alison.leigh1@vodafone.com', name: 'Alison Leigh',       title: 'Field Marketing Manager',              brand: 'Vodafone Automotive',         event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745932079304', status_notes: 'Responded — busy in planning mode, not considering agencies yet.', next_action: 'Nurture — re-engage Q3' },
+  { id: '745933501652', email: 'MStoodley@craghoppers.com', name: 'Michelle Stoodley',  title: 'Head of Marketing',                   brand: 'Craghoppers',                 event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745933501652', status_notes: '', next_action: 'Make first contact' },
+  { id: '745794924790', email: 'kerry.grassick@artisanal-spirits.com', name: 'Kerry Grassick',     title: 'Head of European Marketing',           brand: 'The Artisanal Spirits Co.',   event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745794924790', status_notes: 'Meeting in diary: Wed 17 June, 11am.', next_action: 'Prep for 17 June meeting' },
   { id: '792700436682', name: 'Rosie Jones',        title: 'Digital Marketing & Creative Manager', brand: 'E1 Series',                   event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792700436682', status_notes: "Sent LinkedIn connection request, still pending. Never responded to Ingenuity's follow-ups.", next_action: 'Chase LinkedIn connection' },
   { id: '792671555790', name: 'Gio Forino',         title: 'Social Media & Influencer Manager',    brand: 'McCormick / Schwartz',        event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792671555790', status_notes: 'Connected on LinkedIn. Presenting agencies to team — will follow up once discussed internally.', next_action: 'Wait for their update, then follow up' },
-  { id: '747371346169', name: 'Nat Sajal',          title: 'Senior Paid Media + PR Manager',       brand: 'Wagamama',                    event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747371346169', status_notes: 'Chatting on email, connected on LinkedIn. Expecting mini brief mid June.', next_action: 'Chase mini brief — mid June' },
-  { id: '781107763410', name: 'Megan Davies',       title: 'Integrated Consumer Exp. Director',    brand: 'Brown-Forman',                event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/781107763410', status_notes: 'Interested in speaking further. Emailed following Ingenuity intro.', next_action: 'Follow up on email thread' },
-  { id: '788235997376', name: 'Martin Jask',        title: 'Global Head of Communications',        brand: 'William Grant & Sons',        event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/788235997376', status_notes: 'Keen to meet again. Connected on LinkedIn, emailed after Ingenuity intro.', next_action: 'Book a call' },
+  { id: '747371346169', email: 'nat.sajal@wagamama.com', name: 'Nat Sajal',          title: 'Senior Paid Media + PR Manager',       brand: 'Wagamama',                    event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747371346169', status_notes: 'Chatting on email, connected on LinkedIn. Expecting mini brief mid June.', next_action: 'Chase mini brief — mid June' },
+  { id: '781107763410', email: 'megan_davies@b-f.com', name: 'Megan Davies',       title: 'Integrated Consumer Exp. Director',    brand: 'Brown-Forman',                event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/781107763410', status_notes: 'Interested in speaking further. Emailed following Ingenuity intro.', next_action: 'Follow up on email thread' },
+  { id: '788235997376', email: 'martinjask123@gmail.com', name: 'Martin Jask',        title: 'Global Head of Communications',        brand: 'William Grant & Sons',        event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/788235997376', status_notes: 'Keen to meet again. Connected on LinkedIn, emailed after Ingenuity intro.', next_action: 'Book a call' },
   { id: '792678953202', name: 'Rob Cottingham',     title: 'Senior Content & PR Manager',          brand: 'Sports Interactive',          event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792678953202', status_notes: 'Interested in speaking again. No response yet.', next_action: 'Chase — first follow up' },
-  { id: '782191400137', name: 'David Balko',        title: 'Marketing',                            brand: 'Wren Kitchens',               event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/782191400137', status_notes: 'Interested in speaking. Followed up by email, no response. LinkedIn connection sent.', next_action: 'Chase LinkedIn + email' },
-  { id: '776463682776', name: 'Aimee Cunningham',   title: 'Senior Brand Marketing Manager',       brand: 'Gousto',                      event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/776463682776', status_notes: 'Positive meeting but proceeding with another agency.', next_action: '—', dead: true },
+  { id: '782191400137', email: 'david.balko@mac.com', name: 'David Balko',        title: 'Marketing',                            brand: 'Wren Kitchens',               event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/782191400137', status_notes: 'Interested in speaking. Followed up by email, no response. LinkedIn connection sent.', next_action: 'Chase LinkedIn + email' },
+  { id: '776463682776', email: 'aimee.cunningham@gousto.co.uk', name: 'Aimee Cunningham',   title: 'Senior Brand Marketing Manager',       brand: 'Gousto',                      event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/776463682776', status_notes: 'Positive meeting but proceeding with another agency.', next_action: '—', dead: true },
 ];
 
 const HS_STATUS_MAP = {
@@ -5624,6 +5941,14 @@ async function loadMadMeets() {
       }
     }
 
+    // Cache live HS data on contact objects so Prospects page can use it
+    MAD_MEETS_CONTACTS.forEach(c => {
+      const d = hsData[c.id];
+      if (d) {
+        c._hsStatus = d.hs_lead_status || 'null';
+        c._hsLastContacted = d.notes_last_contacted || null;
+      }
+    });
     renderMadMeets(hsData);
     countEl.textContent = MAD_MEETS_CONTACTS.filter(c => !c.dead).length;
 
@@ -5669,6 +5994,252 @@ function renderMadMeets(hsData) {
       <td>${lastContactedLabel}</td>
       <td class="mm-notes">${contact.status_notes || '—'}</td>
       <td class="mm-next-action">${contact.next_action}</td>
+      <td style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        ${contact.email ? `<button class="mm-email-btn" onclick="openEmailModal(${JSON.stringify({name:contact.name,company:contact.brand,email:contact.email||'',title:contact.title}).replace(/"/g,'&quot;')})">✉ Email</button>` : `<button class="mm-email-btn" style="opacity:0.3;cursor:not-allowed" disabled title="No email on record">✉</button>`}
+        <a class="mm-hs-link" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a>
+      </td>
+    </tr>`;
+  }).join('');
+
+  panel.innerHTML = `<table class="mad-meets-table">
+    <thead>
+      <tr>
+        <th>Contact</th>
+        <th>Brand</th>
+        <th>Event</th>
+        <th>Status</th>
+        <th>Last Contacted</th>
+        <th>Last Response / Notes</th>
+        <th>Next Action</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// PROSPECTS PAGE
+// ══════════════════════════════════════════════════════════════
+
+const SUPABASE_URL_PRSP = 'https://iehkvlyjumkzccoqqgxl.supabase.co';
+const SUPABASE_ANON_PRSP = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
+
+function sbFetchPrsp(path, opts={}) {
+  const h = {
+    'apikey': SUPABASE_ANON_PRSP,
+    'Authorization': `Bearer ${SUPABASE_ANON_PRSP}`,
+    'Content-Type': 'application/json',
+    ...(opts.headers||{})
+  };
+  return fetch(`${SUPABASE_URL_PRSP}/rest/v1/${path}`, {...opts, headers: h});
+}
+
+let prspActiveTab = 'all';
+let prspContactsData = [];
+let prspContactsLoaded = false;
+let prspContactsLoadedType = null;
+
+const PRSP_TAB_META = {
+  'all':              { title: 'All Contacts',        sub: 'Every contact across all sources.' },
+  'LinkedIn':         { title: 'LinkedIn',            sub: 'Contacts sourced via LinkedIn.' },
+  'Dripify':          { title: 'Dripify',             sub: 'Connections from Dripify campaigns.' },
+  'Target Prospect':  { title: 'Target Prospects',    sub: 'Priority accounts you\'re actively targeting.' },
+  'Inbound':          { title: 'Inbound',             sub: 'Contacts who came to you.' },
+  'Referral':         { title: 'Referrals',           sub: 'Contacts referred by partners or clients.' },
+  'Personal Contact': { title: 'Personal Contacts',   sub: 'Contacts from your personal network.' },
+  'mad_meets':        { title: 'MAD Meets — Ingenuity', sub: 'Prospects met at Ingenuity MAD Meets events.' },
+};
+
+const PRSP_CONTACT_STATUS_CLASS = {
+  'Warm':          's-warm-progress',
+  'In progress':   's-inprogress',
+  'Contacted':     's-linkedin',
+  'Not contacted': 's-not-started',
+  'Stalled':       's-low',
+};
+
+function openProspects() {
+  document.getElementById('prospects-page').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  // close priorities if open
+  if (document.getElementById('pr-page').style.display !== 'none') closePriorities();
+  switchPrspTab(prspActiveTab, document.getElementById('prsp-tab-' + (prspActiveTab === 'mad_meets' ? 'madmeets' : prspActiveTab === 'all' ? 'all' : prspActiveTab.toLowerCase().replace(/\s+/g,'_').replace('personal_contact','personal').replace('target_prospect','target'))));
+}
+
+function closeProspects() {
+  document.getElementById('prospects-page').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function switchPrspTab(tab, btn) {
+  prspActiveTab = tab;
+  document.querySelectorAll('.prsp-sub-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const meta = PRSP_TAB_META[tab] || PRSP_TAB_META['all'];
+  document.getElementById('prsp-page-title').textContent = meta.title;
+  document.getElementById('prsp-page-sub').textContent   = meta.sub;
+
+  const contactsView = document.getElementById('prsp-contacts-view');
+  const madmeetsView = document.getElementById('prsp-madmeets-view');
+
+  if (tab === 'mad_meets') {
+    contactsView.style.display = 'none';
+    madmeetsView.style.display = 'block';
+    renderPrspMadMeets();
+  } else {
+    contactsView.style.display = 'block';
+    madmeetsView.style.display = 'none';
+    loadPrspContacts(tab);
+  }
+}
+
+async function loadPrspContacts(sourceType='all', force=false) {
+  if (!force && prspContactsLoaded && prspContactsLoadedType === sourceType) {
+    renderPrspContactsTable(prspContactsData);
+    return;
+  }
+  const loading  = document.getElementById('prsp-loading');
+  const error    = document.getElementById('prsp-error');
+  const tableWrap = document.getElementById('prsp-table-wrap');
+  loading.style.display = 'flex';
+  error.style.display = 'none';
+  tableWrap.style.display = 'none';
+
+  try {
+    let rows;
+    if (sourceType === 'Dripify') {
+      const r = await sbFetchPrsp('prospects?select=*&order=created_at.desc');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const raw = await r.json();
+      rows = raw.map(p => ({
+        ...p,
+        full_name:   [p.first_name, p.last_name].filter(Boolean).join(' ') || '—',
+        source_type: 'Dripify',
+        source_name: p.campaign || 'Dripify',
+      }));
+    } else {
+      const filter = sourceType !== 'all' ? `&source_type=eq.${encodeURIComponent(sourceType)}` : '';
+      const r = await sbFetchPrsp(`contacts?select=*&order=created_at.desc${filter}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      rows = await r.json();
+    }
+    prspContactsData = rows;
+    prspContactsLoadedType = sourceType;
+    prspContactsLoaded = true;
+    renderPrspContactsTable(rows);
+  } catch(e) {
+    loading.style.display = 'none';
+    error.style.display = 'block';
+    error.innerHTML = `<strong>Couldn't load contacts.</strong> ${e.message}`;
+  }
+}
+
+function renderPrspContactsTable(rows) {
+  const loading   = document.getElementById('prsp-loading');
+  const tableWrap = document.getElementById('prsp-table-wrap');
+  const tbody     = document.getElementById('prsp-tbody');
+  const count     = document.getElementById('prsp-count');
+  loading.style.display = 'none';
+
+  const q = (document.getElementById('prsp-search')?.value||'').toLowerCase();
+  const filtered = q ? rows.filter(c =>
+    (c.full_name||c.first_name||'').toLowerCase().includes(q) ||
+    (c.company||'').toLowerCase().includes(q) ||
+    (c.title||'').toLowerCase().includes(q) ||
+    (c.source_type||'').toLowerCase().includes(q)
+  ) : rows;
+
+  count.textContent = `${filtered.length} contact${filtered.length!==1?'s':''}`;
+
+  if (!filtered.length) {
+    tableWrap.style.display = 'none';
+    const err = document.getElementById('prsp-error');
+    err.style.display = 'block';
+    err.innerHTML = 'No contacts found for this filter.';
+    return;
+  }
+  document.getElementById('prsp-error').style.display = 'none';
+  tableWrap.style.display = '';
+
+  const sc = s => PRSP_CONTACT_STATUS_CLASS[s] || 's-not-started';
+  const prspEsc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  tbody.innerHTML = filtered.map(c => {
+    const name = c.full_name || [c.first_name,c.last_name].filter(Boolean).join(' ') || '—';
+    const emailBtn = c.email
+      ? `<button class="mm-email-btn" onclick="openEmailModal(${JSON.stringify({name,company:c.company||'',email:c.email||'',title:c.title||''}).replace(/"/g,'&quot;')})">✉ Email</button>`
+      : '';
+    return `<tr>
+      <td>
+        <div style="font-weight:600">${prspEsc(name)}</div>
+        ${emailBtn ? `<div style="margin-top:4px">${emailBtn}</div>` : ''}
+      </td>
+      <td>${prspEsc(c.company||'')}</td>
+      <td style="font-size:11px;color:var(--grey-mid)">${prspEsc(c.title||'')}</td>
+      <td><span class="bd-status-pill s-not-started" style="font-size:9px">${prspEsc(c.source_type||'')}</span></td>
+      <td style="font-size:11px;color:var(--grey-mid)">${prspEsc(c.source_name||'')}</td>
+      <td>${c.status?`<span class="bd-status-pill ${sc(c.status)}">${prspEsc(c.status)}</span>`:'—'}</td>
+      <td style="font-size:11px">${prspEsc(c.next_action||'')}</td>
+      <td>${c.linkedin_url?`<a href="${prspEsc(c.linkedin_url)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--black);border-bottom:1px solid var(--grey)">↗</a>`:''}</td>
+      <td></td>
+    </tr>`;
+  }).join('');
+}
+
+function prspFilterContacts() {
+  renderPrspContactsTable(prspContactsData);
+}
+
+// ── MAD Meets tab inside Prospects page ──────────────────────────────────────
+function renderPrspMadMeets() {
+  const panel = document.getElementById('prsp-mm-panel');
+  const loading = document.getElementById('prsp-mm-loading');
+  // Re-use the same MAD_MEETS_CONTACTS data and render function from the dashboard
+  // but output into the prospects page panel
+  const now = Date.now();
+  const DAY = 86400000;
+  const rows = MAD_MEETS_CONTACTS.map(contact => {
+    const hs = {};
+    const rawStatus = contact._hsStatus || 'null';
+    const statusInfo = HS_STATUS_MAP[rawStatus] || { label: rawStatus, cls: 'mm-status-new' };
+    const lastContactedRaw = contact._hsLastContacted || null;
+
+    let lastContactedLabel = '<span class="mm-last-contact never">—</span>';
+    if (lastContactedRaw) {
+      const d = new Date(lastContactedRaw);
+      const daysAgo = Math.floor((now - d.getTime()) / DAY);
+      const fmt = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const cls = daysAgo <= 7 ? 'recent' : daysAgo <= 21 ? '' : 'stale';
+      const ago = daysAgo === 0 ? 'today' : daysAgo === 1 ? '1d ago' : `${daysAgo}d ago`;
+      lastContactedLabel = `<span class="mm-last-contact ${cls}">${fmt} <span style="opacity:0.5">${ago}</span></span>`;
+    }
+
+    const eventCls = contact.event === 'feb' ? 'mm-event-feb' : 'mm-event-mar';
+    const rowStyle = contact.dead ? 'opacity:0.45' : '';
+    const contactData = JSON.stringify({
+      name: contact.name,
+      company: contact.brand,
+      email: contact.email || '',
+      title: contact.title
+    }).replace(/"/g,'&quot;');
+    const emailBtn = contact.email
+      ? `<button class="mm-email-btn" onclick="openEmailModal(${contactData})">✉ Email</button>`
+      : `<button class="mm-email-btn" style="opacity:0.3;cursor:not-allowed" disabled title="No email on record">✉ Email</button>`;
+
+    return `<tr style="${rowStyle}">
+      <td>
+        <div class="mm-name">${contact.name}</div>
+        <div class="mm-title">${contact.title}</div>
+        <div style="margin-top:5px">${emailBtn}</div>
+      </td>
+      <td class="mm-brand">${contact.brand}</td>
+      <td><span class="mm-event-pill ${eventCls}">${contact.eventLabel}</span></td>
+      <td><span class="mm-status-pill ${statusInfo.cls}">${statusInfo.label}</span></td>
+      <td>${lastContactedLabel}</td>
+      <td class="mm-notes">${contact.status_notes || '—'}</td>
+      <td class="mm-next-action">${contact.next_action}</td>
       <td><a class="mm-hs-link" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a></td>
     </tr>`;
   }).join('');
@@ -5690,7 +6261,282 @@ function renderMadMeets(hsData) {
   </table>`;
 }
 
+// ── Email compose modal ───────────────────────────────────────────────────────
+let _emailContact = null;
+
+// Email template definitions — personalised with contact name + company
+function getEmailTemplates(name, company) {
+  const firstName = name.split(' ')[0];
+  return {
+    chaser: {
+      subject: `Following up — Jungle Creations`,
+      body: `Hi ${firstName},\n\nI just wanted to follow up on my previous email — I know things get busy and I didn't want it to slip through the cracks.\n\nI'd love to find 20 minutes to show you what we've been doing for brands like yours. We've been helping [relevant brand type] brands build genuine social presence that actually drives commercial results — not just vanity metrics.\n\nWould any time next week work for a quick call?\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations`
+    },
+    meeting_followup: {
+      subject: `Great to meet you — next steps`,
+      body: `Hi ${firstName},\n\nReally enjoyed our conversation — thanks for taking the time.\n\nAs discussed, I'll put together a brief overview of how we could approach [the challenge you mentioned] for ${company}. I'll get that across to you by end of week.\n\nIn the meantime, if anything comes up or you have questions, feel free to drop me a line.\n\nLooking forward to continuing the conversation.\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations`
+    },
+    checkin: {
+      subject: `Checking in — Jungle Creations`,
+      body: `Hi ${firstName},\n\nHope you're well. I wanted to reach out as it's been a little while since we last spoke.\n\nWe've had a few interesting briefs come through recently from brands in a similar space to ${company} and it got me thinking about our conversation.\n\nHappy to share what we've been up to if useful — would a quick 15-minute catch-up work at any point in the next few weeks?\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations`
+    }
+  };
+}
+
+function openEmailModal(contactObj) {
+  _emailContact = typeof contactObj === 'string' ? JSON.parse(contactObj) : contactObj;
+  const modal = document.getElementById('email-compose-modal');
+  const title = document.getElementById('ecm-title');
+  title.textContent = `Email ${_emailContact.name}`;
+  document.getElementById('ecm-to').value = _emailContact.email || '';
+  document.getElementById('ecm-subject').value = '';
+  document.getElementById('ecm-body').value = '';
+  // clear active pills
+  document.querySelectorAll('.ecm-template-pill').forEach(p => p.classList.remove('active'));
+  // show/hide no-token warning
+  const noToken = document.getElementById('ecm-no-token-msg');
+  const sendBtn = document.getElementById('ecm-send-btn');
+  if (gcalIsConnected()) {
+    noToken.style.display = 'none';
+    sendBtn.style.display = '';
+  } else {
+    noToken.style.display = 'block';
+    sendBtn.style.display = 'none';
+  }
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEmailModal() {
+  document.getElementById('email-compose-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  _emailContact = null;
+}
+
+function applyEmailTemplate(type, btn) {
+  if (!_emailContact) return;
+  const templates = getEmailTemplates(_emailContact.name, _emailContact.company || 'your brand');
+  const t = templates[type];
+  if (!t) return;
+  document.getElementById('ecm-subject').value = t.subject;
+  document.getElementById('ecm-body').value    = t.body;
+  document.querySelectorAll('.ecm-template-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ecm-body').focus();
+}
+
+function copyEmailToClipboard() {
+  const subject = document.getElementById('ecm-subject').value;
+  const body    = document.getElementById('ecm-body').value;
+  const to      = document.getElementById('ecm-to').value;
+  const text    = `To: ${to}\nSubject: ${subject}\n\n${body}`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('ecm-copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+async function sendProspectEmail() {
+  const to      = document.getElementById('ecm-to').value.trim();
+  const subject = document.getElementById('ecm-subject').value.trim();
+  const body    = document.getElementById('ecm-body').value.trim();
+  const btn     = document.getElementById('ecm-send-btn');
+
+  if (!to)      { showToast('Add a recipient email address', 'error'); return; }
+  if (!subject) { showToast('Add a subject line', 'error'); return; }
+  if (!body)    { showToast('Write a message first', 'error'); return; }
+
+  if (!gcalIsConnected()) {
+    showToast('Google session expired — reconnect Google to send', 'error');
+    document.getElementById('ecm-no-token-msg').style.display = 'block';
+    btn.style.display = 'none';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const encodedSubject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
+    // Convert plain text body to basic HTML
+    const htmlBody = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const rawMessage = [
+      `To: ${to}`,
+      `Subject: ${encodedSubject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=utf-8',
+      '',
+      htmlBody
+    ].join('\r\n');
+
+    const encoded = btoa(unescape(encodeURIComponent(rawMessage)))
+      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+
+    const res = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${gcalAccessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ raw: encoded })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      if (res.status === 401) {
+        gcalSignOut();
+        throw new Error('Google session expired — please reconnect Google Calendar and try again');
+      }
+      throw new Error(err?.error?.message || `Gmail API ${res.status}`);
+    }
+
+    showToast(`Email sent to ${to}`, 'success');
+    closeEmailModal();
+
+  } catch(e) {
+    console.error('Email send error:', e);
+    showToast(e.message || 'Error sending — check console', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Send via Gmail →';
+}
+
+// ── Close prospects when other nav items are clicked ─────────────────────────
+(function wirePrspClose() {
+  // Run after DOM is ready
+  const wire = () => {
+    document.querySelectorAll('.topbar-nav-btn').forEach(btn => {
+      if (btn.id === 'prospects-nav-btn') return;
+      btn.addEventListener('click', () => {
+        const page = document.getElementById('prospects-page');
+        if (page && page.style.display !== 'none') closeProspects();
+      });
+    });
+    // Also close on main content click (wordmark)
+    document.querySelector('.wordmark')?.addEventListener('click', () => {
+      const page = document.getElementById('prospects-page');
+      if (page && page.style.display !== 'none') closeProspects();
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);
+  else wire();
+})();
+
 </script>
+
+<!-- ── PROSPECTS PAGE ───────────────────────────────────────── -->
+<div id="prospects-page">
+
+  <!-- Header -->
+  <div class="prsp-header">
+    <div>
+      <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-0.03em;color:var(--black)" id="prsp-page-title">Prospects</h1>
+      <p style="margin:4px 0 0;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)" id="prsp-page-sub">All contacts across every source</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;align-items:flex-start;padding-top:4px">
+      <button onclick="closeProspects()" style="display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:8px;border:1.5px solid var(--grey-light);background:var(--white);color:var(--grey-mid);font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Close ✕</button>
+    </div>
+  </div>
+
+  <!-- Sub-tabs -->
+  <div class="prsp-sub-tabs-bar">
+    <button class="prsp-sub-tab active" id="prsp-tab-all"        onclick="switchPrspTab('all',this)">All contacts</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-linkedin"   onclick="switchPrspTab('LinkedIn',this)">LinkedIn</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-dripify"    onclick="switchPrspTab('Dripify',this)">Dripify</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-target"     onclick="switchPrspTab('Target Prospect',this)">Target Prospects</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-inbound"    onclick="switchPrspTab('Inbound',this)">Inbound</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-referral"   onclick="switchPrspTab('Referral',this)">Referral</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-personal"   onclick="switchPrspTab('Personal Contact',this)">Personal</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-madmeets"   onclick="switchPrspTab('mad_meets',this)">MAD Meets</button>
+  </div>
+
+  <!-- Body -->
+  <div class="prsp-body">
+    <div class="prsp-inner">
+
+      <!-- Contacts view (all tabs except mad_meets) -->
+      <div id="prsp-contacts-view">
+        <div class="prsp-controls" style="margin-top:12px">
+          <input type="text" class="prsp-search" id="prsp-search" placeholder="Search by name, company or title…" oninput="prspFilterContacts()">
+          <div class="prsp-count" id="prsp-count"></div>
+        </div>
+        <div id="prsp-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
+        <div id="prsp-error" style="display:none;padding:32px;text-align:center;font-size:13px;color:var(--grey-mid)"></div>
+        <div class="prsp-table-wrap" id="prsp-table-wrap" style="display:none">
+          <table class="prsp-table" id="prsp-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Title</th>
+                <th>Source</th>
+                <th>Campaign</th>
+                <th>Status</th>
+                <th>Next Action</th>
+                <th>LI</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="prsp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MAD Meets view -->
+      <div id="prsp-madmeets-view" style="display:none;margin-top:12px">
+        <div id="prsp-mm-panel">
+          <div id="prsp-mm-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── EMAIL COMPOSE MODAL ───────────────────────────────────── -->
+<div id="email-compose-modal" onclick="if(event.target===this)closeEmailModal()">
+  <div id="email-compose-box">
+    <div class="ecm-header">
+      <div class="ecm-title" id="ecm-title">Email prospect</div>
+      <button class="ecm-close" onclick="closeEmailModal()">✕</button>
+    </div>
+    <div class="ecm-body">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:8px">Quick templates</div>
+        <div class="ecm-templates">
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('chaser',this)">Chaser</button>
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('meeting_followup',this)">Meeting follow-up</button>
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('checkin',this)">Check-in</button>
+        </div>
+      </div>
+      <div class="ecm-field">
+        <label>To</label>
+        <input type="email" id="ecm-to" placeholder="email@address.com">
+      </div>
+      <div class="ecm-field">
+        <label>Subject</label>
+        <input type="text" id="ecm-subject" placeholder="Subject line…">
+      </div>
+      <div class="ecm-field">
+        <label>Message</label>
+        <textarea id="ecm-body" rows="10" placeholder="Email body…"></textarea>
+      </div>
+      <div id="ecm-no-token-msg" style="display:none" class="ecm-no-token">
+        ⚠️ Google session not active. <a href="javascript:gcalSignIn()">Reconnect Google</a> to send via Gmail, or copy the text and paste into your email client.
+      </div>
+    </div>
+    <div class="ecm-footer">
+      <button class="ecm-cancel-btn" onclick="closeEmailModal()">Cancel</button>
+      <div style="display:flex;gap:8px">
+        <button class="ecm-cancel-btn" onclick="copyEmailToClipboard()" id="ecm-copy-btn">Copy to clipboard</button>
+        <button class="ecm-send-btn" id="ecm-send-btn" onclick="sendProspectEmail()">Send via Gmail →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
