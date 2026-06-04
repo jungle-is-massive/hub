@@ -1009,6 +1009,90 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
   font-size: 11px; color: var(--grey-mid); line-height: 1.5; margin: 0;
 }
 .timeline-add-hint strong { color: var(--black); }
+
+/* MAD MEETS PANEL */
+#mad-meets-panel {
+  background: var(--black);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.mad-meets-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.mad-meets-table thead th {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-mid);
+  padding: 12px 16px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  white-space: nowrap;
+}
+.mad-meets-table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.12s;
+}
+.mad-meets-table tbody tr:last-child { border-bottom: none; }
+.mad-meets-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+.mad-meets-table td {
+  padding: 10px 16px;
+  color: var(--cream);
+  vertical-align: middle;
+}
+.mm-name { font-weight: 600; font-size: 13px; }
+.mm-title { font-size: 11px; color: var(--grey-mid); margin-top: 1px; }
+.mm-brand { font-size: 13px; }
+.mm-event-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.mm-event-feb { background: rgba(74,191,255,0.15); color: #4ABFFF; }
+.mm-event-mar { background: rgba(135,251,102,0.13); color: var(--green); }
+.mm-status-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.mm-status-new { background: rgba(255,255,255,0.08); color: var(--grey); }
+.mm-status-attempted { background: rgba(240,180,41,0.15); color: var(--amber); }
+.mm-status-bad-timing { background: rgba(255,107,74,0.15); color: var(--coral); }
+.mm-status-in-progress { background: rgba(62,207,142,0.15); color: var(--teal); }
+.mm-last-contact { font-size: 12px; color: var(--grey-mid); }
+.mm-last-contact.recent { color: var(--teal); }
+.mm-last-contact.stale { color: var(--amber); }
+.mm-last-contact.never { color: rgba(255,255,255,0.2); font-style: italic; }
+.mm-notes { font-size: 12px; color: var(--grey); max-width: 220px; }
+.mm-next-action { font-size: 12px; color: var(--cream); font-style: italic; max-width: 180px; }
+.mm-hs-link {
+  display: inline-block;
+  width: 22px; height: 22px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  text-align: center;
+  line-height: 22px;
+  font-size: 11px;
+  text-decoration: none;
+  color: var(--grey-mid);
+  transition: background 0.12s, color 0.12s;
+}
+.mm-hs-link:hover { background: rgba(255,107,41,0.2); color: #FF6B29; }
 </style>
 </head>
 <body>
@@ -1258,6 +1342,14 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
     </div>
   </div>
   <div id="events-list"><div class="empty-state">Loading events…</div></div>
+
+  <div class="section-head" id="section-mad-meets">
+    <div class="section-label">MAD Meets — Ingenuity</div>
+    <div class="section-count" id="mad-meets-count">—</div>
+  </div>
+  <div id="mad-meets-panel">
+    <div id="mad-meets-loading">Loading contacts…</div>
+  </div>
 
 </main>
 
@@ -1722,7 +1814,7 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   try {
-    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison(), prLoad(true)]);
+    await Promise.all([loadMeetings(), loadDeals(), loadInquiries(), loadEvents(), loadLinkedInConnections(), loadTodoData(), loadIntermediaryComparison(), prLoad(true), loadMadMeets()]);
     await loadFunnelStages(); // must run after loadDeals so dashboardData.deals is populated
     await applyDeltas();      // must run after all data is loaded so stat values are populated
   } catch(e) { console.error(e); }
@@ -5471,6 +5563,133 @@ document.addEventListener('keydown', function(e) {
     closePipelineModal();
   }
 });
+
+
+// ── MAD MEETS PANEL ──────────────────────────────────────────────────────────
+const MAD_MEETS_CONTACTS = [
+  { id: '747364268226', name: 'Chris Waters',      title: 'CMO',                                  brand: 'GDK',                        event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747364268226', status_notes: 'No response. Jade chased 27 March.', next_action: 'Follow up — personalised angle' },
+  { id: '747114717412', name: 'Tom Sutton',         title: 'Marketing Director',                   brand: 'Gorilla Glue',               event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747114717412', status_notes: 'No response. Jade chased 27 March.', next_action: 'Follow up — personalised angle' },
+  { id: '745932079304', name: 'Alison Leigh',       title: 'Field Marketing Manager',              brand: 'Vodafone Automotive',         event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745932079304', status_notes: 'Responded — busy in planning mode, not considering agencies yet.', next_action: 'Nurture — re-engage Q3' },
+  { id: '745933501652', name: 'Michelle Stoodley',  title: 'Head of Marketing',                   brand: 'Craghoppers',                 event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745933501652', status_notes: '', next_action: 'Make first contact' },
+  { id: '745794924790', name: 'Kerry Grassick',     title: 'Head of European Marketing',           brand: 'The Artisanal Spirits Co.',   event: 'feb', eventLabel: 'Feb MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745794924790', status_notes: 'Meeting in diary: Wed 17 June, 11am.', next_action: 'Prep for 17 June meeting' },
+  { id: '792700436682', name: 'Rosie Jones',        title: 'Digital Marketing & Creative Manager', brand: 'E1 Series',                   event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792700436682', status_notes: "Sent LinkedIn connection request, still pending. Never responded to Ingenuity's follow-ups.", next_action: 'Chase LinkedIn connection' },
+  { id: '792671555790', name: 'Gio Forino',         title: 'Social Media & Influencer Manager',    brand: 'McCormick / Schwartz',        event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792671555790', status_notes: 'Connected on LinkedIn. Presenting agencies to team — will follow up once discussed internally.', next_action: 'Wait for their update, then follow up' },
+  { id: '747371346169', name: 'Nat Sajal',          title: 'Senior Paid Media + PR Manager',       brand: 'Wagamama',                    event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747371346169', status_notes: 'Chatting on email, connected on LinkedIn. Expecting mini brief mid June.', next_action: 'Chase mini brief — mid June' },
+  { id: '781107763410', name: 'Megan Davies',       title: 'Integrated Consumer Exp. Director',    brand: 'Brown-Forman',                event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/781107763410', status_notes: 'Interested in speaking further. Emailed following Ingenuity intro.', next_action: 'Follow up on email thread' },
+  { id: '788235997376', name: 'Martin Jask',        title: 'Global Head of Communications',        brand: 'William Grant & Sons',        event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/788235997376', status_notes: 'Keen to meet again. Connected on LinkedIn, emailed after Ingenuity intro.', next_action: 'Book a call' },
+  { id: '792678953202', name: 'Rob Cottingham',     title: 'Senior Content & PR Manager',          brand: 'Sports Interactive',          event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792678953202', status_notes: 'Interested in speaking again. No response yet.', next_action: 'Chase — first follow up' },
+  { id: '782191400137', name: 'David Balko',        title: 'Marketing',                            brand: 'Wren Kitchens',               event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/782191400137', status_notes: 'Interested in speaking. Followed up by email, no response. LinkedIn connection sent.', next_action: 'Chase LinkedIn + email' },
+  { id: '776463682776', name: 'Aimee Cunningham',   title: 'Senior Brand Marketing Manager',       brand: 'Gousto',                      event: 'mar', eventLabel: 'Mar MAD Meets', hubspotUrl: 'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/776463682776', status_notes: 'Positive meeting but proceeding with another agency.', next_action: '—', dead: true },
+];
+
+const HS_STATUS_MAP = {
+  'NEW':                  { label: 'New',             cls: 'mm-status-new' },
+  'ATTEMPTED_TO_CONTACT': { label: 'Attempted',       cls: 'mm-status-attempted' },
+  'BAD_TIMING':           { label: 'Bad Timing',      cls: 'mm-status-bad-timing' },
+  'IN_PROGRESS':          { label: 'In Progress',     cls: 'mm-status-in-progress' },
+  'null':                 { label: 'No Status',       cls: 'mm-status-new' },
+};
+
+async function loadMadMeets() {
+  const panel = document.getElementById('mad-meets-panel');
+  const countEl = document.getElementById('mad-meets-count');
+
+  try {
+    const SUPABASE_URL = 'https://iehkvlyjumkzccoqqgxl.supabase.co';
+    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
+
+    const ids = MAD_MEETS_CONTACTS.map(c => c.id);
+
+    // Batch fetch from HubSpot via hs-proxy
+    const searchPayload = {
+      method: 'POST',
+      path: '/crm/v3/objects/contacts/batch/read',
+      body: {
+        inputs: ids.map(id => ({ id })),
+        properties: ['firstname','lastname','hs_lead_status','notes_last_contacted']
+      }
+    };
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/hs-proxy`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(searchPayload)
+    });
+
+    let hsData = {};
+    if (res.ok) {
+      const json = await res.json();
+      if (json.results) {
+        json.results.forEach(r => { hsData[r.id] = r.properties; });
+      }
+    }
+
+    renderMadMeets(hsData);
+    countEl.textContent = MAD_MEETS_CONTACTS.filter(c => !c.dead).length;
+
+  } catch(e) {
+    console.warn('MAD Meets: falling back to static data', e);
+    renderMadMeets({});
+    countEl.textContent = MAD_MEETS_CONTACTS.filter(c => !c.dead).length;
+  }
+}
+
+function renderMadMeets(hsData) {
+  const panel = document.getElementById('mad-meets-panel');
+  const now = Date.now();
+  const DAY = 86400000;
+
+  const rows = MAD_MEETS_CONTACTS.map(contact => {
+    const hs = hsData[contact.id] || {};
+    const rawStatus = hs.hs_lead_status || 'null';
+    const statusInfo = HS_STATUS_MAP[rawStatus] || { label: rawStatus, cls: 'mm-status-new' };
+    const lastContactedRaw = hs.notes_last_contacted;
+
+    let lastContactedLabel = '<span class="mm-last-contact never">—</span>';
+    if (lastContactedRaw) {
+      const d = new Date(lastContactedRaw);
+      const daysAgo = Math.floor((now - d.getTime()) / DAY);
+      const fmt = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const cls = daysAgo <= 7 ? 'recent' : daysAgo <= 21 ? '' : 'stale';
+      const ago = daysAgo === 0 ? 'today' : daysAgo === 1 ? '1d ago' : `${daysAgo}d ago`;
+      lastContactedLabel = `<span class="mm-last-contact ${cls}">${fmt} <span style="opacity:0.5">${ago}</span></span>`;
+    }
+
+    const eventCls = contact.event === 'feb' ? 'mm-event-feb' : 'mm-event-mar';
+    const rowStyle = contact.dead ? 'opacity:0.45' : '';
+
+    return `<tr style="${rowStyle}">
+      <td>
+        <div class="mm-name">${contact.name}</div>
+        <div class="mm-title">${contact.title}</div>
+      </td>
+      <td class="mm-brand">${contact.brand}</td>
+      <td><span class="mm-event-pill ${eventCls}">${contact.eventLabel}</span></td>
+      <td><span class="mm-status-pill ${statusInfo.cls}">${statusInfo.label}</span></td>
+      <td>${lastContactedLabel}</td>
+      <td class="mm-notes">${contact.status_notes || '—'}</td>
+      <td class="mm-next-action">${contact.next_action}</td>
+      <td><a class="mm-hs-link" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a></td>
+    </tr>`;
+  }).join('');
+
+  panel.innerHTML = `<table class="mad-meets-table">
+    <thead>
+      <tr>
+        <th>Contact</th>
+        <th>Brand</th>
+        <th>Event</th>
+        <th>Status</th>
+        <th>Last Contacted</th>
+        <th>Last Response / Notes</th>
+        <th>Next Action</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
 </script>
 
 </body>
