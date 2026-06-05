@@ -5918,6 +5918,8 @@ function switchPrspTab(tab, btn) {
   if (tab === 'mad_meets') {
     contactsView.style.display = 'none';
     madmeetsView.style.display = 'block';
+    const mmSearch = document.getElementById('prsp-mm-search');
+    if (mmSearch) mmSearch.value = '';
     renderPrspMadMeets();
   } else {
     contactsView.style.display = 'block';
@@ -6024,15 +6026,21 @@ function prspFilterContacts() {
 }
 
 // ── MAD Meets tab inside Prospects page ──────────────────────────────────────
+function prspFilterMadMeets() { renderPrspMadMeetsTable(); }
+
 async function renderPrspMadMeets() {
   const panel = document.getElementById('prsp-mm-panel');
-
-  // If HS data hasn't been fetched yet, trigger it now and wait
   if (!MAD_MEETS_CONTACTS[0]._hsStatus) {
     panel.innerHTML = '<div class="prsp-loading"><div class="prsp-spinner"></div>Loading HubSpot data…</div>';
     await loadMadMeets();
   }
+  renderPrspMadMeetsTable();
+}
 
+function renderPrspMadMeetsTable() {
+  const panel   = document.getElementById('prsp-mm-panel');
+  const countEl = document.getElementById('prsp-mm-count');
+  const q = (document.getElementById('prsp-mm-search')?.value || '').toLowerCase();
   const now = Date.now();
   const DAY = 86400000;
 
@@ -6045,7 +6053,23 @@ async function renderPrspMadMeets() {
     'null':                 { label: 'No Status',    cls: 'background:#f0f0ee;color:#aaa' },
   };
 
-  const rows = MAD_MEETS_CONTACTS.map(contact => {
+  const filtered = q
+    ? MAD_MEETS_CONTACTS.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.brand.toLowerCase().includes(q) ||
+        c.title.toLowerCase().includes(q) ||
+        c.eventLabel.toLowerCase().includes(q)
+      )
+    : MAD_MEETS_CONTACTS;
+
+  if (countEl) countEl.textContent = `${filtered.filter(c => !c.dead).length} contact${filtered.filter(c=>!c.dead).length!==1?'s':''}`;
+
+  if (!filtered.length) {
+    panel.innerHTML = '<div class="prsp-empty">No contacts match that search.</div>';
+    return;
+  }
+
+  const rows = filtered.map(contact => {
     const rawStatus = contact._hsStatus || 'null';
     const statusInfo = STATUS_LIGHT[rawStatus] || STATUS_LIGHT['null'];
     const lastContactedRaw = contact._hsLastContacted || null;
@@ -6335,6 +6359,10 @@ async function sendProspectEmail() {
 
       <!-- MAD Meets view -->
       <div id="prsp-madmeets-view" style="display:none;margin-top:12px">
+        <div class="prsp-controls">
+          <input type="text" class="prsp-search" id="prsp-mm-search" placeholder="Search by name, brand or title…" oninput="prspFilterMadMeets()">
+          <div class="prsp-count" id="prsp-mm-count"></div>
+        </div>
         <div id="prsp-mm-panel">
           <div id="prsp-mm-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
         </div>
