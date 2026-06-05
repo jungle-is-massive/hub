@@ -5852,17 +5852,17 @@ const HS_STATUS_MAP = {
 // Pure data fetch — no DOM side effects. Called on demand by renderPrspMadMeets.
 async function loadMadMeets() {
   try {
-    const SUPABASE_URL = 'https://iehkvlyjumkzccoqqgxl.supabase.co';
     const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
     const ids = MAD_MEETS_CONTACTS.map(c => c.id);
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/hs-proxy`, {
+    const res = await fetch('https://iehkvlyjumkzccoqqgxl.supabase.co/functions/v1/hs-proxy', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        method: 'POST',
-        path: '/crm/v3/objects/contacts/batch/read',
-        body: { inputs: ids.map(id => ({ id })), properties: ['hs_lead_status','notes_last_contacted'] }
-      })
+      headers: {
+        'Authorization': `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/contacts/batch/read'
+      },
+      body: JSON.stringify({ inputs: ids.map(id => ({ id })), properties: ['hs_lead_status','notes_last_contacted'] })
     });
     if (res.ok) {
       const json = await res.json();
@@ -6183,43 +6183,53 @@ async function fetchAndRenderLastComms(contact) {
   }
 
   try {
-    // Engagements v1 API must be called directly — hs-proxy only handles CRM v3 routes
-    const hsToken = HUBSPOT_TOKEN;
-    if (!hsToken) throw new Error('No HubSpot token available');
+    // Use hs-proxy with correct header-based format (x-proxy-target + x-hs-path)
+    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
+    const PROXY_URL = 'https://iehkvlyjumkzccoqqgxl.supabase.co/functions/v1/hs-proxy';
 
-    const res = await fetch(
-      `https://api.hubapi.com/engagements/v1/engagements/associated/contact/${contact.id}/paged?limit=25`,
-      { headers: { 'Authorization': `Bearer ${hsToken}` } }
-    );
+    // Use CRM v3 emails search (works through proxy, returns full text + subject)
+    const res = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/emails/search'
+      },
+      body: JSON.stringify({
+        filterGroups: [{ filters: [{ propertyName: 'associations.contact', operator: 'EQ', value: String(contact.id) }] }],
+        properties: ['hs_email_subject', 'hs_email_direction', 'hs_email_text', 'hs_timestamp', 'hs_email_sender_email'],
+        sorts: [{ propertyName: 'hs_timestamp', direction: 'DESCENDING' }],
+        limit: 5
+      })
+    });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    // Find most recent email engagement
-    const emails = (data.results || [])
-      .filter(e => ['EMAIL','INCOMING_EMAIL'].includes(e.engagement?.type))
-      .sort((a,b) => (b.engagement?.timestamp||0) - (a.engagement?.timestamp||0));
+    // CRM v3 emails: results[].properties (not engagement/metadata wrapper)
+    const results = data.results || [];
 
-    if (!emails.length) {
+    if (!results.length) {
       contact._lastComms = null;
       renderLastCommsCell(cell, null, contact);
       return;
     }
 
-    const { engagement: eng, metadata: meta } = emails[0];
-    const engId = eng.id;
-    const direction  = eng.type === 'INCOMING_EMAIL' ? 'received' : 'sent';
-    const ts         = eng.timestamp || eng.createdAt || 0;
-    const date       = new Date(ts);
-    const dateStr    = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    const subject    = meta.subject || null;
-    const bodyRaw    = meta.text || stripHtmlToText(meta.html || '');
+    // Already sorted descending by hs_timestamp from the search
+    const p = results[0].properties;
+    // hs_email_direction: 'EMAIL' = outbound sent, 'INCOMING_EMAIL' = inbound received
+    const direction = p.hs_email_direction === 'INCOMING_EMAIL' ? 'received' : 'sent';
+    const ts        = p.hs_timestamp ? new Date(p.hs_timestamp).getTime() : 0;
+    const date      = new Date(ts);
+    const dateStr   = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const subject   = p.hs_email_subject || null;
+    const bodyRaw   = p.hs_email_text || '';
     // Strip quoted reply history — take just the first paragraph
-    const bodyClean  = bodyRaw.split(/\r?\n\r?\n/)[0].replace(/\s+/g,' ').trim().slice(0, 140);
-    // HubSpot direct link to engagement
-    const hsLink     = `https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contact.id}`;
+    const bodyClean = bodyRaw.split(/\r?\n\r?\n/)[0].replace(/\s+/g,' ').trim().slice(0, 140);
+    const hsLink    = `https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contact.id}`;
 
-    const commsData = { direction, dateStr, subject, snippet: bodyClean, hsLink, engId };
+    const commsData = { direction, dateStr, subject, snippet: bodyClean, hsLink };
     contact._lastComms = commsData;
     renderLastCommsCell(cell, commsData, contact);
 
