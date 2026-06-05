@@ -2135,7 +2135,7 @@ async function loadMeetings() {
       const mtabUp = document.getElementById('mtab-count-upcoming'); if(mtabUp) mtabUp.textContent = cached.upcoming.length;
       const mtabAt = document.getElementById('mtab-count-attended'); if(mtabAt) mtabAt.textContent = cached.attended.length;
 
-      const activeTab = document.getElementById('mtab-upcoming').classList.contains('active') ? 'upcoming' : 'attended';
+      const activeTab = (document.getElementById('mtab-upcoming')?.classList.contains('active') ?? true) ? 'upcoming' : 'attended';
       renderMeetings(activeTab);
       updateMeetingSyncBadge(cached.syncedAt, cached.syncedBy, false);
     } else {
@@ -2179,7 +2179,7 @@ async function loadMeetings() {
     const mtabUp2 = document.getElementById('mtab-count-upcoming'); if(mtabUp2) mtabUp2.textContent = upcomingMeetings.length;
     const mtabAt2 = document.getElementById('mtab-count-attended'); if(mtabAt2) mtabAt2.textContent = attendedMeetings.length;
 
-    const activeTab = document.getElementById('mtab-upcoming').classList.contains('active') ? 'upcoming' : 'attended';
+    const activeTab = (document.getElementById('mtab-upcoming')?.classList.contains('active') ?? true) ? 'upcoming' : 'attended';
     renderMeetings(activeTab);
     updateMeetingSyncBadge(null, null, true);
 
@@ -2200,8 +2200,8 @@ async function loadMeetings() {
 }
 
 function switchMeetingTab(tab) {
-  document.getElementById('mtab-upcoming').classList.toggle('active', tab === 'upcoming');
-  document.getElementById('mtab-attended').classList.toggle('active', tab === 'attended');
+  const mtabUp = document.getElementById('mtab-upcoming'); if(mtabUp) mtabUp.classList.toggle('active', tab === 'upcoming');
+  const mtabAt = document.getElementById('mtab-attended'); if(mtabAt) mtabAt.classList.toggle('active', tab === 'attended');
   renderMeetings(tab);
 }
 
@@ -2438,6 +2438,7 @@ async function selectInquiry(e, rowEl) {
 
   // Render message column (use Supabase message initially, may be overridden by HubSpot fetch)
   const msgBody = document.getElementById('inquiries-message-body');
+  if (!msgBody) return; // not on this page
   const name = [e.firstname, e.lastname].filter(Boolean).join(' ') || '—';
   const renderMessageCol = (msg) => {
     msgBody.innerHTML = `
@@ -3047,6 +3048,7 @@ function renderStaffReferralLeaderboard(actuals, total) {
 
 function renderLane(containerId, deals, colorVar) {
   const container = document.getElementById(containerId);
+  if (!container) return; // lane not present on this page
   if (!deals.length) {
     container.innerHTML = '<div class="empty-state">No deals in this horizon</div>';
     return;
@@ -3185,7 +3187,7 @@ async function loadEvents() {
     const etabPast = document.getElementById('etab-count-past'); if(etabPast) etabPast.textContent = past.length;
 
     // Render whichever tab is active
-    const activeTab = document.getElementById('etab-upcoming').classList.contains('active') ? 'upcoming' : 'past';
+    const activeTab = (document.getElementById('etab-upcoming')?.classList.contains('active') ?? true) ? 'upcoming' : 'past';
     renderEvents(activeTab);
 
   } catch(e) {
@@ -3195,8 +3197,8 @@ async function loadEvents() {
 }
 
 function switchEventTab(tab) {
-  document.getElementById('etab-upcoming').classList.toggle('active', tab === 'upcoming');
-  document.getElementById('etab-past').classList.toggle('active', tab === 'past');
+  const etabUp = document.getElementById('etab-upcoming'); if(etabUp) etabUp.classList.toggle('active', tab === 'upcoming');
+  const etabPast = document.getElementById('etab-past'); if(etabPast) etabPast.classList.toggle('active', tab === 'past');
   renderEvents(tab);
 }
 
