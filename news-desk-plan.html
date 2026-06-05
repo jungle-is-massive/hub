@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle — News Desk Plan</title>
+<link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F5F0E8; --cream-soft:#EFE9DF; --black:#0E0E0E; --black-soft:#1A1A1A;
+  --green:#87FB66; --green-dim:#65C247; --grey:#C8C3B8; --grey-mid:#8A8880;
+  --grey-light:#E8E3DA; --white:#FFFFFF; --header-h:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--cream);color:var(--black);font-family:'DM Sans',system-ui,sans-serif;min-height:100%;-webkit-font-smoothing:antialiased;}
+
+#topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);background:var(--black);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 28px;}
+.wordmark{font-size:17px;font-weight:800;letter-spacing:-0.03em;color:var(--cream);white-space:nowrap;text-decoration:none;}
+.wordmark span{color:var(--green);}
+.topbar-center{display:flex;justify-content:center;}
+.hub-tag{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--grey);padding:6px 14px;border:1px solid rgba(255,255,255,0.12);border-radius:100px;}
+.topbar-right{display:flex;justify-content:flex-end;align-items:center;gap:12px;}
+.topbar-date{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);}
+
+main{margin-top:var(--header-h);padding:44px 32px 120px;max-width:1180px;margin-left:auto;margin-right:auto;}
+.hero{margin-bottom:26px;}
+.hero-eyebrow{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);}
+.hero h1{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.035em;line-height:1.02;margin-bottom:14px;}
+.hero h1 span{color:var(--green-dim);font-style:italic;font-weight:400;}
+.hero p{font-size:15px;color:var(--grey-mid);max-width:640px;line-height:1.5;}
+.strawman-badge{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;background:#F0B429;color:var(--black);padding:6px 13px;border-radius:100px;margin-bottom:18px;font-weight:500;}
+
+.principle{background:var(--black);color:var(--cream);border-radius:16px;padding:24px 26px;margin-bottom:28px;}
+.principle .lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:10px;}
+.principle p{font-size:16px;line-height:1.5;color:var(--cream);max-width:780px;}
+.principle p + p{margin-top:10px;color:var(--grey);font-size:14px;}
+.principle b{color:var(--green);font-weight:600;}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;border-bottom:1px solid var(--grey-light);padding-bottom:2px;}
+.tab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--grey-mid);background:none;border:none;padding:10px 16px;cursor:pointer;border-radius:10px 10px 0 0;position:relative;transition:color .15s;}
+.tab:hover{color:var(--black);}
+.tab.on{color:var(--black);}
+.tab.on::after{content:'';position:absolute;left:12px;right:12px;bottom:-3px;height:2.5px;background:var(--green-dim);border-radius:2px;}
+.panel{display:none;animation:fade .2s ease;}
+.panel.on{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.sec-intro{font-size:14.5px;color:var(--grey-mid);line-height:1.55;max-width:760px;margin-bottom:22px;}
+
+/* MATRIX */
+.matrix-wrap{overflow-x:auto;border:1px solid var(--grey-light);border-radius:14px;background:var(--white);}
+table.matrix{border-collapse:collapse;width:100%;min-width:760px;}
+table.matrix th,table.matrix td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--grey-light);vertical-align:top;}
+table.matrix thead th{background:var(--cream-soft);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey-mid);font-weight:500;position:sticky;top:0;}
+table.matrix thead th .tier-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em;text-transform:none;color:var(--black);display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+table.matrix thead th .tier-dot{width:8px;height:8px;border-radius:50%;}
+table.matrix thead th .tier-sub{font-weight:400;color:var(--grey-mid);letter-spacing:0;text-transform:none;font-family:'DM Sans',sans-serif;font-size:11px;}
+table.matrix tbody tr:last-child td{border-bottom:none;}
+table.matrix tbody tr:hover td{background:#FBF9F5;}
+.type-cell{font-weight:600;font-size:13.5px;white-space:nowrap;}
+.type-cell .tdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle;}
+.veh{font-size:13px;font-weight:600;color:var(--black);}
+.veh.skip{color:var(--grey);font-weight:400;}
+.timing{font-size:11.5px;color:var(--grey-mid);margin-top:3px;}
+.col-type{width:190px;background:var(--cream-soft);}
+
+/* CARDS / LISTS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.icard{background:var(--white);border:1px solid var(--grey-light);border-radius:13px;padding:18px 19px;}
+.icard h3{font-size:16px;font-weight:700;letter-spacing:-0.01em;margin-bottom:6px;display:flex;align-items:center;gap:9px;}
+.icard h3 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.icard .sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:10px;}
+.icard p{font-size:13px;color:var(--grey-mid);line-height:1.5;}
+.icard p + p{margin-top:8px;}
+.icard .src{font-size:12px;color:var(--black);margin-top:10px;padding-top:10px;border-top:1px solid var(--grey-light);}
+.icard .src b{font-weight:600;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.mini{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.04em;padding:3px 9px;border-radius:100px;background:var(--cream-soft);border:1px solid var(--grey-light);color:var(--grey-mid);}
+
+.qlist{list-style:none;display:grid;gap:12px;}
+.qlist li{background:var(--white);border:1px solid var(--grey-light);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;}
+.qlist .qn{font-family:'DM Mono',monospace;font-size:12px;color:var(--green-dim);font-weight:500;flex-shrink:0;padding-top:1px;}
+.qlist .qt{font-size:14px;line-height:1.5;}
+.qlist .qt b{font-weight:600;}
+.qlist .qt .note{display:block;font-size:12.5px;color:var(--grey-mid);margin-top:4px;}
+
+.foot-note{margin-top:34px;padding:20px 22px;background:var(--cream-soft);border:1px dashed var(--grey);border-radius:14px;font-size:13.5px;color:var(--grey-mid);line-height:1.55;}
+.foot-note b{color:var(--black);font-weight:600;}
+.foot-note a{color:var(--green-dim);font-weight:600;text-decoration:none;}
+.foot-note a:hover{text-decoration:underline;}
+
+/* GATE */
+#gate-overlay{position:fixed;inset:0;z-index:9999;background:#0E0E0E;display:flex;align-items:center;justify-content:center;transition:opacity .3s;}
+#gate-overlay.hidden{opacity:0;pointer-events:none;}
+.gate-box{text-align:center;padding:0 24px;}
+.gate-wordmark{font-size:22px;font-weight:700;letter-spacing:-0.03em;color:#F5F0E8;margin-bottom:32px;}
+.gate-wordmark span{color:#87FB66;}
+.gate-label{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:14px;letter-spacing:0.04em;text-transform:uppercase;font-family:'DM Mono',monospace;}
+.gate-input{display:block;width:220px;margin:0 auto 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;color:#F5F0E8;font-family:'DM Mono',monospace;font-size:18px;letter-spacing:0.15em;text-align:center;padding:12px 16px;outline:none;transition:border-color .15s;}
+.gate-input:focus{border-color:#87FB66;}
+.gate-input.error{border-color:#FF6B4A;animation:shake .3s ease;}
+.gate-btn{background:#87FB66;color:#0E0E0E;border:none;border-radius:100px;padding:11px 32px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;width:220px;}
+.gate-btn:hover{opacity:0.85;}
+.gate-error{font-size:12px;color:#FF6B4A;margin-top:12px;min-height:18px;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media(max-width:760px){main{padding:36px 18px 100px;}}
+</style>
+</head>
+<body>
+<div id="gate-overlay">
+  <div class="gate-box">
+    <div class="gate-wordmark">JUNGLE<span>.</span></div>
+    <div class="gate-label">Enter password to continue</div>
+    <input id="gate-input" class="gate-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Enter</button>
+    <div id="gate-error" class="gate-error"></div>
+  </div>
+</div>
+
+<div id="topbar">
+  <a class="wordmark" href="https://jungle-is-massive.github.io/hub/">jungle<span>.</span></a>
+  <div class="topbar-center"><div class="hub-tag">News Desk Plan</div></div>
+  <div class="topbar-right"><div class="topbar-date" id="date"></div></div>
+</div>
+
+<main>
+  <section class="hero">
+    <div class="hero-eyebrow">Marcomms · Sharing Strategy</div>
+    <div class="strawman-badge">● First-pass strawman · for the Thursday session</div>
+    <h1>Who gets <span>what, how, and how often.</span></h1>
+    <p>A starting point for the rules behind the Share Queue — drawn from the Coris × Ro call. Nothing here is settled; it's a strawman to react to, mark up, and lock together. Once agreed, these rules wire straight back into the board.</p>
+  </section>
+
+  <div class="principle">
+    <div class="lbl">The principle we keep coming back to</div>
+    <p><b>Tier sets the format and the intimacy — not the quality of the news.</b> A Tier 1 contact doesn't get "better" stories; they get the lightest, fastest, most personal version of them.</p>
+    <p>The most senior people are the busiest. Victoria at AAR would rather have two bullets on WhatsApp than the glossiest case study in her inbox. Across every group — intermediaries, prospects, clients, press — the winning move is the same: give them the TLDR, in the channel they actually read, and don't bombard them.</p>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-tab="matrix">The matrix</button>
+    <button class="tab" data-tab="tiers">Audiences &amp; tiers</button>
+    <button class="tab" data-tab="types">Content types</button>
+    <button class="tab" data-tab="channels">Channels &amp; formats</button>
+    <button class="tab" data-tab="cadence">Cadence</button>
+    <button class="tab" data-tab="open">Open questions</button>
+  </div>
+
+  <!-- MATRIX -->
+  <div class="panel on" data-panel="matrix">
+    <p class="sec-intro">Rows are the kinds of news we generate; columns are the three tiers. Each cell is the <em>proposed</em> default vehicle and timing — the thing that flips to "Sent" on the board. Treat every cell as a question, not an answer.</p>
+    <div class="matrix-wrap">
+      <table class="matrix" id="matrix-table"></table>
+    </div>
+  </div>
+
+  <!-- TIERS -->
+  <div class="panel" data-panel="tiers">
+    <p class="sec-intro">Four groups, three tiers. Groups are <em>who they are</em>; tiers are <em>how close the relationship is</em> and therefore how we reach them. A contact's group gives a default tier, but you can pull anyone up or down.</p>
+    <div class="cards" id="tier-cards"></div>
+    <div class="foot-note" style="margin-top:22px">
+      <b>Group → default tier (starting point):</b> Intermediaries span all three tiers — your gold relationships sit in Tier 1, the rest in Tier 2. Warm prospects → Tier 2. Clients → Tier 2 (they already know us; this is nurture). Press / media &amp; campaign contacts → Tier 3, newsletter-only until a relationship warms up.
+    </div>
+  </div>
+
+  <!-- TYPES -->
+  <div class="panel" data-panel="types">
+    <p class="sec-intro">The kinds of news worth sharing — and where the content for each already lives, so nothing here is extra work, just rounding up what exists.</p>
+    <div class="cards" id="type-cards"></div>
+  </div>
+
+  <!-- CHANNELS -->
+  <div class="panel" data-panel="channels">
+    <p class="sec-intro">Two axes: the <em>vehicle</em> (how it travels) and the <em>format</em> (how it's dressed). The same client win can be a one-line WhatsApp to one person and a designed newsletter block to a list.</p>
+    <div class="cards" id="channel-cards"></div>
+  </div>
+
+  <!-- CADENCE -->
+  <div class="panel" data-panel="cadence">
+    <p class="sec-intro">How often each vehicle fires, and how we keep the backlog full enough to feed it without scrambling.</p>
+    <div class="cards" id="cadence-cards"></div>
+  </div>
+
+  <!-- OPEN -->
+  <div class="panel" data-panel="open">
+    <p class="sec-intro">The things the call explicitly left unresolved — the agenda for Thursday.</p>
+    <ul class="qlist" id="open-list"></ul>
+  </div>
+
+  <div class="foot-note">
+    <b>What happens after Thursday.</b> Once you and Ro agree the tiers, the type list and the vehicle-per-cell, I'll wire them into the Share Queue — a Tier selector on each card, the real vehicle options under "Send via", and the matrix defaults pre-filling automatically when you pick a type. The plan and the tool stay in sync.
+    <br><br>
+    → Back to the <a href="https://jungle-is-massive.github.io/hub/share-queue.html">Share Queue board</a> · the <a href="https://jungle-is-massive.github.io/hub/">hub</a>
+  </div>
+</main>
+
+<script>
+/* date */
+(function(){var d=new Date();var m=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];document.getElementById('date').textContent=String(d.getDate()).padStart(2,'0')+' '+m[d.getMonth()]+' '+d.getFullYear();})();
+
+/* gate */
+var GATE_PASSWORD='massive';
+function checkGate(){var v=document.getElementById('gate-input').value;if(v===GATE_PASSWORD){sessionStorage.setItem('jc_auth','1');var o=document.getElementById('gate-overlay');o.classList.add('hidden');setTimeout(function(){o.remove();},350);}else{var i=document.getElementById('gate-input'),e=document.getElementById('gate-error');i.classList.add('error');e.textContent='Incorrect password';setTimeout(function(){i.classList.remove('error');i.value='';e.textContent='';},1000);}}
+if(sessionStorage.getItem('jc_auth')==='1'){document.getElementById('gate-overlay').remove();}else{document.getElementById('gate-input').focus();}
+
+/* tabs */
+document.getElementById('tabs').addEventListener('click',function(e){
+  var b=e.target.closest('.tab'); if(!b) return;
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t===b);});
+  var key=b.dataset.tab;
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('on',p.dataset.panel===key);});
+});
+
+/* ---- data ---- */
+var TYPES=[
+  {key:'award_win',label:'Award win',color:'#E0A100'},
+  {key:'award_shortlist',label:'Award shortlist',color:'#F0B429'},
+  {key:'pitch',label:'Pitch invite',color:'#FF6B4A'},
+  {key:'win',label:'New client win',color:'#3ECF8E'},
+  {key:'great_work',label:'Great work',color:'#7B6FE0'},
+  {key:'result',label:'Commercial result',color:'#4ABFFF'},
+  {key:'pov',label:'Thought piece',color:'#E84A8C'},
+  {key:'event',label:'Event',color:'#14B8A6'},
+  {key:'hire',label:'New hire',color:'#A78BFA'},
+  {key:'quarterly',label:'Quarterly wrap-up',color:'#65C247'}
+];
+var TIERS=[
+  {key:'t1',name:'Tier 1 — Gold',sub:'Senior, high-trust 1:1 relationships',color:'#E0A100'},
+  {key:'t2',name:'Tier 2 — Active',sub:'Broader intermediaries + warm prospects + clients',color:'#4ABFFF'},
+  {key:'t3',name:'Tier 3 — Broad',sub:'Press, campaign contacts, wider list',color:'#8A8880'}
+];
+/* [vehicle, timing] per tier; '—' = usually skip */
+var MATRIX={
+  award_win:       [['1:1 WhatsApp','same day'],['Broadcast + newsletter','that week'],['Newsletter','monthly']],
+  award_shortlist: [['1:1 WhatsApp','when announced'],['Broadcast (optional)','that week'],['Newsletter','monthly']],
+  pitch:           [['1:1 WhatsApp note','when it happens'],['—','confidential / usually skip'],['—','skip']],
+  win:             [['1:1 WhatsApp','that week'],['Broadcast + newsletter','that week'],['Newsletter','monthly']],
+  great_work:      [['1:1 if relevant','when live'],['Broadcast + newsletter','that week'],['Newsletter','monthly']],
+  result:          [['1:1 WhatsApp','when in'],['Newsletter','monthly'],['Newsletter','monthly']],
+  pov:             [['1:1 if it fits their world','on publish'],['Newsletter','monthly'],['Newsletter','monthly']],
+  event:           [['1:1 invite if relevant','2–3 wks ahead'],['Broadcast + newsletter','2–3 wks ahead'],['Newsletter','monthly']],
+  hire:            [['1:1 if relevant','that week'],['Newsletter','monthly'],['Newsletter','monthly']],
+  quarterly:       [['Personal send + note','quarterly'],['Email + newsletter','quarterly'],['Newsletter','quarterly']]
+};
+
+/* render matrix */
+(function(){
+  var t=document.getElementById('matrix-table');
+  var head='<thead><tr><th class="col-type">Content type</th>'+TIERS.map(function(ti){
+    return '<th><span class="tier-name"><span class="tier-dot" style="background:'+ti.color+'"></span>'+ti.name+'</span><span class="tier-sub">'+ti.sub+'</span></th>';
+  }).join('')+'</tr></thead>';
+  var body='<tbody>'+TYPES.map(function(ty){
+    var cells=MATRIX[ty.key].map(function(c){
+      var skip=c[0]==='—';
+      return '<td><div class="veh'+(skip?' skip':'')+'">'+c[0]+'</div><div class="timing">'+c[1]+'</div></td>';
+    }).join('');
+    return '<tr><td class="type-cell col-type"><span class="tdot" style="background:'+ty.color+'"></span>'+ty.label+'</td>'+cells+'</tr>';
+  }).join('')+'</tbody>';
+  t.innerHTML=head+body;
+})();
+
+/* tier cards */
+(function(){
+  var data=[
+    {t:TIERS[0],body:'<p>Your gold relationships — the people who pick up the phone for you. Reached <b>person to person</b>: a 1:1 WhatsApp or a personal email from Coris or Ro. Lightest touch, fastest, most tailored.</p><p>This is the intimacy everyone wants to reach with these contacts; broadcast never replaces it.</p>',foot:'Examples to confirm: Victoria (AAR), Nicky (Elevator), Rebecca (AAR), Duncan',chips:['1:1 WhatsApp','1:1 email']},
+    {t:TIERS[1],body:'<p>The active list — intermediaries we\'re building with, warm prospects, and clients in nurture. Reached via <b>WhatsApp broadcast</b> (private, no reply-all) plus the <b>monthly newsletter</b>.</p>',foot:'Roughly: most intermediaries + warm prospects + clients',chips:['Broadcast','Newsletter']},
+    {t:TIERS[2],body:'<p>The broad list — press, campaign contacts and the wider audience. <b>Monthly newsletter</b> by default; they move up a tier as a relationship warms.</p>',foot:'Roughly: press / media + campaign contacts + cold prospects',chips:['Newsletter']}
+  ];
+  document.getElementById('tier-cards').innerHTML=data.map(function(d){
+    return '<div class="icard"><h3><span class="dot" style="background:'+d.t.color+'"></span>'+d.t.name+'</h3><div class="sub">'+d.t.sub+'</div>'+d.body+'<div class="src">'+d.foot+'</div><div class="chips">'+d.chips.map(function(c){return '<span class="mini">'+c+'</span>';}).join('')+'</div></div>';
+  }).join('');
+})();
+
+/* type cards */
+(function(){
+  var src={
+    award_win:'Awards calendar / entries already submitted',
+    award_shortlist:'Awards calendar / entries already submitted',
+    pitch:'BD pipeline (HubSpot) — flag confidentiality',
+    win:'BD pipeline (HubSpot) — closed-won',
+    great_work:'Monthly work round-ups / Synergist',
+    result:'Client reporting — strong numbers, even on quiet-looking work',
+    pov:'Ro / content — thought pieces, reports (e.g. Retail Shift)',
+    event:'Events calendar — hosting or attending',
+    hire:'People team — senior / notable hires',
+    quarterly:'Roll-up of the monthlies + one glossy case study + takeaways'
+  };
+  var note={
+    pitch:'Often under NDA — default to 1:1 only.',
+    result:'The "unsung" type: work isn\'t flashy but the numbers are. Lands especially well with senior contacts.',
+    quarterly:'The reactive asset — ready for "what have you been up to lately?"'
+  };
+  document.getElementById('type-cards').innerHTML=TYPES.map(function(ty){
+    return '<div class="icard"><h3><span class="dot" style="background:'+ty.color+'"></span>'+ty.label+'</h3>'+(note[ty.key]?'<p>'+note[ty.key]+'</p>':'')+'<div class="src"><b>Content from:</b> '+(src[ty.key]||'')+'</div></div>';
+  }).join('');
+})();
+
+/* channel cards */
+(function(){
+  var data=[
+    {h:'1:1 WhatsApp',c:'#3ECF8E',k:'Vehicle · Tier 1',p:'The intimate, person-to-person channel. Two or three bullets, when it happens. Where the strongest relationships live — Victoria asked for exactly this.'},
+    {h:'WhatsApp broadcast',c:'#65C247',k:'Vehicle · Tier 2',p:'Private one-to-many: recipients can\'t see each other and can\'t reply-all, but can reply to you privately. ~250 per send. Needs a business number / spare phone tied to the Meta account — to be set up.'},
+    {h:'1:1 email',c:'#4ABFFF',k:'Vehicle · Tier 1',p:'For when WhatsApp isn\'t right or the note is longer. Still personal, still from a named sender.'},
+    {h:'Monthly newsletter',c:'#7B6FE0',k:'Vehicle · Tiers 2–3',p:'Two near-identical versions — intermediary/press and client/prospect — same info, slightly different wording. Designed, sent via HubSpot.'},
+    {h:'Plain-text bullet email',c:'#F0B429',k:'Format',p:'3–4 bullets, no design. Often out-performs a "newsletter" with busy senior people who skip anything that looks like a newsletter.'},
+    {h:'Designed case study',c:'#E84A8C',k:'Format',p:'The glossy version, for the right moment — or as the centrepiece inside a newsletter or quarterly wrap-up.'}
+  ];
+  document.getElementById('channel-cards').innerHTML=data.map(function(d){
+    return '<div class="icard"><h3><span class="dot" style="background:'+d.c+'"></span>'+d.h+'</h3><div class="sub">'+d.k+'</div><p>'+d.p+'</p></div>';
+  }).join('');
+})();
+
+/* cadence cards */
+(function(){
+  var data=[
+    {h:'Monthly newsletter',c:'#7B6FE0',p:'Once a month, both versions. Ro can turn the first one around quickly once we agree the contents.'},
+    {h:'WhatsApp (broadcast & 1:1)',c:'#3ECF8E',p:'As news happens — but curated, not constant. The rule is "don\'t bombard": relevance over volume. Worth agreeing a soft cap (e.g. no more than ~2 broadcasts a month).'},
+    {h:'Quarterly wrap-up',c:'#65C247',p:'Every quarter, or pulled out on demand when someone asks what we\'ve been up to.'},
+    {h:'Keeping the backlog full',c:'#F0B429',p:'Brief a helper (Livy — name TBC) to collate news weekly/fortnightly, so there are always 5–10 items staged on the board ready to go.'}
+  ];
+  document.getElementById('cadence-cards').innerHTML=data.map(function(d){
+    return '<div class="icard"><h3><span class="dot" style="background:'+d.c+'"></span>'+d.h+'</h3><p>'+d.p+'</p></div>';
+  }).join('');
+})();
+
+/* open questions */
+(function(){
+  var qs=[
+    ['WhatsApp Business setup','Which number do we run broadcasts from? Where does it sit with the general Meta account, and does it need a spare phone? Broadcasting looks free; confirm whether a Business account is required.'],
+    ['Broadcast comfort','Will intermediaries mind being on a list at all? Broadcast keeps everyone private (no one sees the others) — but worth a light "happy for us to WhatsApp you?" before adding anyone.'],
+    ['Broadcast vs 1:1 rule','At what point does something go out on broadcast versus a personal message to Victoria / Nicky / Rebecca / Duncan? Where\'s the line between scale and intimacy?'],
+    ['The list + consent','Build the approved contact list between us: who do we have mobile numbers for, who don\'t we, and who gets a quick opt-in ask first.'],
+    ['Names against delivery','Who owns sending each vehicle — Coris, Ro, or the content helper — so it actually happens each cycle.'],
+    ['Newsletter v1','Confirm the two-version split and lock the contents for the first send Ro wants out next week.']
+  ];
+  document.getElementById('open-list').innerHTML=qs.map(function(q,i){
+    return '<li><span class="qn">Q'+(i+1)+'</span><span class="qt"><b>'+q[0]+'</b><span class="note">'+q[1]+'</span></span></li>';
+  }).join('');
+})();
+</script>
+</body>
+</html>
