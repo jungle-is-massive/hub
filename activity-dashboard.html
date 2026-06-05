@@ -1010,6 +1010,38 @@ main { padding-top: calc(var(--header-h) + 32px); padding-bottom: 60px; max-widt
 }
 .timeline-add-hint strong { color: var(--black); }
 
+
+/* Last comms column in MAD Meets prospects view */
+.mm-lastcomms-direction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+.mm-lc-sent     { background: rgba(135,251,102,0.12); color: #1a6a30; }
+.mm-lc-received { background: rgba(74,191,255,0.12);  color: #1a5a8a; }
+.mm-lc-subject  { font-size: 12px; font-weight: 600; color: var(--black); line-height: 1.3; margin-bottom: 2px; }
+.mm-lc-snippet  { font-size: 11px; color: #777; line-height: 1.4; max-width: 260px; }
+.mm-lc-date     { font-family: 'DM Mono', monospace; font-size: 9px; color: #aaa; margin-top: 3px; }
+.mm-lc-none     { font-size: 11px; color: #bbb; font-style: italic; }
+.mm-lc-loading  { font-size: 11px; color: #bbb; }
+.mm-lc-hs-link  {
+  display: inline-block; margin-top: 4px;
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: #aaa; text-decoration: none; border-bottom: 1px solid #ddd;
+  transition: color 0.12s, border-color 0.12s;
+}
+.mm-lc-hs-link:hover { color: var(--black); border-color: var(--black); }
+
 /* ── PROSPECTS PAGE ─────────────────────────────────────────── */
 #prospects-page {
   display: none;
@@ -6042,15 +6074,13 @@ function renderPrspMadMeetsTable() {
   const countEl = document.getElementById('prsp-mm-count');
   const q = (document.getElementById('prsp-mm-search')?.value || '').toLowerCase();
   const now = Date.now();
-  const DAY = 86400000;
 
-  // Status pill styles for cream background (light versions)
   const STATUS_LIGHT = {
-    'NEW':                  { label: 'New',          cls: 'background:#f0f0ee;color:#888' },
-    'ATTEMPTED_TO_CONTACT': { label: 'Attempted',    cls: 'background:rgba(240,180,41,0.12);color:#b8860b' },
-    'BAD_TIMING':           { label: 'Bad Timing',   cls: 'background:rgba(255,107,74,0.1);color:#c0392b' },
-    'IN_PROGRESS':          { label: 'In Progress',  cls: 'background:rgba(62,207,142,0.12);color:#1a7a4a' },
-    'null':                 { label: 'No Status',    cls: 'background:#f0f0ee;color:#aaa' },
+    'NEW':                  { label: 'New',         cls: 'background:#f0f0ee;color:#888' },
+    'ATTEMPTED_TO_CONTACT': { label: 'Attempted',   cls: 'background:rgba(240,180,41,0.12);color:#b8860b' },
+    'BAD_TIMING':           { label: 'Bad Timing',  cls: 'background:rgba(255,107,74,0.1);color:#c0392b' },
+    'IN_PROGRESS':          { label: 'In Progress', cls: 'background:rgba(62,207,142,0.12);color:#1a7a4a' },
+    'null':                 { label: 'No Status',   cls: 'background:#f0f0ee;color:#aaa' },
   };
 
   const filtered = q
@@ -6070,14 +6100,15 @@ function renderPrspMadMeetsTable() {
   }
 
   const rows = filtered.map(contact => {
-    const rawStatus = contact._hsStatus || 'null';
+    const rawStatus  = contact._hsStatus || 'null';
     const statusInfo = STATUS_LIGHT[rawStatus] || STATUS_LIGHT['null'];
-    const lastContactedRaw = contact._hsLastContacted || null;
 
+    // Last contacted date
+    const lastContactedRaw = contact._hsLastContacted || null;
     let lastContactedLabel = '<span style="color:#bbb;font-style:italic">—</span>';
     if (lastContactedRaw) {
       const d = new Date(lastContactedRaw);
-      const daysAgo = Math.floor((now - d.getTime()) / DAY);
+      const daysAgo = Math.floor((now - d.getTime()) / 86400000);
       const fmt = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
       const colour = daysAgo <= 7 ? '#1a7a4a' : daysAgo <= 21 ? '#555' : '#b8860b';
       const ago = daysAgo === 0 ? 'today' : daysAgo === 1 ? '1d ago' : `${daysAgo}d ago`;
@@ -6090,15 +6121,16 @@ function renderPrspMadMeetsTable() {
     const rowOpacity = contact.dead ? 'opacity:0.4' : '';
 
     const contactData = JSON.stringify({
-      name: contact.name,
-      company: contact.brand,
-      email: contact.email || '',
-      title: contact.title
+      name: contact.name, company: contact.brand,
+      email: contact.email || '', title: contact.title
     }).replace(/"/g,'&quot;');
 
     const emailBtn = contact.email
       ? `<button class="mm-email-btn" style="background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.1);color:var(--black)" onclick="openEmailModal(${contactData})">✉ Email</button>`
       : `<button class="mm-email-btn" style="opacity:0.25;cursor:not-allowed;background:rgba(0,0,0,0.04);border-color:transparent;color:#999" disabled>✉ Email</button>`;
+
+    // Last comms cell — populated async after render
+    const lcCell = `<div id="lc-${contact.id}"><span class="mm-lc-loading">Loading…</span></div>`;
 
     return `<tr style="${rowOpacity}">
       <td>
@@ -6110,13 +6142,13 @@ function renderPrspMadMeetsTable() {
       <td><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;${eventStyle}">${contact.eventLabel}</span></td>
       <td><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;${statusInfo.cls}">${statusInfo.label}</span></td>
       <td>${lastContactedLabel}</td>
-      <td style="font-size:12px;color:#555;max-width:220px">${contact.status_notes || '—'}</td>
-      <td style="font-size:12px;color:var(--black);font-style:italic;max-width:180px">${contact.next_action}</td>
+      <td>${lcCell}</td>
+      <td style="font-size:12px;color:var(--black);font-style:italic;max-width:160px">${contact.next_action}</td>
       <td><a style="display:inline-block;width:22px;height:22px;background:var(--grey-light);border-radius:6px;text-align:center;line-height:22px;font-size:11px;text-decoration:none;color:var(--grey-mid)" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a></td>
     </tr>`;
   }).join('');
 
-  panel.innerHTML = `<table class="prsp-table" style="table-layout:auto">
+  panel.innerHTML = `<div class="prsp-table-wrap"><table class="prsp-table" style="table-layout:auto">
     <thead>
       <tr>
         <th>Contact</th>
@@ -6124,13 +6156,96 @@ function renderPrspMadMeetsTable() {
         <th>Event</th>
         <th>Status</th>
         <th>Last Contacted</th>
-        <th>Last Response / Notes</th>
+        <th>Last Communication</th>
         <th>Next Action</th>
         <th></th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table></div>`;
+
+  // Async-fill last comms for each visible contact
+  filtered.forEach(contact => fetchAndRenderLastComms(contact));
+}
+
+function stripHtmlToText(html) {
+  return (html || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim();
+}
+
+async function fetchAndRenderLastComms(contact) {
+  const cell = document.getElementById(`lc-${contact.id}`);
+  if (!cell) return;
+
+  // Use cached data if already fetched
+  if (contact._lastComms !== undefined) {
+    renderLastCommsCell(cell, contact._lastComms, contact);
+    return;
+  }
+
+  try {
+    const SUPABASE_URL = 'https://iehkvlyjumkzccoqqgxl.supabase.co';
+    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/hs-proxy`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: 'GET',
+        path: `/engagements/v1/engagements/associated/contact/${contact.id}/paged?limit=25`
+      })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    // Find most recent email engagement
+    const emails = (data.results || [])
+      .filter(e => ['EMAIL','INCOMING_EMAIL'].includes(e.engagement?.type))
+      .sort((a,b) => (b.engagement?.timestamp||0) - (a.engagement?.timestamp||0));
+
+    if (!emails.length) {
+      contact._lastComms = null;
+      renderLastCommsCell(cell, null, contact);
+      return;
+    }
+
+    const { engagement: eng, metadata: meta } = emails[0];
+    const engId = eng.id;
+    const direction  = eng.type === 'INCOMING_EMAIL' ? 'received' : 'sent';
+    const ts         = eng.timestamp || eng.createdAt || 0;
+    const date       = new Date(ts);
+    const dateStr    = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const subject    = meta.subject || null;
+    const bodyRaw    = meta.text || stripHtmlToText(meta.html || '');
+    // Strip quoted reply history — take just the first paragraph
+    const bodyClean  = bodyRaw.split(/\r?\n\r?\n/)[0].replace(/\s+/g,' ').trim().slice(0, 140);
+    // HubSpot direct link to engagement
+    const hsLink     = `https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contact.id}`;
+
+    const commsData = { direction, dateStr, subject, snippet: bodyClean, hsLink, engId };
+    contact._lastComms = commsData;
+    renderLastCommsCell(cell, commsData, contact);
+
+  } catch(e) {
+    contact._lastComms = null;
+    if (cell) cell.innerHTML = '<span class="mm-lc-none">Couldn\'t load</span>';
+  }
+}
+
+function renderLastCommsCell(cell, data, contact) {
+  if (!cell) return;
+  if (!data) {
+    cell.innerHTML = '<span class="mm-lc-none">No emails logged</span>';
+    return;
+  }
+  const dirLabel = data.direction === 'received' ? '↓ They replied' : '↑ You sent';
+  const dirCls   = data.direction === 'received' ? 'mm-lc-received' : 'mm-lc-sent';
+  cell.innerHTML = `
+    <span class="mm-lastcomms-direction ${dirCls}">${dirLabel}</span>
+    ${data.subject ? `<div class="mm-lc-subject">${data.subject.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+    ${data.snippet ? `<div class="mm-lc-snippet">${data.snippet.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+    <div class="mm-lc-date">${data.dateStr}</div>
+    <a class="mm-lc-hs-link" href="${data.hsLink}" target="_blank">View in HubSpot ↗</a>`;
 }
 
 // ── Email compose modal ───────────────────────────────────────────────────────
@@ -6234,8 +6349,10 @@ async function sendProspectEmail() {
     const encodedSubject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
     // Convert plain text body to basic HTML
     const htmlBody = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const HS_BCC = '145756322@bcc.eu1.hubspot.com';
     const rawMessage = [
       `To: ${to}`,
+      `Bcc: ${HS_BCC}`,
       `Subject: ${encodedSubject}`,
       'MIME-Version: 1.0',
       'Content-Type: text/html; charset=utf-8',
