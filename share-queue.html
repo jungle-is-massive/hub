@@ -195,14 +195,15 @@ main { margin-top: var(--header-h); padding: 44px 32px 120px; max-width: 1640px;
   <div class="toolbar">
     <div class="preset-row">
       <span class="preset-label">Quick add</span>
-      <button class="preset" data-preset="hire"><span class="dot" style="background:#7B6FE0"></span>New hire</button>
+      <button class="preset" data-preset="award_win"><span class="dot" style="background:#E0A100"></span>Award win</button>
       <button class="preset" data-preset="win"><span class="dot" style="background:#3ECF8E"></span>Client win</button>
-      <button class="preset" data-preset="pitch"><span class="dot" style="background:#F0B429"></span>Pitch invite</button>
-      <button class="preset" data-preset="pov"><span class="dot" style="background:#FF6B4A"></span>POV / research</button>
+      <button class="preset" data-preset="pitch"><span class="dot" style="background:#FF6B4A"></span>Pitch invite</button>
+      <button class="preset" data-preset="result"><span class="dot" style="background:#4ABFFF"></span>Commercial result</button>
       <button class="preset add-blank" data-preset="blank">+ Blank item</button>
     </div>
     <div class="filters">
       <select class="filter-sel" id="f-track"><option value="">All tracks</option><option value="digest">Digest only</option><option value="personal">Personal only</option></select>
+      <select class="filter-sel" id="f-type"><option value="">All types</option></select>
       <select class="filter-sel" id="f-aud"><option value="">All audiences</option></select>
       <select class="filter-sel" id="f-by"><option value="">Anyone</option><option value="Coris">Coris</option><option value="Ro">Ro</option></select>
       <button class="clear-filter" id="f-clear" style="display:none">clear</button>
@@ -333,15 +334,18 @@ const STATUSES = [
   { key:'sent',      label:'Sent' }
 ];
 const TYPES = {
-  hire:   { label:'New hire',      color:'#7B6FE0' },
-  win:    { label:'Client win',    color:'#3ECF8E' },
-  pitch:  { label:'Pitch invite',  color:'#F0B429' },
-  award:  { label:'Award',         color:'#E84A8C' },
-  result: { label:'Result / data', color:'#4ABFFF' },
-  pov:    { label:'POV / research',color:'#FF6B4A' },
-  other:  { label:'Other',         color:'#8A8880' }
+  award_shortlist: { label:'Award shortlist',   color:'#F0B429' },
+  award_win:       { label:'Award win',         color:'#E0A100' },
+  pitch:           { label:'Pitch invite',      color:'#FF6B4A' },
+  win:             { label:'New client win',    color:'#3ECF8E' },
+  great_work:      { label:'Great work',        color:'#7B6FE0' },
+  result:          { label:'Commercial result', color:'#4ABFFF' },
+  pov:             { label:'Thought piece',     color:'#E84A8C' },
+  event:           { label:'Event',             color:'#14B8A6' },
+  hire:            { label:'New hire',          color:'#A78BFA' },
+  other:           { label:'Other',             color:'#8A8880' }
 };
-const GROUPS = ['All intermediaries','Clients','Prospects'];
+const GROUPS = ['All intermediaries','Clients','Prospects','Press / media'];
 const INTERMEDIARIES = ['Ingenuity','AAR','Oystercatchers','Creativebrief','Observatory International','Tuffon Hall','Elevator','Masterclassing'];
 const DETAIL_TEMPLATE = "• What happened\n• Why it's notable / the anecdote\n• Who or what sector it's relevant to";
 
@@ -377,15 +381,17 @@ async function removeItem(id){
 function activeFilters(){
   return {
     track: document.getElementById('f-track').value,
+    type:  document.getElementById('f-type').value,
     aud:   document.getElementById('f-aud').value,
     by:    document.getElementById('f-by').value
   };
 }
 function applyFilters(list){
   const f = activeFilters();
-  document.getElementById('f-clear').style.display = (f.track||f.aud||f.by) ? 'inline' : 'none';
+  document.getElementById('f-clear').style.display = (f.track||f.type||f.aud||f.by) ? 'inline' : 'none';
   return list.filter(it=>{
     if (f.track && it.track !== f.track) return false;
+    if (f.type && it.item_type !== f.type) return false;
     if (f.by && it.created_by !== f.by) return false;
     if (f.aud && !(it.audience||[]).includes(f.aud)) return false;
     return true;
@@ -496,8 +502,8 @@ function openModal(preset){
   if (preset && preset!=='blank'){
     DRAFT.item_type = preset;
     document.getElementById('m-detail').value = DETAIL_TEMPLATE;
-    // quick anecdotal items default to the personal track the intermediary asked for
-    if (preset==='hire' || preset==='win' || preset==='pitch'){ DRAFT.track='personal'; DRAFT.channel='whatsapp'; }
+    // time-sensitive proof items default to the personal track the intermediaries asked for
+    if (['award_shortlist','award_win','pitch','win','result','hire'].includes(preset)){ DRAFT.track='personal'; DRAFT.channel='whatsapp'; }
     else { DRAFT.track='digest'; }
   }
   syncModalFromDraft();
@@ -579,8 +585,8 @@ document.querySelectorAll('.preset').forEach(b=> b.addEventListener('click', ()=
 document.getElementById('m-track').addEventListener('click', e=>{ if(e.target.dataset.track) setTrack(e.target.dataset.track); });
 document.getElementById('m-channel').addEventListener('click', e=>{ if(e.target.dataset.ch) setChannel(e.target.dataset.ch); });
 document.getElementById('m-by').addEventListener('click', e=>{ if(e.target.dataset.by) setBy(e.target.dataset.by); });
-['f-track','f-aud','f-by'].forEach(id=> document.getElementById(id).addEventListener('change', render) );
-document.getElementById('f-clear').addEventListener('click', ()=>{ ['f-track','f-aud','f-by'].forEach(id=>document.getElementById(id).value=''); render(); });
+['f-track','f-type','f-aud','f-by'].forEach(id=> document.getElementById(id).addEventListener('change', render) );
+document.getElementById('f-clear').addEventListener('click', ()=>{ ['f-track','f-type','f-aud','f-by'].forEach(id=>document.getElementById(id).value=''); render(); });
 document.getElementById('modal-bg').addEventListener('click', e=>{ if(e.target.id==='modal-bg') closeModal(); });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 
@@ -588,6 +594,11 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 (function(){
   const sel = document.getElementById('f-aud');
   [...GROUPS, ...INTERMEDIARIES].forEach(a=>{ const o=document.createElement('option'); o.value=a; o.textContent=a; sel.appendChild(o); });
+})();
+// populate type filter dropdown
+(function(){
+  const sel = document.getElementById('f-type');
+  Object.keys(TYPES).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=TYPES[k].label; sel.appendChild(o); });
 })();
 
 buildTypeChips();
