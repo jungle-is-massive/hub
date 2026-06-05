@@ -6164,79 +6164,136 @@ function renderPrspMadMeetsTable() {
     <tbody>${rows}</tbody>
   </table></div>`;
 
-  // Async-fill last comms for each visible contact
-  filtered.forEach(contact => fetchAndRenderLastComms(contact));
+  // Render any already-cached comms instantly, then batch-load the rest
+  filtered.forEach(contact => {
+    if (contact._lastComms !== undefined) {
+      renderLastCommsCell(document.getElementById(`lc-${contact.id}`), contact._lastComms, contact);
+    }
+  });
+  // Only fire network if any cells still need data
+  if (filtered.some(c => c._lastComms === undefined)) {
+    loadAllLastComms();
+  }
 }
 
-function stripHtmlToText(html) {
-  return (html || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim();
+function stripHtmlToText(h) {
+  return (h || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim();
 }
 
-async function fetchAndRenderLastComms(contact) {
-  const cell = document.getElementById(`lc-${contact.id}`);
-  if (!cell) return;
+// ── Last comms: single batched load for all MAD Meets contacts ────────────────
+// Step 1: batch associations (contact → email IDs) via CRM v4
+// Step 2: batch read email objects for the most-recent ID per contact
+// Populates contact._lastComms then re-renders every visible lc-* cell atomically.
 
-  // Use cached data if already fetched
-  if (contact._lastComms !== undefined) {
-    renderLastCommsCell(cell, contact._lastComms, contact);
-    return;
+async function loadAllLastComms() {
+  const PROXY = 'https://iehkvlyjumkzccoqqgxl.supabase.co/functions/v1/hs-proxy';
+  const ANON  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
+
+  function hsProxy(path, body) {
+    return fetch(PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ANON}`,
+        'Content-Type': 'application/json',
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': path
+      },
+      body: JSON.stringify(body)
+    }).then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`));
   }
 
   try {
-    // Use hs-proxy with correct header-based format (x-proxy-target + x-hs-path)
-    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
-    const PROXY_URL = 'https://iehkvlyjumkzccoqqgxl.supabase.co/functions/v1/hs-proxy';
+    // ── Step 1: batch association lookup (all 13 contacts → their email IDs) ──
+    const assocRes = await hsProxy(
+      '/crm/v4/associations/contact/email/batch/read',
+      { inputs: MAD_MEETS_CONTACTS.map(c => ({ id: c.id })) }
+    );
 
-    // Use CRM v3 emails search (works through proxy, returns full text + subject)
-    const res = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'x-proxy-target': 'hubspot',
-        'x-hs-path': '/crm/v3/objects/emails/search'
-      },
-      body: JSON.stringify({
-        filterGroups: [{ filters: [{ propertyName: 'associations.contact', operator: 'EQ', value: String(contact.id) }] }],
-        properties: ['hs_email_subject', 'hs_email_direction', 'hs_email_text', 'hs_timestamp', 'hs_email_sender_email'],
-        sorts: [{ propertyName: 'hs_timestamp', direction: 'DESCENDING' }],
-        limit: 5
-      })
-    });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    // CRM v3 emails: results[].properties (not engagement/metadata wrapper)
-    const results = data.results || [];
-
-    if (!results.length) {
-      contact._lastComms = null;
-      renderLastCommsCell(cell, null, contact);
-      return;
+    // Build map: contactId → [emailId, …] (sorted numerically desc = most recent last created)
+    const contactEmailMap = {};
+    for (const r of (assocRes.results || [])) {
+      const cid = String(r.from?.id);
+      const ids = (r.to || []).map(t => String(t.toObjectId));
+      // Higher numeric ID = more recently created in HubSpot
+      ids.sort((a, b) => Number(b) - Number(a));
+      contactEmailMap[cid] = ids;
     }
 
-    // Already sorted descending by hs_timestamp from the search
-    const p = results[0].properties;
-    // hs_email_direction: 'EMAIL' = outbound sent, 'INCOMING_EMAIL' = inbound received
-    const direction = p.hs_email_direction === 'INCOMING_EMAIL' ? 'received' : 'sent';
-    const ts        = p.hs_timestamp ? new Date(p.hs_timestamp).getTime() : 0;
-    const date      = new Date(ts);
-    const dateStr   = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    const subject   = p.hs_email_subject || null;
-    const bodyRaw   = p.hs_email_text || '';
-    // Strip quoted reply history — take just the first paragraph
-    const bodyClean = bodyRaw.split(/\r?\n\r?\n/)[0].replace(/\s+/g,' ').trim().slice(0, 140);
-    const hsLink    = `https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contact.id}`;
+    // Contacts with no emails — mark immediately
+    for (const c of MAD_MEETS_CONTACTS) {
+      if (!contactEmailMap[c.id]) {
+        c._lastComms = null;
+        renderLastCommsCell(document.getElementById(`lc-${c.id}`), null, c);
+      }
+    }
 
-    const commsData = { direction, dateStr, subject, snippet: bodyClean, hsLink };
-    contact._lastComms = commsData;
-    renderLastCommsCell(cell, commsData, contact);
+    // ── Step 2: batch read the most-recent email for each contact ─────────────
+    // Take the first (highest) email ID per contact
+    const emailsToFetch = Object.entries(contactEmailMap).map(([cid, ids]) => ({
+      contactId: cid,
+      emailId: ids[0]
+    }));
+
+    if (!emailsToFetch.length) return;
+
+    const batchRes = await hsProxy(
+      '/crm/v3/objects/emails/batch/read',
+      {
+        inputs: emailsToFetch.map(e => ({ id: e.emailId })),
+        properties: ['hs_email_subject', 'hs_email_direction', 'hs_email_text', 'hs_timestamp']
+      }
+    );
+
+    // Build map: emailId → properties
+    const emailDataMap = {};
+    for (const r of (batchRes.results || [])) {
+      emailDataMap[String(r.id)] = r.properties;
+    }
+
+    // ── Step 3: populate every contact and re-render its cell ─────────────────
+    for (const { contactId, emailId } of emailsToFetch) {
+      const contact = MAD_MEETS_CONTACTS.find(c => c.id === contactId);
+      if (!contact) continue;
+
+      const p = emailDataMap[emailId];
+      if (!p) {
+        contact._lastComms = null;
+      } else {
+        const direction = p.hs_email_direction === 'INCOMING_EMAIL' ? 'received' : 'sent';
+        const ts        = p.hs_timestamp ? new Date(p.hs_timestamp).getTime() : 0;
+        const dateStr   = new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const subject   = p.hs_email_subject || null;
+        const bodyRaw   = p.hs_email_text || '';
+        const bodyClean = bodyRaw.split(/\r?\n\r?\n/)[0].replace(/\s+/g, ' ').trim().slice(0, 140);
+        contact._lastComms = {
+          direction, dateStr, subject,
+          snippet: bodyClean,
+          hsLink: `https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contactId}`
+        };
+      }
+
+      renderLastCommsCell(document.getElementById(`lc-${contactId}`), contact._lastComms, contact);
+    }
 
   } catch(e) {
-    contact._lastComms = null;
-    if (cell) cell.innerHTML = '<span class="mm-lc-none">Couldn\'t load</span>';
+    console.error('loadAllLastComms failed:', e);
+    // Show error state in any cell still showing "Loading…"
+    document.querySelectorAll('[id^="lc-"]').forEach(cell => {
+      if (cell.innerHTML.includes('Loading')) {
+        cell.innerHTML = '<span class="mm-lc-none">Couldn\'t load</span>';
+      }
+    });
   }
+}
+
+// Kept for cache-hit path (no network needed when _lastComms already set)
+function fetchAndRenderLastComms(contact) {
+  const cell = document.getElementById(`lc-${contact.id}`);
+  if (!cell) return;
+  if (contact._lastComms !== undefined) {
+    renderLastCommsCell(cell, contact._lastComms, contact);
+  }
+  // Otherwise loadAllLastComms() handles it
 }
 
 function renderLastCommsCell(cell, data, contact) {
