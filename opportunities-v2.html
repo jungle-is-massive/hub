@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle — Opportunities</title>
+<link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --cream-soft: #EFE9DF;
+  --black: #0E0E0E;
+  --green: #87FB66;
+  --green-dim: #65C247;
+  --grey: #C8C3B8;
+  --grey-mid: #8A8880;
+  --grey-light: #E8E3DA;
+  --white: #FFFFFF;
+  --header-h: 56px;
+  --coral: #FF6B4A;
+  --amber: #F0B429;
+  --teal: #3ECF8E;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--black);
+  color: var(--black);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  height: 100%; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────────────── */
+#topbar {
+  position: fixed; top: 0; right: 0; left: 52px; z-index: 100;
+  height: var(--header-h); background: var(--black);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.topbar-title {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35);
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+/* ── VIEW TOGGLE ─────────────────────────────────────────────── */
+#view-toggle {
+  display: flex; gap: 4px; background: rgba(255,255,255,0.06);
+  padding: 3px; border-radius: 10px;
+}
+.view-btn {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 7px;
+  border: none; background: transparent;
+  color: rgba(255,255,255,0.4); cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.view-btn:hover { color: rgba(255,255,255,0.75); }
+.view-btn.active {
+  background: var(--green); color: var(--black);
+  font-weight: 700;
+}
+.view-btn svg { width: 10px; height: 10px; flex-shrink: 0; }
+
+/* ── ACTION BUTTONS ──────────────────────────────────────────── */
+.action-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 6px 14px; border-radius: 100px;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.action-btn-ghost {
+  border: 1px solid rgba(255,255,255,0.15); background: transparent;
+  color: rgba(255,255,255,0.55);
+}
+.action-btn-ghost:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); }
+.action-btn-ghost svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.action-btn-green { background: var(--green); border: none; color: var(--black); }
+.action-btn-green:hover { opacity: 0.88; }
+.action-btn-green svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2; }
+.action-btn-dark { background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.7); }
+.action-btn-dark:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+.action-btn-dark svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.action-btn-dark.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── FILTER BAR ──────────────────────────────────────────────── */
+#filter-bar {
+  position: fixed; top: var(--header-h); left: 52px; right: 0;
+  background: var(--black); z-index: 90;
+  padding: 10px 24px 10px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; overflow-x: auto;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+#filter-bar::-webkit-scrollbar { height: 0; }
+.filter-btn {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent; color: var(--grey-mid); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.filter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--grey); }
+.filter-btn.active { background: var(--green); border-color: var(--green); color: var(--black); font-weight: 700; }
+
+/* ── CONTENT AREA ────────────────────────────────────────────── */
+#content-area {
+  position: fixed;
+  top: calc(var(--header-h) + 42px); /* topbar + filter bar */
+  left: 52px; right: 0; bottom: 0;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* ── BOARD VIEW ──────────────────────────────────────────────── */
+#deal-board {
+  display: flex; gap: 0; overflow-x: auto; flex: 1; min-height: 0;
+  padding: 20px 16px 24px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+#deal-board::-webkit-scrollbar { height: 5px; }
+#deal-board::-webkit-scrollbar-track { background: transparent; }
+#deal-board::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+.deal-col {
+  flex-shrink: 0; width: 240px; display: flex; flex-direction: column; gap: 8px;
+  scroll-snap-align: start; padding: 0 8px;
+}
+.deal-col-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 10px; border-bottom: 2px solid var(--col-accent, rgba(255,255,255,0.1));
+  margin-bottom: 4px; flex-shrink: 0;
+}
+.deal-col-name {
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.7);
+}
+.deal-col-total { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+.deal-col-count {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700;
+  color: var(--col-accent, rgba(255,255,255,0.4));
+  background: color-mix(in srgb, var(--col-accent, #ccc) 14%, transparent);
+  padding: 1px 7px; border-radius: 100px;
+}
+.deal-col-empty {
+  font-size: 11px; color: rgba(255,255,255,0.18);
+  font-family: 'DM Mono', monospace; letter-spacing: 0.08em; padding: 12px 0;
+}
+.deal-col.drag-over {
+  background: rgba(135,251,102,0.06);
+  border-radius: 12px;
+  outline: 2px dashed var(--green);
+  outline-offset: 2px;
+}
+
+.deal-card {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  transition: box-shadow 0.15s, transform 0.15s, background 0.15s;
+  animation: cardIn 0.22s ease both; cursor: pointer;
+}
+.deal-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.deal-card.highlighted { border-color: var(--green); box-shadow: 0 0 0 2px rgba(135,251,102,0.2); }
+@keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.deal-card-name { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--white); line-height: 1.3; }
+.deal-card-amount { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: var(--green); }
+.deal-card-meta { display: flex; flex-direction: column; gap: 3px; margin-top: 2px; }
+.deal-card-meta-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: rgba(255,255,255,0.4); }
+.deal-card-meta-row svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+.deal-card-activity {
+  font-size: 10px; color: rgba(255,255,255,0.3);
+  padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.07);
+  margin-top: 4px; font-family: 'DM Mono', monospace; letter-spacing: 0.04em;
+}
+.deal-card-owner-pill {
+  display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: 0.04em;
+  padding: 2px 8px; border-radius: 100px;
+  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);
+  align-self: flex-start;
+}
+.deal-card-owner-pill.owner-coris { background: rgba(135,251,102,0.15); color: #87FB66; }
+
+/* ── LIST VIEW ───────────────────────────────────────────────── */
+#deal-list {
+  flex: 1; min-height: 0; display: none; flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── TIMELINE / 4-WEEK VIEW ──────────────────────────────────── */
+#timeline-panel {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 24px 28px 48px;
+  display: none; flex-direction: column; gap: 0;
+}
+#timeline-panel.visible { display: flex; }
+#fourweek-panel {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 20px 28px 48px;
+  display: none; flex-direction: column; gap: 0;
+}
+#fourweek-panel.visible { display: flex; }
+
+/* Timeline content — light on dark */
+.timeline-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-shrink: 0; }
+.timeline-header-title { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; color: var(--white); }
+.timeline-header-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; margin-top: 3px; }
+.timeline-note {
+  font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.5; margin-bottom: 20px;
+  padding: 10px 14px; background: rgba(255,255,255,0.05); border-radius: 8px;
+  border-left: 3px solid var(--green); flex-shrink: 0;
+}
+.timeline-note strong { color: rgba(255,255,255,0.85); }
+.timeline-add-hint {
+  font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.5;
+  padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 8px;
+  margin-top: 12px;
+}
+.timeline-add-hint strong { color: rgba(255,255,255,0.65); }
+.gantt-wrap { position: relative; flex: 1; min-height: 0; overflow: visible; }
+.gantt-loading { display: flex; align-items: center; gap: 10px; padding: 40px 0; color: rgba(255,255,255,0.4); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; }
+.gantt-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.gantt-empty { padding: 40px 0; color: rgba(255,255,255,0.4); font-size: 13px; line-height: 1.6; }
+.gantt-row { display: flex; align-items: center; margin-bottom: 16px; position: relative; flex-shrink: 0; }
+.gantt-label { width: 200px; flex-shrink: 0; padding-right: 14px; }
+.gantt-label-name { font-size: 12px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 186px; }
+.gantt-label-stage { font-family: 'DM Mono', monospace; font-size: 8px; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; margin-top: 2px; text-transform: uppercase; }
+.gantt-track { flex: 1; height: 40px; position: relative; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: visible; }
+.gantt-milestone { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; z-index: 3; cursor: default; }
+.gantt-milestone-dot { width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid var(--white); background: rgba(255,255,255,0.15); transition: transform 0.15s; }
+.gantt-milestone.past .gantt-milestone-dot { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5); }
+.gantt-milestone.urgent .gantt-milestone-dot { background: var(--amber); border-color: var(--amber); box-shadow: 0 0 8px rgba(240,180,41,0.5); }
+.gantt-milestone.upcoming .gantt-milestone-dot { background: var(--green); border-color: var(--green); }
+.gantt-milestone:hover .gantt-milestone-dot { transform: scale(1.4); }
+.gantt-milestone-tooltip {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: var(--black); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 8px 12px;
+  display: flex; flex-direction: column; gap: 3px;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 0.15s;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 10;
+}
+.gantt-milestone-tooltip strong { font-size: 11px; font-weight: 700; color: var(--white); }
+.gantt-milestone-tooltip span { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; }
+.gantt-milestone:hover .gantt-milestone-tooltip { opacity: 1; }
+.gantt-today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(135,251,102,0.5); z-index: 5; border-radius: 1px; }
+.gantt-today-label {
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+  font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--black); background: var(--green); padding: 2px 7px; border-radius: 4px; white-space: nowrap;
+}
+
+/* 4-week view */
+.fw-week { margin-bottom: 28px; flex-shrink: 0; }
+.fw-week-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.fw-week-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); }
+.fw-week-dates { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; }
+.fw-week-count { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.3); margin-left: auto; }
+.fw-deal-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.fw-deal-row:last-child { border-bottom: none; }
+.fw-deal-date { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.4); width: 52px; flex-shrink: 0; padding-top: 2px; letter-spacing: 0.04em; }
+.fw-deal-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.fw-deal-body { flex: 1; min-width: 0; }
+.fw-deal-name { font-size: 12px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fw-deal-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+.fw-deal-stage { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+.fw-deal-value { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; color: var(--green); }
+.fw-empty { font-size: 11px; color: rgba(255,255,255,0.25); padding: 10px 0 20px; font-style: italic; }
+.fw-intro { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 18px; flex-shrink: 0; }
+.fw-no-dates { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px 16px; margin-top: 8px; }
+.fw-no-dates-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; }
+
+/* ── FOOTER STATUS BAR ───────────────────────────────────────── */
+#status-bar {
+  position: fixed; bottom: 0; left: 52px; right: 0;
+  background: var(--black); border-top: 1px solid rgba(255,255,255,0.07);
+  height: 38px; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  z-index: 90; flex-shrink: 0;
+}
+#status-note { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.35); letter-spacing: 0.1em; }
+.hs-link {
+  font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.3);
+  letter-spacing: 0.1em; text-decoration: none; transition: color 0.15s;
+}
+.hs-link:hover { color: var(--green); }
+
+/* ── GATE OVERLAY ────────────────────────────────────────────── */
+#gate-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--black);
+  display: flex; align-items: center; justify-content: center;
+}
+.gate-box { text-align: center; }
+.gate-wordmark { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--white); margin-bottom: 28px; display: block; }
+.gate-wordmark span { color: var(--green); }
+.gate-input {
+  display: block; width: 240px; padding: 12px 18px; margin: 0 auto 12px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px; color: var(--white); font-size: 15px; text-align: center;
+  font-family: 'DM Mono', monospace; letter-spacing: 0.15em; outline: none;
+}
+.gate-input::placeholder { color: rgba(255,255,255,0.25); letter-spacing: 0.08em; }
+.gate-input:focus { border-color: var(--green); }
+.gate-btn {
+  width: 240px; padding: 11px; background: var(--green); color: var(--black);
+  border: none; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 0.1em;
+  text-transform: uppercase; transition: opacity 0.15s;
+}
+.gate-btn:hover { opacity: 0.88; }
+.gate-error { color: var(--coral); font-size: 12px; margin-top: 10px; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; min-height: 18px; }
+
+/* ── PIPELINE MODAL ──────────────────────────────────────────── */
+#pipeline-modal-backdrop { display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.6); }
+#pipeline-modal {
+  display:none;position:fixed;top:0;right:0;bottom:0;z-index:401;
+  width:min(560px,100%);background:var(--cream);
+  border-left:1.5px solid var(--grey-light);
+  box-shadow:-20px 0 60px rgba(0,0,0,0.3);
+  overflow-y:auto;
+  transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+#pipeline-modal.open { transform:translateX(0); }
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate-overlay">
+  <div class="gate-box">
+    <span class="gate-wordmark">jungle<span>.</span></span>
+    <input id="gate-input" class="gate-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <span class="topbar-title">Opportunities</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="view-toggle">
+      <button class="view-btn active" id="view-btn-board" onclick="switchView('board',this)">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="1" width="3" height="10" rx="1"/><rect x="5" y="3" width="3" height="8" rx="1"/><rect x="9" y="2" width="2" height="9" rx="1"/></svg>
+        Pipeline
+      </button>
+      <button class="view-btn" id="view-btn-list" onclick="switchView('list',this)">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="3" x2="11" y2="3"/><line x1="1" y1="6" x2="11" y2="6"/><line x1="1" y1="9" x2="11" y2="9"/></svg>
+        List
+      </button>
+      <button class="view-btn" id="view-btn-timeline" onclick="switchView('timeline',this)">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="1" y1="6" x2="11" y2="6"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
+        Timeline
+      </button>
+      <button class="view-btn" id="view-btn-fourweek" onclick="switchView('fourweek',this)">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="2" width="10" height="9" rx="1"/><line x1="1" y1="5" x2="11" y2="5"/><line x1="4" y1="2" x2="4" y2="1"/><line x1="8" y1="2" x2="8" y2="1"/></svg>
+        4-week
+      </button>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="action-btn action-btn-ghost" onclick="openPipelineModal()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+      New Opportunity
+    </button>
+    <button class="action-btn action-btn-green" onclick="openHubSpot()">
+      Open in HubSpot ↗
+    </button>
+    <button class="action-btn action-btn-dark" id="refresh-btn" onclick="reload()">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9m0 18c1.66 0 3-4.03 3-9s-1.34-9-3-9m-9 9a9 9 0 019-9"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div id="filter-bar">
+  <button class="filter-btn active" data-stage="all" onclick="filterDeals('all',this)">All stages</button>
+  <button class="filter-btn" data-stage="3846842616" onclick="filterDeals('3846842616',this)">Cold outreach</button>
+  <button class="filter-btn" data-stage="3846842617" onclick="filterDeals('3846842617',this)">Response</button>
+  <button class="filter-btn" data-stage="3846843578" onclick="filterDeals('3846843578',this)">Warm</button>
+  <button class="filter-btn" data-stage="3846843579" onclick="filterDeals('3846843579',this)">Qualified</button>
+  <button class="filter-btn" data-stage="3846843580" onclick="filterDeals('3846843580',this)">Pitch / Proposal</button>
+  <button class="filter-btn" data-stage="3846843581" onclick="filterDeals('3846843581',this)">Contracts</button>
+  <button class="filter-btn" data-stage="3846843582" onclick="filterDeals('3846843582',this)">Closed Lost</button>
+  <button class="filter-btn" data-stage="5277858030" onclick="filterDeals('5277858030',this)">Closed Won</button>
+  <button class="filter-btn" data-stage="5277854954" onclick="filterDeals('5277854954',this)">Declined</button>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content-area">
+  <div id="deal-board"></div>
+  <div id="deal-list"></div>
+  <div id="timeline-panel"></div>
+  <div id="fourweek-panel"></div>
+</div>
+
+<!-- FOOTER STATUS BAR -->
+<div id="status-bar">
+  <span id="status-note">Loading…</span>
+  <a class="hs-link" href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board" target="_blank" rel="noopener">Open in HubSpot ↗</a>
+</div>
+
+<!-- PIPELINE QUICK ENTRY MODAL (backdrop + panel injected by config) -->
+<div id="pipeline-modal-backdrop" onclick="closePipelineModal()"></div>
+<div id="pipeline-modal"></div>
+
+<script src="https://jungle-is-massive.github.io/hub/config.js"></script>
+<script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
+
+<script>
+// ── Gate ─────────────────────────────────────────────────────────────────
+const GATE_PASSWORD = 'massive';
+function checkGate() {
+  const v = document.getElementById('gate-input').value.trim();
+  if (v === GATE_PASSWORD) {
+    sessionStorage.setItem('jc_auth', '1');
+    document.getElementById('gate-overlay').remove();
+    init();
+  } else {
+    document.getElementById('gate-error').textContent = 'Wrong password.';
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-input').focus();
+  }
+}
+if (sessionStorage.getItem('jc_auth') === '1') {
+  document.getElementById('gate-overlay').remove();
+}
+
+// ── Config ────────────────────────────────────────────────────────────────
+const SUPABASE_URL   = (window.JUNGLE_CONFIG||{}).SB_URL  || '';
+const SUPABASE_KEY   = (window.JUNGLE_CONFIG||{}).SB_KEY  || '';
+const HS_PROXY       = `${SUPABASE_URL}/functions/v1/hs-proxy`;
+const AGENCY_PIPELINE = '2808364263';
+
+const AGENCY_STAGE_CONFIG = [
+  { id: '3846842616', label: 'Cold outreach',   accent: '#8A8880' },
+  { id: '3846842617', label: 'Response',         accent: '#4a90d9' },
+  { id: '3846843578', label: 'Warm',             accent: '#F0B429' },
+  { id: '3846843579', label: 'Qualified',        accent: '#3ECF8E' },
+  { id: '3846843580', label: 'Pitch / Proposal', accent: '#FF6B4A' },
+  { id: '3846843581', label: 'Contracts',        accent: '#87FB66' },
+  { id: '3846843582', label: 'Closed Lost',      accent: '#555'    },
+  { id: '5277858030', label: 'Closed Won',       accent: '#3ECF8E' },
+  { id: '5277854954', label: 'Declined',         accent: '#FF6B4A' },
+];
+
+const STAGE_MAP = {};
+AGENCY_STAGE_CONFIG.forEach(s => { STAGE_MAP[s.id] = s; });
+
+const OWNER_NAMES = {
+  '30816281': 'Ed Knights',
+  '32990686': 'Coris Leachman',
+};
+
+const SOURCE_COLOURS = {
+  'Cold Inbound':    '#4ABFFF',
+  'Client Referral': '#3ECF8E',
+  'Staff Referral':  '#87FB66',
+  'Intermediary':    '#F0B429',
+  'Owned event':     '#C97DFF',
+  'Speaking event':  '#FF6B4A',
+  'Paid/SEO':        '#FF9A3C',
+  'Organic social':  '#FF6B9D',
+  'PR':              '#8A8880',
+};
+
+// ── State ─────────────────────────────────────────────────────────────────
+let allDeals       = [];
+let activeView     = 'board';
+let activeFilter   = 'all';
+let timelineCache  = null;
+let draggingDealId = null;
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('jc_auth') === '1') init();
+});
+
+async function init() {
+  await loadDeals();
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────
+async function loadDeals() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  document.getElementById('status-note').textContent = 'Loading…';
+  timelineCache = null;
+
+  try {
+    const res = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/deals/search',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filterGroups: [{ filters: [{ propertyName: 'pipeline', operator: 'EQ', value: AGENCY_PIPELINE }] }],
+        properties: ['dealname','dealstage','amount','hubspot_owner_id','createdate','hs_lastmodifieddate','closedate','deal_source'],
+        sorts: [{ propertyName: 'hs_lastmodifieddate', direction: 'DESCENDING' }],
+        limit: 100
+      })
+    });
+    const data = await res.json();
+    allDeals = data.results || [];
+    render();
+  } catch(e) {
+    document.getElementById('status-note').textContent = `Error: ${e.message}`;
+    document.getElementById('deal-board').innerHTML =
+      `<div style="padding:40px 24px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.08em">Unable to load deals — ${e.message}</div>`;
+  }
+  btn.classList.remove('spinning');
+}
+
+function reload() { loadDeals(); }
+function openHubSpot() { window.open('https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board', '_blank'); }
+
+// ── View switching ────────────────────────────────────────────────────────
+function switchView(view, btn) {
+  activeView = view;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const board      = document.getElementById('deal-board');
+  const list       = document.getElementById('deal-list');
+  const filterBar  = document.getElementById('filter-bar');
+  const timeline   = document.getElementById('timeline-panel');
+  const fourweek   = document.getElementById('fourweek-panel');
+
+  // Reset all
+  board.style.display = 'none';
+  list.style.display  = 'none';
+  timeline.classList.remove('visible');
+  fourweek.classList.remove('visible');
+  filterBar.style.display = '';
+
+  if (view === 'board') {
+    board.style.display = 'flex';
+    renderBoard(activeFilter);
+  } else if (view === 'list') {
+    list.style.display = 'flex';
+    renderList(activeFilter);
+  } else if (view === 'timeline') {
+    filterBar.style.display = 'none';
+    timeline.classList.add('visible');
+    loadTimeline();
+  } else if (view === 'fourweek') {
+    filterBar.style.display = 'none';
+    fourweek.classList.add('visible');
+    renderFourWeek();
+  }
+}
+
+function render() {
+  switchView(activeView, document.getElementById(`view-btn-${activeView}`));
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────
+function filterDeals(stageId, btn) {
+  activeFilter = stageId;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (activeView === 'list') renderList(stageId);
+  else renderBoard(stageId);
+}
+
+// ── Board ─────────────────────────────────────────────────────────────────
+function renderBoard(filterStage) {
+  const board = document.getElementById('deal-board');
+  board.innerHTML = '';
+
+  const stagesToShow = filterStage === 'all'
+    ? AGENCY_STAGE_CONFIG
+    : AGENCY_STAGE_CONFIG.filter(s => s.id === filterStage);
+
+  let totalValue = 0, totalDeals = 0;
+
+  stagesToShow.forEach((stage, si) => {
+    const stageDeals = allDeals.filter(d => d.properties.dealstage === stage.id);
+    stageDeals.forEach(d => { totalValue += parseFloat(d.properties.amount || 0) || 0; });
+    totalDeals += stageDeals.length;
+
+    const col = document.createElement('div');
+    col.className = 'deal-col';
+    col.style.setProperty('--col-accent', stage.accent);
+
+    const stageTotal = stageDeals.reduce((s,d) => s + (parseFloat(d.properties.amount||0)||0), 0);
+    col.innerHTML = `
+      <div class="deal-col-head">
+        <div>
+          <div class="deal-col-name">${stage.label}</div>
+          ${stageTotal > 0 ? `<div class="deal-col-total">${fmtAmt(stageTotal)}</div>` : ''}
+        </div>
+        <span class="deal-col-count">${stageDeals.length}</span>
+      </div>`;
+
+    if (!stageDeals.length) {
+      const e = document.createElement('div');
+      e.className = 'deal-col-empty'; e.textContent = 'No deals';
+      col.appendChild(e);
+    } else {
+      stageDeals.forEach((deal, di) => {
+        const p = deal.properties;
+        const ownerName = OWNER_NAMES[p.hubspot_owner_id] || 'Unknown';
+        const isCoris   = p.hubspot_owner_id === '32990686';
+        const card      = document.createElement('div');
+        card.className  = 'deal-card';
+        if (filterStage !== 'all') card.classList.add('highlighted');
+        card.style.animationDelay = (si * 0.04 + di * 0.03) + 's';
+        card.innerHTML = `
+          <div class="deal-card-name">${p.dealname || 'Untitled'}</div>
+          ${p.amount && p.amount !== '0' ? `<div class="deal-card-amount">${fmtAmt(parseFloat(p.amount))}</div>` : ''}
+          <div class="deal-card-meta">
+            <div class="deal-card-meta-row">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              <span class="deal-card-owner-pill ${isCoris ? 'owner-coris' : ''}">${ownerName}</span>
+            </div>
+            ${p.deal_source ? `<div class="deal-card-meta-row">
+              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <span style="color:${SOURCE_COLOURS[p.deal_source]||'rgba(255,255,255,0.4)'};font-weight:600">${p.deal_source}</span>
+            </div>` : ''}
+            <div class="deal-card-meta-row">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              ${fmtDate(p.createdate)}
+            </div>
+            ${p.closedate ? `<div class="deal-card-meta-row">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Close: ${fmtDate(p.closedate)}
+            </div>` : ''}
+          </div>
+          <div class="deal-card-activity">Last activity: ${timeAgo(p.hs_lastmodifieddate)}</div>`;
+        attachDrag(card, deal);
+        col.appendChild(card);
+      });
+    }
+
+    attachDrop(col, stage.id);
+    board.appendChild(col);
+  });
+
+  updateStatus(totalDeals, totalValue, filterStage);
+}
+
+// ── List ──────────────────────────────────────────────────────────────────
+function renderList(filterStage) {
+  const panel = document.getElementById('deal-list');
+  panel.innerHTML = '';
+
+  const stagesToShow = filterStage === 'all'
+    ? AGENCY_STAGE_CONFIG
+    : AGENCY_STAGE_CONFIG.filter(s => s.id === filterStage);
+
+  let rows = [];
+  stagesToShow.forEach(stage => {
+    allDeals.filter(d => d.properties.dealstage === stage.id).forEach(d => {
+      rows.push({ deal: d, stage });
+    });
+  });
+
+  if (!rows.length) {
+    panel.innerHTML = `<div style="padding:40px 28px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.08em">No deals to show.</div>`;
+    return;
+  }
+
+  const table = document.createElement('div');
+  table.style.cssText = 'width:100%;flex:1;min-height:0;overflow-y:auto;';
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0;padding:0 28px;background:rgba(255,255,255,0.03);position:sticky;top:0;z-index:2;border-bottom:1px solid rgba(255,255,255,0.07);';
+  header.innerHTML = ['Deal','Stage','Value','Owner','Last Activity'].map(h =>
+    `<div style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.35);padding:10px 0;">${h}</div>`
+  ).join('');
+  table.appendChild(header);
+
+  let total = 0;
+  rows.forEach((r, i) => {
+    const p = r.deal.properties;
+    const ownerName = OWNER_NAMES[p.hubspot_owner_id] || '—';
+    const isCoris   = p.hubspot_owner_id === '32990686';
+    total += parseFloat(p.amount || 0) || 0;
+    const row = document.createElement('div');
+    row.style.cssText = `display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0;padding:0 28px;border-bottom:1px solid rgba(255,255,255,0.05);background:transparent;transition:background 0.1s;cursor:pointer;`;
+    row.onmouseover = () => row.style.background = 'rgba(255,255,255,0.04)';
+    row.onmouseout  = () => row.style.background = 'transparent';
+    row.innerHTML = `
+      <div style="padding:13px 0;font-size:13px;font-weight:700;letter-spacing:-0.01em;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:16px">${p.dealname || 'Untitled'}</div>
+      <div style="padding:13px 0;display:flex;align-items:center;">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 9px;border-radius:100px;background:color-mix(in srgb,${r.stage.accent} 15%,transparent);color:${r.stage.accent};border:1px solid color-mix(in srgb,${r.stage.accent} 30%,transparent)">${r.stage.label}</span>
+      </div>
+      <div style="padding:13px 0;font-size:14px;font-weight:800;letter-spacing:-0.02em;color:var(--green)">${fmtAmt(parseFloat(p.amount||0))}</div>
+      <div style="padding:13px 0;display:flex;align-items:center;">
+        <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;${isCoris?'background:rgba(135,251,102,0.15);color:#87FB66':'background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5)'}">${ownerName}</span>
+      </div>
+      <div style="padding:13px 0;font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.04em">${timeAgo(p.hs_lastmodifieddate)}</div>`;
+    table.appendChild(row);
+  });
+
+  panel.appendChild(table);
+  updateStatus(rows.length, total, filterStage);
+}
+
+// ── Timeline ──────────────────────────────────────────────────────────────
+async function loadTimeline() {
+  const panel = document.getElementById('timeline-panel');
+  if (timelineCache) { renderGantt(panel, timelineCache); return; }
+
+  panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Fetching milestones…</div>';
+
+  const dealsToCheck = allDeals.slice(0, 20);
+  let assocResults = [];
+  try {
+    const r = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v4/associations/deals/tasks/batch/read', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputs: dealsToCheck.map(d => ({ id: d.id })) })
+    });
+    const d = await r.json();
+    assocResults = (d.results || []).map(r => ({ dealId: String(r.from.id), taskIds: (r.to||[]).map(t => String(t.toObjectId)) }));
+  } catch(e) { console.warn('Timeline assoc fetch failed', e); }
+
+  const dealsWithTasks = assocResults.filter(a => a.taskIds.length > 0);
+  if (!dealsWithTasks.length) {
+    panel.innerHTML = `<div class="gantt-empty">No milestone tasks found on any open deals.<br><br>In HubSpot, open a deal → create a task with a due date → it will appear here.</div>`;
+    return;
+  }
+
+  const allTaskIds = dealsWithTasks.flatMap(d => d.taskIds);
+  let taskDetails = {};
+  try {
+    const r = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': '/crm/v3/objects/tasks/batch/read', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputs: allTaskIds.map(id => ({ id })), properties: ['hs_task_subject','hs_timestamp','hs_task_status'] })
+    });
+    const d = await r.json();
+    (d.results || []).forEach(t => { taskDetails[t.id] = t.properties; });
+  } catch(e) { console.warn('Timeline task fetch failed', e); }
+
+  const dealMilestones = dealsWithTasks.map(assoc => {
+    const deal = allDeals.find(d => d.id === assoc.dealId);
+    if (!deal) return null;
+    const milestones = assoc.taskIds.map(tid => {
+      const t = taskDetails[tid];
+      if (!t || !t.hs_timestamp) return null;
+      return { id: tid, subject: t.hs_task_subject || 'Task', date: new Date(t.hs_timestamp), status: t.hs_task_status || 'NOT_STARTED' };
+    }).filter(Boolean).sort((a,b) => a.date - b.date);
+    return { deal, milestones };
+  }).filter(dm => dm && dm.milestones.length > 0);
+
+  if (!dealMilestones.length) {
+    panel.innerHTML = '<div class="gantt-empty">No dated tasks found. Add tasks with due dates in HubSpot to populate this view.</div>';
+    return;
+  }
+
+  timelineCache = dealMilestones;
+  renderGantt(panel, dealMilestones);
+}
+
+function renderGantt(panel, dealMilestones) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const allDates = dealMilestones.flatMap(dm => dm.milestones.map(m => m.date));
+  let minDate = new Date(Math.min(...allDates, today) - 7 * 86400000);
+  let maxDate = new Date(Math.max(...allDates, today) + 14 * 86400000);
+  const totalMs = maxDate - minDate;
+  const pct = d => ((d - minDate) / totalMs) * 100;
+  const todayPct = pct(today);
+
+  const months = [];
+  let cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+  while (cur <= maxDate) {
+    months.push({ label: cur.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }), pct: pct(cur) });
+    cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+  }
+
+  let html = `
+    <div class="timeline-header">
+      <div>
+        <div class="timeline-header-title">Opportunity Timeline</div>
+        <div class="timeline-header-sub">${dealMilestones.length} deal${dealMilestones.length !== 1 ? 's' : ''} with milestones · tasks from HubSpot</div>
+      </div>
+    </div>
+    <div class="timeline-note">Milestones are HubSpot tasks with a due date. <strong>Hover a dot to see the milestone name.</strong></div>
+    <div class="gantt-wrap" style="position:relative">
+      <div style="display:flex;margin-left:200px;margin-bottom:10px;position:relative;height:20px;">`;
+  months.forEach(m => {
+    if (m.pct < 0 || m.pct > 100) return;
+    html += `<div style="position:absolute;left:${Math.max(0,m.pct)}%;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);border-left:1px dashed rgba(255,255,255,0.1);padding-left:5px">${m.label}</div>`;
+  });
+  html += `</div>`;
+
+  dealMilestones.forEach(({ deal, milestones }) => {
+    const p = deal.properties;
+    const stageLabel = STAGE_MAP[p.dealstage]?.label || p.dealstage || '—';
+    html += `<div class="gantt-row">
+      <div class="gantt-label">
+        <div class="gantt-label-name" title="${p.dealname||''}">${p.dealname || 'Untitled'}</div>
+        <div class="gantt-label-stage">${stageLabel}</div>
+      </div>
+      <div class="gantt-track" style="position:relative;">`;
+    if (todayPct >= 0 && todayPct <= 100) {
+      html += `<div style="position:absolute;left:${todayPct}%;top:0;bottom:0;width:1.5px;background:rgba(135,251,102,0.3);z-index:2;"></div>`;
+    }
+    milestones.forEach(m => {
+      const mp = pct(m.date);
+      if (mp < -5 || mp > 105) return;
+      const isPast    = m.date < today;
+      const daysUntil = Math.round((m.date - today) / 86400000);
+      const isUrgent  = !isPast && daysUntil <= 7;
+      const dotClass  = isPast ? 'past' : isUrgent ? 'urgent' : 'upcoming';
+      const dateStr   = m.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const daysStr   = isPast ? `${Math.abs(daysUntil)}d ago` : daysUntil === 0 ? 'Today' : `in ${daysUntil}d`;
+      const statusIcon = m.status === 'COMPLETED' ? '✓' : isUrgent ? '⚠' : '◦';
+      html += `<div class="gantt-milestone ${dotClass}" style="left:${Math.min(95,Math.max(5,mp))}%;position:absolute;top:50%;transform:translate(-50%,-50%);">
+        <div class="gantt-milestone-dot"></div>
+        <div class="gantt-milestone-tooltip">
+          <strong>${statusIcon} ${m.subject}</strong>
+          <span>${dateStr} · ${daysStr}</span>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  if (todayPct >= 0 && todayPct <= 100) {
+    html += `<div class="gantt-today-line" style="left:calc(200px + ${todayPct}% * (100% - 200px) / 100)">
+      <div class="gantt-today-label">Today</div>
+    </div>`;
+  }
+  html += `</div>`;
+  html += `<div class="timeline-add-hint" style="margin-top:24px"><p><strong>Adding a milestone:</strong> Open any deal in HubSpot → Tasks → create a task with a due date. The task name becomes the milestone label.</p></div>`;
+  panel.innerHTML = html;
+}
+
+// ── 4-week view ───────────────────────────────────────────────────────────
+async function renderFourWeek() {
+  const panel = document.getElementById('fourweek-panel');
+  if (!timelineCache) {
+    panel.innerHTML = '<div class="gantt-loading"><div class="gantt-spinner"></div> Fetching milestones…</div>';
+    await loadTimeline();
+    document.getElementById('timeline-panel').classList.remove('visible');
+    panel.classList.add('visible');
+  }
+  if (!timelineCache || !timelineCache.length) {
+    panel.innerHTML = '<div class="gantt-empty">No milestone tasks found. Add tasks with due dates to deals in HubSpot.</div>';
+    return;
+  }
+  renderFourWeekGantt(panel, timelineCache);
+}
+
+function renderFourWeekGantt(panel, dealMilestones) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const weeks = [0,1,2,3].map(w => {
+    const start = new Date(today); start.setDate(start.getDate() - start.getDay() + 1 + w * 7);
+    const end   = new Date(start); end.setDate(end.getDate() + 6);
+    return { start, end };
+  });
+
+  let html = `<div class="fw-intro">Next 4 weeks · tasks from HubSpot</div>`;
+
+  const noDateDeals = [];
+
+  weeks.forEach((week, wi) => {
+    const weekDeals = [];
+    dealMilestones.forEach(({ deal, milestones }) => {
+      milestones.forEach(m => {
+        if (m.date >= week.start && m.date <= week.end) {
+          weekDeals.push({ deal, milestone: m });
+        }
+      });
+    });
+
+    const weekLabel = wi === 0 ? 'This week' : wi === 1 ? 'Next week' : `Week ${wi + 1}`;
+    const startStr  = week.start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const endStr    = week.end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+    html += `<div class="fw-week">
+      <div class="fw-week-header">
+        <div class="fw-week-label">${weekLabel}</div>
+        <div class="fw-week-dates">${startStr} – ${endStr}</div>
+        ${weekDeals.length ? `<div class="fw-week-count">${weekDeals.length} milestone${weekDeals.length !== 1 ? 's' : ''}</div>` : ''}
+      </div>`;
+
+    if (!weekDeals.length) {
+      html += `<div class="fw-empty">No milestones this week.</div>`;
+    } else {
+      weekDeals.sort((a,b) => a.milestone.date - b.milestone.date).forEach(({ deal, milestone }) => {
+        const p         = deal.properties;
+        const stage     = STAGE_MAP[p.dealstage];
+        const accent    = stage?.accent || '#8A8880';
+        const dateStr   = milestone.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        const isToday   = milestone.date.toDateString() === today.toDateString();
+        const statusIcon = milestone.status === 'COMPLETED' ? '✓ ' : '';
+        html += `<div class="fw-deal-row">
+          <div class="fw-deal-date">${isToday ? '<strong style="color:var(--green)">Today</strong>' : dateStr}</div>
+          <div class="fw-deal-dot" style="background:${accent}"></div>
+          <div class="fw-deal-body">
+            <div class="fw-deal-name">${statusIcon}${p.dealname || 'Untitled'}</div>
+            <div class="fw-deal-meta">
+              <div class="fw-deal-stage">${stage?.label || '—'}</div>
+              ${p.amount && p.amount !== '0' ? `<div class="fw-deal-value">${fmtAmt(parseFloat(p.amount))}</div>` : ''}
+              <div class="fw-deal-stage" style="color:rgba(255,255,255,0.25)">${milestone.subject}</div>
+            </div>
+          </div>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  });
+
+  // Deals with no dated milestones
+  const allDealIds = new Set(dealMilestones.map(dm => dm.deal.id));
+  const undated    = dealMilestones.filter(dm =>
+    !dm.milestones.some(m => {
+      const d = m.date;
+      return weeks.some(w => d >= w.start && d <= w.end);
+    })
+  );
+
+  if (undated.length) {
+    html += `<div class="fw-no-dates">
+      <div class="fw-no-dates-label">Outside this window</div>`;
+    undated.forEach(({ deal, milestones }) => {
+      const p   = deal.properties;
+      const stage = STAGE_MAP[p.dealstage];
+      html += `<div class="fw-deal-row" style="padding:6px 0">
+        <div class="fw-deal-dot" style="background:${stage?.accent||'#8A8880'};margin-top:3px"></div>
+        <div class="fw-deal-body">
+          <div class="fw-deal-name" style="font-size:11px">${p.dealname || 'Untitled'}</div>
+          <div class="fw-deal-meta">
+            <div class="fw-deal-stage">${stage?.label || '—'}</div>
+            ${milestones.map(m => `<div class="fw-deal-stage" style="color:rgba(255,255,255,0.2)">${m.subject} · ${m.date.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  panel.innerHTML = html;
+}
+
+// ── Drag & Drop ───────────────────────────────────────────────────────────
+function attachDrag(cardEl, deal) {
+  cardEl.draggable = true;
+  cardEl.style.cursor = 'grab';
+  cardEl.addEventListener('dragstart', e => {
+    draggingDealId = deal.id;
+    cardEl.style.opacity = '0.45';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', deal.id);
+  });
+  cardEl.addEventListener('dragend', () => {
+    cardEl.style.opacity = '';
+    draggingDealId = null;
+    document.querySelectorAll('.deal-col').forEach(c => c.classList.remove('drag-over'));
+  });
+}
+
+function attachDrop(colEl, stageId) {
+  colEl.addEventListener('dragover', e => { if (!draggingDealId) return; e.preventDefault(); colEl.classList.add('drag-over'); });
+  colEl.addEventListener('dragleave', () => colEl.classList.remove('drag-over'));
+  colEl.addEventListener('drop', async e => {
+    e.preventDefault(); colEl.classList.remove('drag-over');
+    const dealId = draggingDealId || e.dataTransfer.getData('text/plain');
+    if (!dealId) return;
+    const deal = allDeals.find(d => d.id === dealId);
+    if (!deal || deal.properties.dealstage === stageId) return;
+    const stageName    = STAGE_MAP[stageId]?.label || stageId;
+    const previousStage = deal.properties.dealstage;
+    deal.properties.dealstage = stageId;
+    renderBoard(activeFilter);
+    try {
+      const resp = await fetch(HS_PROXY, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'x-proxy-target': 'hubspot', 'x-hs-path': `/crm/v3/objects/deals/${dealId}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ properties: { dealstage: stageId } })
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      showToast(`Moved to ${stageName} ✓`);
+    } catch(err) {
+      deal.properties.dealstage = previousStage;
+      renderBoard(activeFilter);
+      showToast('Failed to update — try again', true);
+    }
+  });
+}
+
+function showToast(msg, warn) {
+  let t = document.getElementById('drag-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'drag-toast';
+    t.style.cssText = 'position:fixed;bottom:56px;left:50%;transform:translateX(-50%);z-index:999;padding:10px 20px;border-radius:100px;font-family:"DM Mono",monospace;font-size:11px;font-weight:600;letter-spacing:0.08em;pointer-events:none;transition:opacity 0.3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = warn ? 'var(--amber)' : 'var(--green)';
+  t.style.color = 'var(--black)';
+  t.style.opacity = '1';
+  clearTimeout(t._hide);
+  t._hide = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
+// ── Pipeline modal ────────────────────────────────────────────────────────
+function openPipelineModal() {
+  document.getElementById('pipeline-modal-backdrop').style.display = 'block';
+  const modal = document.getElementById('pipeline-modal');
+  modal.style.display = 'block';
+  modal.innerHTML = `
+    <div style="background:var(--black);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1)">
+      <span style="font-size:13px;font-weight:700;color:var(--white);letter-spacing:-0.01em">New Opportunity</span>
+      <button onclick="closePipelineModal()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:18px;line-height:1;padding:4px">✕</button>
+    </div>
+    <div style="padding:22px;display:flex;flex-direction:column;gap:14px;color:var(--black)">
+      <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);letter-spacing:0.1em;text-transform:uppercase">Add directly in HubSpot for full field support</p>
+      <a href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:8px;padding:12px 18px;background:var(--black);color:var(--green);border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;letter-spacing:-0.01em;transition:opacity 0.15s"
+        onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+        Open Agency Pipeline in HubSpot ↗
+      </a>
+    </div>`;
+  setTimeout(() => { modal.style.transform = 'translateX(0)'; modal.classList.add('open'); }, 10);
+}
+function closePipelineModal() {
+  const modal = document.getElementById('pipeline-modal');
+  modal.classList.remove('open');
+  modal.style.transform = '';
+  setTimeout(() => {
+    modal.style.display = 'none';
+    document.getElementById('pipeline-modal-backdrop').style.display = 'none';
+  }, 280);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmtAmt(n) {
+  if (!n || isNaN(n)) return '—';
+  if (n >= 1000000) return '£' + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'm';
+  if (n >= 1000)    return '£' + Math.round(n/1000) + 'k';
+  return '£' + Math.round(n).toLocaleString('en-GB');
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const days = Math.floor((Date.now() - new Date(iso)) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 30)  return days + ' days ago';
+  if (days < 60)  return 'A month ago';
+  return Math.floor(days/30) + ' months ago';
+}
+function updateStatus(count, value, filter) {
+  const stage = STAGE_MAP[filter];
+  const label = filter === 'all' ? 'All stages' : (stage?.label || filter);
+  document.getElementById('status-note').textContent =
+    `${label} · ${count} deal${count !== 1 ? 's' : ''}${value > 0 ? ' · ' + fmtAmt(value) + ' total' : ''}`;
+}
+
+// Show board by default on load
+document.getElementById('deal-board').style.display = 'flex';
+</script>
+
+<!-- LEFT NAV -->
+<script>window.JUNGLE_NAV_ACTIVE = 'opportunities';</script>
+<script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
+
+</body>
+</html>
