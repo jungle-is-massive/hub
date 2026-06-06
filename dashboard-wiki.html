@@ -3,54 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jungle — Dashboard Wiki</title>
+<title>Jungle — Hub Wiki</title>
 <link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --cream: #F5F0E8;
-  --cream-soft: #EFE9DF;
-  --black: #0E0E0E;
-  --green: #87FB66;
-  --green-dim: #65C247;
-  --grey: #C8C3B8;
-  --grey-mid: #8A8880;
-  --grey-light: #E8E3DA;
-  --white: #FFFFFF;
-  --header-h: 64px;
-  --blue: #4a90d9;
-  --amber: #F0B429;
-  --coral: #FF6B4A;
-  --teal: #3ECF8E;
+  --cream: #F5F0E8; --cream-soft: #EFE9DF; --black: #0E0E0E; --green: #87FB66;
+  --green-dim: #65C247; --grey: #C8C3B8; --grey-mid: #8A8880; --grey-light: #E8E3DA;
+  --white: #FFFFFF; --header-h: 64px; --blue: #4a90d9; --amber: #F0B429;
+  --coral: #FF6B4A; --teal: #3ECF8E; --purple: #7B6FE0;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: var(--cream); color: var(--black); font-family: 'DM Sans', system-ui, sans-serif; min-height: 100%; -webkit-font-smoothing: antialiased; }
 
-/* TOPBAR */
-#topbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  height: var(--header-h); background: var(--black);
-  display: grid; grid-template-columns: 1fr auto 1fr;
-  align-items: center; padding: 0 28px;
-}
-.wordmark { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; color: var(--cream); cursor: pointer; }
+#topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: var(--header-h); background: var(--black); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 28px; }
+.wordmark { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; color: var(--cream); cursor: pointer; text-decoration: none; }
 .wordmark span { color: var(--green); }
 .hub-tag { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey); padding: 6px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; }
 .topbar-right { display: flex; justify-content: flex-end; }
 .back-btn { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey); padding: 6px 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; background: transparent; cursor: pointer; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
 .back-btn:hover { color: var(--green); border-color: var(--green); }
 
-/* MAIN */
 main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-width: 900px; margin: 0 auto; padding-left: 32px; padding-right: 32px; }
 
-/* PAGE HEADER */
 .page-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 10px; }
 .page-title { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 10px; }
 .page-sub { font-size: 14px; color: var(--grey-mid); line-height: 1.6; max-width: 600px; margin-bottom: 48px; }
 
-/* TOC */
 .toc { background: var(--black); border-radius: 14px; padding: 24px 28px; margin-bottom: 48px; }
 .toc-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 14px; }
 .toc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
@@ -58,7 +39,6 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
 .toc-list a:hover { color: var(--green); }
 .toc-num { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); width: 18px; }
 
-/* SECTIONS */
 .wiki-section { margin-bottom: 56px; }
 .section-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 8px; }
 .section-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 14px; }
@@ -67,19 +47,18 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
 .section-body p:last-child { margin-bottom: 0; }
 .section-divider { height: 1px; background: var(--grey-light); margin-bottom: 56px; }
 
-/* SOURCE CARDS */
 .source-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 .source-card { background: var(--white); border: 1.5px solid var(--grey-light); border-radius: 12px; padding: 18px 20px; }
 .source-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
 .source-card-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
 .source-tag { font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; }
-.tag-hubspot  { background: rgba(255,107,74,0.12); color: #8a2400; }
+.tag-hubspot { background: rgba(255,107,74,0.12); color: #8a2400; }
 .tag-supabase { background: rgba(62,207,142,0.12); color: #1a6644; }
-.tag-synergist { background: rgba(74,144,217,0.12); color: #1a3d6e; }
+.tag-gcal { background: rgba(74,144,217,0.12); color: #1a3d6e; }
+.tag-dripify { background: rgba(123,111,224,0.12); color: #3a2e8a; }
 .source-card-body { font-size: 13px; color: var(--grey-mid); line-height: 1.6; }
 .source-card-body strong { color: var(--black); font-weight: 600; }
 
-/* BOX TABLE */
 .box-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
 .box-table th { font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); text-align: left; padding: 8px 12px; border-bottom: 1.5px solid var(--grey-light); }
 .box-table td { padding: 12px 12px; border-bottom: 1px solid var(--grey-light); vertical-align: top; line-height: 1.5; }
@@ -87,61 +66,150 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
 .box-table td:first-child { font-weight: 700; white-space: nowrap; }
 .box-table td .mono { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--grey-mid); display: block; margin-top: 2px; }
 .pill { display: inline-block; font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; }
-.pill-hs   { background: rgba(255,107,74,0.12); color: #8a2400; }
-.pill-sb   { background: rgba(62,207,142,0.12); color: #1a6644; }
+.pill-hs { background: rgba(255,107,74,0.12); color: #8a2400; }
+.pill-sb { background: rgba(62,207,142,0.12); color: #1a6644; }
+.pill-gc { background: rgba(74,144,217,0.12); color: #1a3d6e; }
 .pill-dash { background: rgba(138,136,128,0.12); color: var(--grey-mid); }
 
-/* CALLOUT */
 .callout { background: var(--black); border-radius: 12px; padding: 18px 22px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
 .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
 .callout-body { font-size: 13px; color: var(--grey); line-height: 1.6; }
 .callout-body strong { color: var(--green); }
 
-/* KNOWN GAPS */
+/* Nav map */
+.nav-map { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.nav-card { background: var(--white); border: 1.5px solid var(--grey-light); border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s; display: block; }
+.nav-card:hover { border-color: var(--black); box-shadow: 0 4px 14px rgba(0,0,0,0.07); }
+.nav-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.nav-card-icon { width: 28px; height: 28px; background: var(--black); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nav-card-icon svg { width: 14px; height: 14px; stroke: var(--green); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-card-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--black); }
+.nav-card-url { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid); letter-spacing: 0.04em; margin-bottom: 8px; }
+.nav-card-desc { font-size: 12px; color: var(--grey-mid); line-height: 1.5; }
+
 .gap-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 .gap-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: #3a3830; }
 .gap-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; margin-top: 6px; }
 .gap-dot.green { background: var(--green); }
 .gap-dot.grey { background: var(--grey-light); }
-
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
 
 <div id="topbar">
-  <div class="wordmark" onclick="location.href='index.html'">Jungle <span>Hub</span></div>
-  <div style="display:flex;justify-content:center"><div class="hub-tag">Dashboard Wiki</div></div>
+  <a class="wordmark" href="activity-dashboard-v2.html">jungle<span>.</span></a>
+  <div style="display:flex;justify-content:center"><div class="hub-tag">Hub Wiki</div></div>
   <div class="topbar-right">
-    <a class="back-btn" href="activity-dashboard.html">← Dashboard</a>
+    <a class="back-btn" href="activity-dashboard-v2.html">← Dashboard</a>
   </div>
 </div>
 
 <main>
-  <div class="page-eyebrow">Data documentation · May 2026</div>
-  <div class="page-title">How the dashboard<br>is wired up.</div>
-  <div class="page-sub">A plain-English guide to where every number on the activity dashboard comes from — which system it pulls from, what filters are applied, and what the known gaps are. Updated as the setup evolves.</div>
+  <div class="page-eyebrow">Documentation · June 2026</div>
+  <div class="page-title">How the hub<br>is wired up.</div>
+  <div class="page-sub">A plain-English guide to every page in the Jungle Hub — what it shows, where the data comes from, how to navigate it, and what the known gaps are. Updated as the setup evolves.</div>
 
-  <!-- TOC -->
   <div class="toc">
     <div class="toc-label">Contents</div>
     <ul class="toc-list">
-      <li><a href="#sources"><span class="toc-num">01</span>Data sources</a></li>
-      <li><a href="#stat-cards"><span class="toc-num">02</span>The four stat cards</a></li>
-      <li><a href="#opp-tracking"><span class="toc-num">03</span>Deal Opportunity Tracking</a></li>
-      <li><a href="#deal-source"><span class="toc-num">04</span>Deal Source &amp; Intermediary breakdown</a></li>
-      <li><a href="#funnel-stages"><span class="toc-num">05</span>Prospect Funnel Stages</a></li>
-      <li><a href="#hubspot-properties"><span class="toc-num">06</span>HubSpot deal properties reference</a></li>
-      <li><a href="#gaps"><span class="toc-num">07</span>Known gaps &amp; next steps</a></li>
+      <li><a href="#nav"><span class="toc-num">01</span>Navigation — the eight pages</a></li>
+      <li><a href="#sources"><span class="toc-num">02</span>Data sources</a></li>
+      <li><a href="#dashboard"><span class="toc-num">03</span>Dashboard — stat cards &amp; charts</a></li>
+      <li><a href="#opportunities"><span class="toc-num">04</span>Opportunities — pipeline &amp; timeline</a></li>
+      <li><a href="#priorities"><span class="toc-num">05</span>Priorities — CRUD list &amp; timeline</a></li>
+      <li><a href="#newsdesk"><span class="toc-num">06</span>News Desk — share queue</a></li>
+      <li><a href="#prospects"><span class="toc-num">07</span>Prospects — contacts &amp; MAD Meets</a></li>
+      <li><a href="#meetings"><span class="toc-num">08</span>Meetings — GCal BD log</a></li>
+      <li><a href="#inquiries"><span class="toc-num">09</span>Inquiries — inbound BD flags</a></li>
+      <li><a href="#events"><span class="toc-num">10</span>Events — industry calendar</a></li>
+      <li><a href="#hubspot-properties"><span class="toc-num">11</span>HubSpot properties reference</a></li>
+      <li><a href="#gaps"><span class="toc-num">12</span>Known gaps &amp; next steps</a></li>
     </ul>
   </div>
 
-  <!-- 01 DATA SOURCES -->
-  <div class="wiki-section" id="sources">
+  <!-- 01 NAVIGATION -->
+  <div class="wiki-section" id="nav">
     <div class="section-eyebrow">01</div>
+    <div class="section-title">Navigation — the eight pages</div>
+    <div class="section-body">
+      <p>The hub uses a permanent left-hand icon strip (52px wide) that's present on every page. Hovering any icon shows an instant label — no tooltip delay. The active page is highlighted in green. Each section of the original single-page dashboard has been promoted into its own standalone page, so everything can be viewed, shared, and worked with in isolation.</p>
+    </div>
+
+    <div class="nav-map">
+      <a class="nav-card" href="activity-dashboard-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></div>
+          <div class="nav-card-title">Dashboard</div>
+        </div>
+        <div class="nav-card-url">activity-dashboard-v2.html</div>
+        <div class="nav-card-desc">The default view. Stat cards, deal opportunity tracking, deal source breakdown, prospect funnel stages, and the momentum strip. No scrolling — everything fits the viewport.</div>
+      </a>
+      <a class="nav-card" href="opportunities-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><rect x="2" y="8" width="3.5" height="10" rx="1"/><rect x="8.25" y="4" width="3.5" height="14" rx="1"/><rect x="14.5" y="1" width="3.5" height="17" rx="1"/></svg></div>
+          <div class="nav-card-title">Opportunities</div>
+        </div>
+        <div class="nav-card-url">opportunities-v2.html</div>
+        <div class="nav-card-desc">Full Agency Pipeline in four views: Pipeline (kanban, drag-and-drop to update HubSpot), List (flat table), Timeline (Gantt with HubSpot task milestones), and 4-week (week-by-week milestone breakdown). New Opportunity and New Deal buttons create directly in HubSpot.</div>
+      </a>
+      <a class="nav-card" href="priorities-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h9M3 15h5"/><circle cx="16" cy="14" r="3"/><path d="M16 12.5v1.5l1 1"/></svg></div>
+          <div class="nav-card-title">Priorities</div>
+        </div>
+        <div class="nav-card-url">priorities-v2.html</div>
+        <div class="nav-card-desc">Full CRUD list of BD priorities, stored in Supabase. Three views: List (grouped by priority tier, drag-and-drop reorder), Timeline: Bars (Gantt), and Timeline: Calendar (month grid). Filter by priority (High/Medium/Low/Ongoing/Blocked) and category (Marcomms/New Biz/Marketing).</div>
+      </a>
+      <a class="nav-card" href="share-queue-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><path d="M4 4h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M7 8h6M7 11h4"/><path d="M3 7h14"/></svg></div>
+          <div class="nav-card-title">News Desk</div>
+        </div>
+        <div class="nav-card-url">share-queue-v2.html</div>
+        <div class="nav-card-desc">Five-lane kanban (Idea → Drafted → Approved → Scheduled → Sent) for staging content going out to intermediaries. Coris and Ro both contribute. Two tracks: Digest (monthly HubSpot email) and Personal 1:1 (WhatsApp or email). Quick-add presets for Award win, Client win, Pitch invite, Commercial result.</div>
+      </a>
+      <a class="nav-card" href="prospects-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><circle cx="8" cy="6" r="3"/><path d="M2 18c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="16" cy="7" r="2"/><path d="M13.5 18c0-2.2 1.1-4 2.5-4.5"/></svg></div>
+          <div class="nav-card-title">Prospects</div>
+        </div>
+        <div class="nav-card-url">prospects-v2.html</div>
+        <div class="nav-card-desc">Eight tabs: All contacts, LinkedIn, Dripify, Target Prospects, Inbound, Referral, Personal, and MAD Meets. MAD Meets tab shows live HubSpot lead status, last contacted date, last email communication pulled from HubSpot, and an email compose modal with three templates. Email sends via Gmail API with automatic HubSpot BCC.</div>
+      </a>
+      <a class="nav-card" href="meetings-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="14" rx="2"/><path d="M2 9h16M6 2v4M14 2v4"/></svg></div>
+          <div class="nav-card-title">Meetings</div>
+        </div>
+        <div class="nav-card-url">meetings-v2.html</div>
+        <div class="nav-card-desc">BD meeting log. Upcoming (next 30 days) and Attended (last 30 days) tabs. Pulls live from Google Calendar when connected — any event with #nbm (New Business) or #netm (Network) in its description. Falls back to Supabase-cached data synced by whoever last connected, with a sync timestamp shown.</div>
+      </a>
+      <a class="nav-card" href="inquiries-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><path d="M3 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7l-4 3V5z"/><path d="M8 8h4M8 11h2"/></svg></div>
+          <div class="nav-card-title">Inquiries</div>
+        </div>
+        <div class="nav-card-url">inquiries-v2.html</div>
+        <div class="nav-card-desc">Three-column view of BD-flagged inbound inquiries from Supabase. Select an inquiry to read the full message (enriched from HubSpot if available), update the HubSpot lead status (saves live on change), and add notes that are written back to HubSpot as activity log entries.</div>
+      </a>
+      <a class="nav-card" href="events-v2.html">
+        <div class="nav-card-head">
+          <div class="nav-card-icon"><svg viewBox="0 0 20 20"><path d="M10 2l2 5h5l-4 3.5 1.5 5.5L10 13l-4.5 3 1.5-5.5L3 7h5z"/></svg></div>
+          <div class="nav-card-title">Events</div>
+        </div>
+        <div class="nav-card-url">events-v2.html</div>
+        <div class="nav-card-desc">Industry events calendar from Supabase. Upcoming and Past tabs. Category pills: Intermediary (blue), Speaking (purple), Attendance (green), Owned Event (orange). Content and Nurture category events are filtered out — BD-relevant events only.</div>
+      </a>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 02 DATA SOURCES -->
+  <div class="wiki-section" id="sources">
+    <div class="section-eyebrow">02</div>
     <div class="section-title">Data sources</div>
     <div class="section-body">
-      <p>The dashboard pulls from two systems. HubSpot is the authoritative source for all pipeline and deal data. Synergist was previously used for the Now lane and deal counts but has been removed — it was causing double-counting. Any opportunity worth tracking must now be logged in HubSpot first.</p>
+      <p>The hub pulls from four systems. HubSpot is the authoritative source for all pipeline, deal, and contact data. Supabase is Jungle's own database — it stores priorities, the share queue, events, Dripify contacts, and serves as the proxy layer for HubSpot API calls. Google Calendar feeds meeting data. Dripify connections sync into Supabase automatically via Make.com.</p>
     </div>
     <div class="source-grid">
       <div class="source-card">
@@ -150,305 +218,311 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
           <span class="source-tag tag-hubspot">CRM · Primary source</span>
         </div>
         <div class="source-card-body">
-          The sole source of truth for <strong>contacts, lifecycle stages, and deals</strong>. The dashboard queries HubSpot via a Supabase edge function proxy (<code>hs-proxy</code>) to avoid CORS issues. Two object types are used: <strong>Contacts</strong> (for Prospect Funnel Stages) and <strong>Deals</strong> (for all pipeline data). All deal queries — including the Now/Next/Future lanes, the pipeline value stat, and the deal source breakdown — are scoped to the <strong>Agency Pipeline</strong> only (<code>2808364263</code>).
+          The sole source of truth for <strong>contacts, lifecycle stages, deals, notes, and email history</strong>. The hub queries HubSpot via a Supabase edge function proxy (<code>hs-proxy</code>) to avoid CORS issues. All deal queries are scoped to the <strong>Agency Pipeline only</strong> (<code>2808364263</code>). Contact lifecycle stages power the Prospect Funnel. The MAD Meets tab reads live lead status and email threads from HubSpot.
         </div>
       </div>
       <div class="source-card">
         <div class="source-card-header">
           <div class="source-card-title">Supabase</div>
-          <span class="source-tag tag-supabase">Database</span>
+          <span class="source-tag tag-supabase">Database · Multiple tables</span>
         </div>
         <div class="source-card-body">
-          Jungle's own database. Stores the <strong>funnel stage definitions</strong> — the list of boxes, their labels, order, and metadata (e.g. which maps to MQL, which to SQL). This means the funnel structure can be updated without touching code. Supabase also stores contacts imported from Dripify, and serves as the proxy layer that the dashboard's edge function routes through.
+          Jungle's own Postgres database. Stores: <strong>growth_status</strong> (Priorities CRUD), <strong>share_queue</strong> (News Desk kanban), <strong>events</strong> (industry events), <strong>contacts</strong> (all non-Dripify contacts), <strong>prospects</strong> (Dripify connections), <strong>bd_meetings</strong> (cached GCal BD meetings), <strong>hubspot_enquiries</strong> (flagged inbound inquiries), <strong>funnel_stages</strong> (funnel stage definitions). Project ref: <code>iehkvlyjumkzccoqqgxl</code>.
+        </div>
+      </div>
+      <div class="source-card">
+        <div class="source-card-header">
+          <div class="source-card-title">Google Calendar</div>
+          <span class="source-tag tag-gcal">GCal · OAuth 2.0</span>
+        </div>
+        <div class="source-card-body">
+          Powers the Meetings page. Uses OAuth 2.0 implicit flow — you connect by clicking "Connect Google Calendar" on the Meetings page. The token is stored in <code>localStorage</code> and lasts one hour. When connected, the page reads directly from the primary calendar. When not connected, it falls back to meetings cached in Supabase by the last person who connected. <strong>Tags:</strong> <code>#nbm</code> (New Business meeting) and <code>#netm</code> (Network meeting) must appear in the event description.
+        </div>
+      </div>
+      <div class="source-card">
+        <div class="source-card-header">
+          <div class="source-card-title">Dripify</div>
+          <span class="source-tag tag-dripify">LinkedIn outreach · via Make.com</span>
+        </div>
+        <div class="source-card-body">
+          LinkedIn outreach connections sync automatically into the <code>prospects</code> table in Supabase via a Make.com scenario. New Dripify connections appear in the Prospects page under the Dripify tab. The Make.com automation runs on a schedule — new connections may take up to a few hours to appear.
         </div>
       </div>
     </div>
 
     <div class="callout">
       <div class="callout-icon">📌</div>
-      <div class="callout-body"><strong>The discipline:</strong> if an opportunity isn't logged in HubSpot, it won't appear on the dashboard. That's intentional. HubSpot is the forcing function — every deal needs to move through Opportunity → Pitch → Won or Declined within the Agency Pipeline for the numbers to be accurate.</div>
+      <div class="callout-body"><strong>The discipline:</strong> if an opportunity isn't logged in HubSpot, it won't appear on the dashboard. Every deal needs to move through the Agency Pipeline for the numbers to be accurate. Synergist was previously used for deal data but has been removed — it was causing double-counting. HubSpot is the only source of pipeline truth.</div>
     </div>
   </div>
   <div class="section-divider"></div>
 
-  <!-- 02 STAT CARDS -->
-  <div class="wiki-section" id="stat-cards">
-    <div class="section-eyebrow">02</div>
-    <div class="section-title">The four stat cards</div>
+  <!-- 03 DASHBOARD -->
+  <div class="wiki-section" id="dashboard">
+    <div class="section-eyebrow">03</div>
+    <div class="section-title">Dashboard — stat cards &amp; charts</div>
     <div class="section-body">
-      <p>The large black cards at the top of the dashboard. Each one is a headline number with a different source.</p>
+      <p>The default view. Clicking a stat card navigates to the relevant standalone page rather than scrolling down (Meetings → meetings-v2.html, Inquiries → inquiries-v2.html, Open Deals → opportunities-v2.html). The body sections that previously lived on the dashboard (Meetings, Inquiries, Open Deals Now/Next/Future, Events) have been moved to their own pages.</p>
     </div>
     <table class="box-table">
-      <thead>
-        <tr>
-          <th>Card</th>
-          <th>Source</th>
-          <th>What it counts</th>
-          <th>Filter</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Card</th><th>Source</th><th>What it counts</th><th>Filter</th></tr></thead>
       <tbody>
         <tr>
           <td>Open Deals<span class="mono">stat-deals</span></td>
           <td><span class="pill pill-hs">HubSpot</span></td>
-          <td>Total open deals in the Agency Pipeline — excludes Closed Lost, Closed Won, and Declined</td>
-          <td>Agency Pipeline only. All three closed stages excluded via separate NEQ filters.</td>
+          <td>Total open deals in the Agency Pipeline</td>
+          <td>Excludes Closed Lost, Closed Won, and Declined. Agency Pipeline only.</td>
         </tr>
         <tr>
           <td>Active Pipeline<span class="mono">stat-pipeline</span></td>
           <td><span class="pill pill-hs">HubSpot</span></td>
-          <td>Total £ value of open Agency Pipeline deals, measured against a £6m target (3:1 on £2m revenue target)</td>
-          <td>Same deal set as Open Deals. Progress bar shows % of £6m target covered. Cover ratio shown as X:1 against £2m.</td>
+          <td>Total £ value of open Agency Pipeline deals vs £6m target (3:1 on £2m revenue target)</td>
+          <td>Same deal set as Open Deals. Progress bar = % of £6m target covered.</td>
         </tr>
         <tr>
           <td>Fresh Inquiries<span class="mono">stat-inquiries</span></td>
-          <td><span class="pill pill-hs">HubSpot</span></td>
-          <td>Contacts recently created in HubSpot that have been BD-flagged</td>
-          <td>Flagged via the BD star in the Fresh Enquiries tab of the opportunities dashboard.</td>
+          <td><span class="pill pill-sb">Supabase</span></td>
+          <td>BD-flagged inbound inquiries</td>
+          <td>Rows in <code>hubspot_enquiries</code> where <code>bd_flagged = true</code>. Clicking navigates to the Inquiries page.</td>
         </tr>
         <tr>
           <td>Meetings<span class="mono">stat-meetings</span></td>
-          <td><span class="pill pill-dash">Google Calendar</span></td>
-          <td>Upcoming meetings (next 30 days) and attended meetings (last 30 days) tagged #nbm or #netm in calendar</td>
-          <td>Requires Google Calendar to be connected. Tags must appear in the event title.</td>
+          <td><span class="pill pill-gc">Google Calendar</span></td>
+          <td>Upcoming (next 30 days) and attended (last 30 days) tagged meetings</td>
+          <td>Events with #nbm or #netm in description. Falls back to Supabase cache when GCal not connected.</td>
         </tr>
       </tbody>
     </table>
+
+    <div class="section-body" style="margin-top:24px">
+      <p><strong>Deal Opportunity Tracking</strong> — the seven boxes below the stat cards. Warm, Qualified, Pitch/Proposal, and Contracts map to active Agency Pipeline stages. Won, Lost, and Declined run separate queries because they're excluded from the main active deals fetch.</p>
+      <p><strong>Deal Source breakdown</strong> — colour-coded pills, one per source, with a live deal count. Deals with no source show as "Untagged". The Intermediary pill is clickable and expands the Intermediary Pipeline comparison table below it.</p>
+      <p><strong>Prospect Funnel Stages</strong> — six boxes counting HubSpot contacts by lifecycle stage. These are contacts, not deals — a different object type. The stage structure is defined in Supabase (<code>funnel_stages</code> table) and counts fetch live from HubSpot one request per stage.</p>
+      <p><strong>Momentum strip</strong> — the black bar below the stat cards. Summarises week-on-week deltas: deals that left pipeline, change in pipeline value, meetings attended, and meetings booked ahead.</p>
+    </div>
   </div>
   <div class="section-divider"></div>
 
-  <!-- 03 DEAL OPPORTUNITY TRACKING -->
-  <div class="wiki-section" id="opp-tracking">
-    <div class="section-eyebrow">03</div>
-    <div class="section-title">Deal Opportunity Tracking</div>
+  <!-- 04 OPPORTUNITIES -->
+  <div class="wiki-section" id="opportunities">
+    <div class="section-eyebrow">04</div>
+    <div class="section-title">Opportunities — pipeline &amp; timeline</div>
     <div class="section-body">
-      <p>The five boxes immediately below the stat cards. These count <strong>deals</strong> in HubSpot — specifically in the <strong>Agency Pipeline</strong>. Each box maps to one or more deal stages in that pipeline.</p>
-      <p>Opportunities and Pitches pull from the active deals already loaded for the stat cards. Won, Lost, and Declined run separate parallel queries because all three closed stages are excluded from the main active deals fetch to keep pipeline numbers clean.</p>
-      <p>Below the boxes, the <strong>Now / Next / Future lanes</strong> break open deals into three horizons. All three pull from the same Agency Pipeline dataset — no other source is used.</p>
+      <p>The full Agency Pipeline, promoted from a slide-out drawer into a standalone full-page view. Four view modes switch from the topbar.</p>
     </div>
-
+    <table class="box-table">
+      <thead><tr><th>View</th><th>What it shows</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Pipeline</td>
+          <td>Kanban board — one column per stage</td>
+          <td>Drag a card between columns to update the deal stage directly in HubSpot. Optimistic update — board re-renders immediately, then patches HubSpot. Stage filter bar lets you focus on one stage.</td>
+        </tr>
+        <tr>
+          <td>List</td>
+          <td>Flat table of all deals</td>
+          <td>Stage shown as a colour-coded pill. Owner, deal value, last activity. Searchable via the stage filter bar.</td>
+        </tr>
+        <tr>
+          <td>Timeline</td>
+          <td>Gantt chart of deals with dated HubSpot tasks</td>
+          <td>Milestones are tasks created on a deal in HubSpot with a due date. Hover a milestone dot to see the task name and date. Today line shown in green.</td>
+        </tr>
+        <tr>
+          <td>4-week</td>
+          <td>Week-by-week breakdown of upcoming milestones</td>
+          <td>Shows This week / Next week / Week 3 / Week 4. Deals with milestones outside the window shown in an "Outside this window" section below. Uses the same HubSpot task data as Timeline view.</td>
+        </tr>
+      </tbody>
+    </table>
     <div class="callout">
       <div class="callout-icon">⚠️</div>
-      <div class="callout-body"><strong>Agency Pipeline only.</strong> There are multiple pipelines in HubSpot (Jungle Sales Pipeline, Agency Pipeline, Partnerships, IP Sponsorship). This section deliberately shows Agency Pipeline only (<code>2808364263</code>) — the one Coris is actively managing BD in. The others are not counted here.</div>
-    </div>
-
-    <table class="box-table">
-      <thead>
-        <tr>
-          <th>Box</th>
-          <th>HubSpot stage(s)</th>
-          <th>Stage ID(s)</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>07 · Opportunities</td>
-          <td>Cold outreach, Response, Warm, Qualified</td>
-          <td><span class="mono">3846842616, 3846842617, 3846843578, 3846843579</span></td>
-          <td>All active pre-pitch stages. Also maps to the <strong>Next</strong> and <strong>Future</strong> lanes in the open deals view.</td>
-        </tr>
-        <tr>
-          <td>08 · Pitches</td>
-          <td>Pitch / Proposal, Contracts</td>
-          <td><span class="mono">3846843580, 3846843581</span></td>
-          <td>Active pitches and deals in contract stage. Maps to the <strong>Now</strong> lane in the open deals view.</td>
-        </tr>
-        <tr>
-          <td>09 · Won</td>
-          <td>Closed Won</td>
-          <td><span class="mono">5277858030</span></td>
-          <td>Added to Agency Pipeline on 1 May 2026. Runs as a separate query. Excluded from active pipeline value and open deal count.</td>
-        </tr>
-        <tr>
-          <td>10 · Lost</td>
-          <td>Closed Lost</td>
-          <td><span class="mono">3846843582</span></td>
-          <td>Separate query — excluded from the active deals fetch so it doesn't inflate pipeline value.</td>
-        </tr>
-        <tr>
-          <td>11 · Declined</td>
-          <td>Declined</td>
-          <td><span class="mono">5277854954</span></td>
-          <td>Added to Agency Pipeline on 1 May 2026. Separate from Lost — for deals where the prospect declined rather than Jungle losing competitively. Runs as a separate query.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="section-divider"></div>
-
-  <!-- 04 DEAL SOURCE & INTERMEDIARY BREAKDOWN -->
-  <div class="wiki-section" id="deal-source">
-    <div class="section-eyebrow">04</div>
-    <div class="section-title">Deal Source &amp; Intermediary breakdown</div>
-    <div class="section-body">
-      <p>Two HubSpot deal properties added on 1 May 2026 to enable channel-level attribution across the pipeline. Both appear on deal cards in the Now/Next/Future lanes and in the deal drawer.</p>
-    </div>
-
-    <table class="box-table">
-      <thead>
-        <tr>
-          <th>Property</th>
-          <th>Internal name</th>
-          <th>Type</th>
-          <th>Values</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Deal Source<span class="mono">deal_source</span></td>
-          <td><span class="mono">deal_source</span></td>
-          <td>Dropdown (single)</td>
-          <td>Cold Inbound, Client Referral, Staff Referral, Intermediary, Owned event, Speaking event, Paid/SEO, Organic social, PR</td>
-        </tr>
-        <tr>
-          <td>Intermediaries<span class="mono">intermediaries</span></td>
-          <td><span class="mono">intermediaries</span></td>
-          <td>Dropdown (single) — conditional</td>
-          <td>AAR, Ingenuity+, Creativebrief, Oystercatchers, Observatory International, Tuffon Hall, Auditstar, Individual Consultants, Masterclassing, The GO Network, Advertising Association</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="callout">
-      <div class="callout-icon">ℹ️</div>
-      <div class="callout-body"><strong>Conditional logic:</strong> the Intermediaries field is hidden in HubSpot unless Deal Source = Intermediary. This is enforced via HubSpot's conditional logic (Properties → Conditional Logic), created 1 May 2026. It prevents the field being filled in for non-intermediary deals, keeping attribution clean.</div>
-    </div>
-
-    <div class="section-body" style="margin-top:20px">
-      <p><strong>Deal Source breakdown bar</strong> — sits between the Deal Opportunity Tracking boxes and the Prospect Funnel Stages. Shows colour-coded pills, one per source, with a live deal count. Deals with no source tagged show as "Untagged" at reduced opacity. The <strong>Intermediary pill is clickable</strong> — tapping it slides open the Intermediary Pipeline comparison table below it.</p>
-      <p><strong>Intermediary Pipeline — Actual vs Estimated</strong> — a table comparing actual intermediary-sourced deal value (from HubSpot) against the projected pipeline figures set in the intermediary plan. Estimated figures use the same 30% conversion rate as the intermediary plan dashboard. Each row shows a dual-layer progress bar: the grey layer is the estimate, the coloured layer is actual (green ≥100%, amber ≥50%, coral below). This section is collapsed by default and expands when the Intermediary source pill is clicked.</p>
+      <div class="callout-body"><strong>Agency Pipeline only.</strong> HubSpot has multiple pipelines (Jungle Sales Pipeline, Agency Pipeline, Partnerships, IP Sponsorship). This page deliberately shows Agency Pipeline only — ID <code>2808364263</code>. The others are not counted.</div>
     </div>
   </div>
   <div class="section-divider"></div>
 
-  <!-- 05 PROSPECT FUNNEL STAGES -->
-  <div class="wiki-section" id="funnel-stages">
+  <!-- 05 PRIORITIES -->
+  <div class="wiki-section" id="priorities">
     <div class="section-eyebrow">05</div>
-    <div class="section-title">Prospect Funnel Stages</div>
+    <div class="section-title">Priorities — CRUD list &amp; timeline</div>
     <div class="section-body">
-      <p>The six boxes in the bottom row. These count <strong>contacts</strong> in HubSpot by their lifecycle stage — not deals. A contact's lifecycle stage is a separate property to what pipeline their deal sits in.</p>
-      <p>The stage structure is defined in Supabase (the <code>funnel_stages</code> table) and the counts are fetched live from HubSpot on each page load, one request per stage in parallel.</p>
+      <p>A managed list of BD priorities stored in Supabase (<code>growth_status</code> table). Every item can be created, edited, and deleted directly in the page — no Supabase UI needed. Changes write back to Supabase in real time.</p>
     </div>
-
-    <div class="callout">
-      <div class="callout-icon">ℹ️</div>
-      <div class="callout-body"><strong>Contacts, not deals.</strong> A contact tagged as Opportunity lifecycle stage is not the same as a deal in the Opportunity deal stage. Lifecycle stage tracks where a person is in the relationship — deals track active commercial conversations. Both matter, but they answer different questions.</div>
-    </div>
-
     <table class="box-table">
-      <thead>
-        <tr>
-          <th>Box</th>
-          <th>HubSpot lifecycle stage</th>
-          <th>Internal name</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Field</th><th>Notes</th></tr></thead>
       <tbody>
-        <tr>
-          <td>01 · Lead</td>
-          <td>Lead</td>
-          <td><span class="mono">lead</span></td>
-          <td>All contacts at the earliest lifecycle stage.</td>
-        </tr>
-        <tr>
-          <td>02 · MQL</td>
-          <td>Marketing Qualified Lead</td>
-          <td><span class="mono">marketingqualifiedlead</span></td>
-          <td>Contacts who have met the MQL criteria (3+ content touches, 2+ email opens, fits ICP).</td>
-        </tr>
-        <tr>
-          <td>03 · SQL</td>
-          <td>Sales Qualified Lead</td>
-          <td><span class="mono">salesqualifiedlead</span></td>
-          <td>Currently shows 0 — SQL criteria and the MQL→SQL process have not been defined yet. Accurate data, not a bug.</td>
-        </tr>
-        <tr>
-          <td>04 · Opportunity</td>
-          <td>Opportunity</td>
-          <td><span class="mono">opportunity</span></td>
-          <td>Contacts with an active commercial conversation.</td>
-        </tr>
-        <tr>
-          <td>05 · Customer</td>
-          <td>Customer</td>
-          <td><span class="mono">customer</span></td>
-          <td>Contacts whose deal has been won.</td>
-        </tr>
-        <tr>
-          <td>06 · Nurturing</td>
-          <td>—</td>
-          <td>—</td>
-          <td>No HubSpot lifecycle stage mapped yet. HubSpot does support custom lifecycle stages — can be added in Settings → Objects → Contacts → Lifecycle Stage when ready.</td>
-        </tr>
+        <tr><td>Priority tier</td><td>High / Medium / Low / Ongoing. Controls the group the item appears in on the list view. Ongoing is collapsed by default — it's a "parked, check in periodically" category.</td></tr>
+        <tr><td>Category</td><td>Marcomms / New Biz / Marketing. Used for the category filter chips in the toolbar.</td></tr>
+        <tr><td>Dates / milestones</td><td>Multiple dated entries per item (date + label). Power the Timeline bar and calendar views. Adding a milestone: open the item → Add date.</td></tr>
+        <tr><td>Status</td><td>Free-form status label (In progress, Scheduled, Reviewing, etc.). Shown as a colour-coded pill on list cards.</td></tr>
+        <tr><td>Blockers</td><td>Any content here causes the ⚠ indicator to appear on the card. The "Blocked" filter chip shows all items with blockers set.</td></tr>
+        <tr><td>Owner</td><td>Free text. Shown on the card.</td></tr>
+      </tbody>
+    </table>
+    <div class="section-body" style="margin-top:16px">
+      <p><strong>Drag-and-drop reorder</strong> — drag cards within or between priority groups on the list view. Order is saved to Supabase via <code>display_order</code> field. Moving to a different group also updates <code>priority_tier</code> in Supabase.</p>
+      <p><strong>Deep-linking</strong> — the URL updates to reflect the active view (<code>#priorities/timeline</code>, <code>#priorities/timeline/calendar</code>). Sharing the URL takes the recipient directly to that view.</p>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 06 NEWS DESK -->
+  <div class="wiki-section" id="newsdesk">
+    <div class="section-eyebrow">06</div>
+    <div class="section-title">News Desk — share queue</div>
+    <div class="section-body">
+      <p>The staging board for content going out to intermediaries. Based on the insight from an independent intermediary contact that informal, bullet-point updates are genuinely welcomed — they don't need to be finished case studies. Both Coris and Ro contribute to this board.</p>
+    </div>
+    <table class="box-table">
+      <thead><tr><th>Lane</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Idea</td><td>Something worth sharing — not yet written up.</td></tr>
+        <tr><td>Drafted</td><td>Written. Needs review before it goes out.</td></tr>
+        <tr><td>Approved</td><td>Reviewed and signed off. Ready to schedule or send.</td></tr>
+        <tr><td>Scheduled</td><td>Assigned a send date in the item form.</td></tr>
+        <tr><td>Sent</td><td>Gone. Timestamp recorded at the point of moving here.</td></tr>
+      </tbody>
+    </table>
+    <div class="section-body" style="margin-top:16px">
+      <p><strong>Two tracks:</strong> Digest (goes into the monthly HubSpot email to intermediaries) and Personal 1:1 (a direct WhatsApp or email to a specific person or group). The track and channel are set on the item card. Time-sensitive proof items (wins, awards, pitches) default to the Personal 1:1 / WhatsApp track.</p>
+      <p><strong>Audience tagging:</strong> eight named intermediaries (Ingenuity, AAR, Oystercatchers, Creativebrief, Observatory International, Tuffon Hall, Elevator, Masterclassing) plus group tags (All intermediaries, Clients, Prospects, Press/media). An item can be tagged to multiple audiences.</p>
+      <p><strong>Copy for sending:</strong> the "Copy for sending" button inside an item formats the headline, bullets, and source link into a clean paste-ready message for WhatsApp or email.</p>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 07 PROSPECTS -->
+  <div class="wiki-section" id="prospects">
+    <div class="section-eyebrow">07</div>
+    <div class="section-title">Prospects — contacts &amp; MAD Meets</div>
+    <div class="section-body">
+      <p>The full contacts database across all sources. Eight sub-tabs. All tabs except MAD Meets pull from Supabase and are searchable by name, company, or title. The MAD Meets tab is different — it's a curated list of contacts from the Ingenuity MAD Meets events with live HubSpot enrichment.</p>
+    </div>
+    <table class="box-table">
+      <thead><tr><th>Tab</th><th>Source</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>All contacts</td><td><span class="pill pill-sb">Supabase</span> <code>contacts</code></td><td>Every contact across all non-Dripify sources.</td></tr>
+        <tr><td>LinkedIn</td><td><span class="pill pill-sb">Supabase</span> <code>contacts</code></td><td>Filtered by <code>source_type = LinkedIn</code>.</td></tr>
+        <tr><td>Dripify</td><td><span class="pill pill-sb">Supabase</span> <code>prospects</code></td><td>Reads from the <code>prospects</code> table (not <code>contacts</code>) — this is where Make.com routes new Dripify connections.</td></tr>
+        <tr><td>Target Prospects</td><td><span class="pill pill-sb">Supabase</span> <code>contacts</code></td><td>Filtered by <code>source_type = Target Prospect</code>.</td></tr>
+        <tr><td>Inbound / Referral / Personal</td><td><span class="pill pill-sb">Supabase</span> <code>contacts</code></td><td>Filtered by respective source_type values.</td></tr>
+        <tr><td>MAD Meets</td><td><span class="pill pill-hs">HubSpot</span> live</td><td>Hard-coded list of 13 contacts from Feb and Mar MAD Meets events. Fetches live lead status and last contacted date from HubSpot. Last email thread pulled via HubSpot email associations batch read.</td></tr>
+      </tbody>
+    </table>
+    <div class="section-body" style="margin-top:16px">
+      <p><strong>Email compose modal:</strong> available on any contact with an email address. Three pre-built templates (Chaser, Meeting follow-up, Check-in) pre-fill with the contact's first name and company. Emails send via Gmail API (<code>googleapis.com/gmail/v1/users/me/messages/send</code>) and are automatically BCC'd to HubSpot (<code>145756322@bcc.eu1.hubspot.com</code>) so they appear in the contact's activity timeline. Requires Google to be connected — same OAuth scope as Meetings but scoped to <code>gmail.send</code>.</p>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 08 MEETINGS -->
+  <div class="wiki-section" id="meetings">
+    <div class="section-eyebrow">08</div>
+    <div class="section-title">Meetings — GCal BD log</div>
+    <div class="section-body">
+      <p>Tracks BD meetings using Google Calendar as the source. Two tabs: Upcoming (next 30 days) and Attended (last 30 days). Each card shows the date, time, title, attendees, and the event description (stripped of the tag).</p>
+    </div>
+    <table class="box-table">
+      <thead><tr><th>Tag</th><th>Meaning</th><th>Card colour</th></tr></thead>
+      <tbody>
+        <tr><td><code>#nbm</code></td><td>New Business Meeting — a commercial conversation with a brand or prospect</td><td>Green pill — "New Business"</td></tr>
+        <tr><td><code>#netm</code></td><td>Network Meeting — relationship building, not an active pitch</td><td>Blue pill — "Network"</td></tr>
+      </tbody>
+    </table>
+    <div class="section-body" style="margin-top:16px">
+      <p><strong>Tags must appear in the event description</strong> (not the title) in Google Calendar. The page strips the tag from the displayed description.</p>
+      <p><strong>Cached fallback:</strong> when GCal is not connected, the page reads from the <code>bd_meetings</code> table in Supabase. This table is populated whenever someone connects their calendar — the sync timestamp and name of whoever last synced is shown below the tabs.</p>
+      <p><strong>OAuth note:</strong> the page uses Google's OAuth 2.0 implicit flow. The redirect URI must be registered in Google Cloud Console. If you're seeing a redirect_uri_mismatch error on a new page URL, the URL needs to be added as an Authorised Redirect URI in the Google Cloud Console credentials for this OAuth app.</p>
+    </div>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 09 INQUIRIES -->
+  <div class="wiki-section" id="inquiries">
+    <div class="section-eyebrow">09</div>
+    <div class="section-title">Inquiries — inbound BD flags</div>
+    <div class="section-body">
+      <p>A three-column view of inbound inquiries that have been flagged as BD-relevant. The flagging happens in the original activity dashboard's Fresh HubSpot Inquiries section. Once flagged, the inquiry appears here.</p>
+    </div>
+    <table class="box-table">
+      <thead><tr><th>Column</th><th>What it shows</th></tr></thead>
+      <tbody>
+        <tr><td>List (left)</td><td>All BD-flagged inquiries from Supabase (<code>hubspot_enquiries</code> where <code>bd_flagged = true</code>), sorted by flag date descending. Click to select.</td></tr>
+        <tr><td>Message (centre)</td><td>The full inquiry message. If the Supabase record has no message body, the page fetches it from HubSpot using the contact's email address and shows the HubSpot message field instead.</td></tr>
+        <tr><td>Status &amp; Notes (right)</td><td>Lead status dropdown — updates HubSpot on change (600ms debounce). Latest dashboard note shown (any HubSpot note tagged [Activity Dashboard Note]). Add new note field — saves to HubSpot as an activity note associated with the contact, and updates the Latest Note block inline.</td></tr>
       </tbody>
     </table>
   </div>
   <div class="section-divider"></div>
 
-  <!-- 06 HUBSPOT PROPERTIES REFERENCE -->
+  <!-- 10 EVENTS -->
+  <div class="wiki-section" id="events">
+    <div class="section-eyebrow">10</div>
+    <div class="section-title">Events — industry calendar</div>
+    <div class="section-body">
+      <p>Industry events from the <code>events</code> table in Supabase. Two tabs: Upcoming (start_date ≥ today, ascending) and Past (start_date &lt; today, descending). Events in the <code>content</code> and <code>nurture</code> categories are filtered out — only BD-relevant events appear.</p>
+    </div>
+    <table class="box-table">
+      <thead><tr><th>Category</th><th>Colour</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Intermediary</td><td style="color:#4ABFFF;font-weight:700">Blue</td><td>Events organised or recommended by intermediaries (AAR, Ingenuity etc.)</td></tr>
+        <tr><td>Speaking</td><td style="color:#7B6FE0;font-weight:700">Purple</td><td>Events where Jungle is speaking</td></tr>
+        <tr><td>Attendance</td><td style="color:#3ECF8E;font-weight:700">Green</td><td>Events Jungle is attending but not speaking at</td></tr>
+        <tr><td>Owned Event</td><td style="color:#FF6B4A;font-weight:700">Orange</td><td>Events Jungle is hosting</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- 11 HUBSPOT PROPERTIES -->
   <div class="wiki-section" id="hubspot-properties">
-    <div class="section-eyebrow">06</div>
+    <div class="section-eyebrow">11</div>
     <div class="section-title">HubSpot deal properties reference</div>
     <div class="section-body">
-      <p>A reference of all custom deal properties the dashboard reads from HubSpot. Standard HubSpot properties (dealname, amount, closedate etc.) are not listed.</p>
+      <p>Custom deal properties the hub reads from HubSpot. Standard properties (dealname, amount, closedate, hubspot_owner_id, hs_lastmodifieddate) are not listed.</p>
     </div>
     <table class="box-table">
-      <thead>
-        <tr>
-          <th>Property label</th>
-          <th>Internal name</th>
-          <th>Added</th>
-          <th>Used for</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Property label</th><th>Internal name</th><th>Added</th><th>Used for</th></tr></thead>
       <tbody>
         <tr>
           <td>Deal Source</td>
           <td><span class="mono">deal_source</span></td>
           <td>1 May 2026</td>
-          <td>Deal Source breakdown pills. Channel attribution on deal cards and in the deal drawer.</td>
+          <td>Deal Source breakdown pills on Dashboard. Channel attribution on deal cards in the Opportunities kanban and list views.</td>
         </tr>
         <tr>
           <td>Intermediaries</td>
           <td><span class="mono">intermediaries</span></td>
           <td>1 May 2026</td>
-          <td>Intermediary Pipeline comparison table. Only populated when Deal Source = Intermediary (conditional logic enforced in HubSpot). Used to map actual deal value against estimated pipeline per intermediary.</td>
+          <td>Intermediary Pipeline comparison table on Dashboard. Only populated when Deal Source = Intermediary (conditional logic in HubSpot). Maps actual deal value against estimated pipeline per intermediary.</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="section-body" style="margin-top:20px">
+    <div class="section-body" style="margin-top:24px">
       <p><strong>Agency Pipeline stages — full reference</strong></p>
     </div>
     <table class="box-table">
-      <thead>
-        <tr>
-          <th>Stage label</th>
-          <th>Stage ID</th>
-          <th>Active / Closed</th>
-          <th>Dashboard lane</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Stage label</th><th>Stage ID</th><th>Active / Closed</th><th>Opportunities page column colour</th></tr></thead>
       <tbody>
-        <tr><td>Cold outreach</td><td><span class="mono">3846842616</span></td><td>Active</td><td>Future</td></tr>
-        <tr><td>Response (Opportunity)</td><td><span class="mono">3846842617</span></td><td>Active</td><td>Next</td></tr>
-        <tr><td>Warm</td><td><span class="mono">3846843578</span></td><td>Active</td><td>Next</td></tr>
-        <tr><td>Qualified</td><td><span class="mono">3846843579</span></td><td>Active</td><td>Next</td></tr>
-        <tr><td>Pitch / Proposal</td><td><span class="mono">3846843580</span></td><td>Active</td><td>Now</td></tr>
-        <tr><td>Contracts</td><td><span class="mono">3846843581</span></td><td>Active</td><td>Now</td></tr>
-        <tr><td>Closed Lost</td><td><span class="mono">3846843582</span></td><td>Closed</td><td>Excluded</td></tr>
-        <tr><td>Closed Won</td><td><span class="mono">5277858030</span></td><td>Closed</td><td>Excluded — added 1 May 2026</td></tr>
-        <tr><td>Declined</td><td><span class="mono">5277854954</span></td><td>Closed</td><td>Excluded — added 1 May 2026</td></tr>
+        <tr><td>Cold outreach</td><td><span class="mono">3846842616</span></td><td>Active</td><td>Grey</td></tr>
+        <tr><td>Response</td><td><span class="mono">3846842617</span></td><td>Active</td><td>Blue</td></tr>
+        <tr><td>Warm</td><td><span class="mono">3846843578</span></td><td>Active</td><td>Amber</td></tr>
+        <tr><td>Qualified</td><td><span class="mono">3846843579</span></td><td>Active</td><td>Teal</td></tr>
+        <tr><td>Pitch / Proposal</td><td><span class="mono">3846843580</span></td><td>Active</td><td>Coral</td></tr>
+        <tr><td>Contracts</td><td><span class="mono">3846843581</span></td><td>Active</td><td>Green</td></tr>
+        <tr><td>Closed Lost</td><td><span class="mono">3846843582</span></td><td>Closed</td><td>Dark grey — excluded from pipeline value</td></tr>
+        <tr><td>Closed Won</td><td><span class="mono">5277858030</span></td><td>Closed</td><td>Teal — excluded from pipeline value — added 1 May 2026</td></tr>
+        <tr><td>Declined</td><td><span class="mono">5277854954</span></td><td>Closed</td><td>Coral — excluded from pipeline value — added 1 May 2026</td></tr>
       </tbody>
     </table>
   </div>
   <div class="section-divider"></div>
 
-  <!-- 07 KNOWN GAPS -->
+  <!-- 12 KNOWN GAPS -->
   <div class="wiki-section" id="gaps">
-    <div class="section-eyebrow">07</div>
+    <div class="section-eyebrow">12</div>
     <div class="section-title">Known gaps &amp; next steps</div>
     <div class="section-body">
       <p>Things that are intentionally deferred, pending a decision, or blocked on configuration.</p>
@@ -456,27 +530,35 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
     <ul class="gap-list">
       <li>
         <div class="gap-dot"></div>
-        <div><strong>SQL (box 03) shows 0</strong> — There are currently no contacts tagged as Sales Qualified Lead in HubSpot. This is accurate — the criteria and process for moving contacts from MQL to SQL hasn't been defined yet. Needs a working definition before the number will move.</div>
+        <div><strong>SQL (box 03) shows 0</strong> — No contacts are tagged as Sales Qualified Lead in HubSpot. Accurate — the criteria and process for moving contacts from MQL to SQL hasn't been defined. Needs a working definition before the number will move.</div>
       </li>
       <li>
         <div class="gap-dot"></div>
-        <div><strong>Nurturing (box 06) always shows —</strong> — No HubSpot lifecycle stage mapped yet. Can be added as a custom lifecycle stage in HubSpot (Settings → Objects → Contacts → Lifecycle Stage) when the team is ready to start tracking this cohort separately.</div>
+        <div><strong>Nurturing (box 06) always shows —</strong> — No HubSpot lifecycle stage mapped yet. Can be added as a custom lifecycle stage in HubSpot Settings → Objects → Contacts → Lifecycle Stage when the team is ready to track this cohort separately.</div>
       </li>
       <li>
         <div class="gap-dot"></div>
-        <div><strong>Deal Source not yet tagged on all open deals</strong> — As of 1 May 2026, 1 of 4 open deals has no Deal Source set (shows as "Untagged" on the dashboard). Needs to be completed in HubSpot for the source breakdown to be accurate.</div>
+        <div><strong>HubSpot Contact ID deduplication not yet implemented</strong> — The agreed approach for deduplicating Supabase <code>intermediary_people</code> records against HubSpot is to store the HubSpot contact ID back in Supabase. This is designed but not yet built.</div>
+      </li>
+      <li>
+        <div class="gap-dot"></div>
+        <div><strong>WhatsApp Business API for direct sends not yet wired</strong> — The plan is to send News Desk Personal 1:1 items directly from the hub via Make.com + 360dialog or Twilio. Currently the "Copy for sending" button is the workaround.</div>
+      </li>
+      <li>
+        <div class="gap-dot"></div>
+        <div><strong>HubSpot digest track not yet connected to News Desk</strong> — Items in the Digest track on the News Desk are intended to feed into a monthly HubSpot email sequence. The connection between the share_queue table and HubSpot email is not yet built.</div>
       </li>
       <li>
         <div class="gap-dot grey"></div>
-        <div><strong>Jungle Sales Pipeline not tracked</strong> — There are deals in the default Jungle Sales Pipeline which are not shown anywhere on this dashboard. Deliberate decision as of May 2026 — Coris is focused on Agency Pipeline. To be revisited once there is clarity on which pipeline is primary.</div>
+        <div><strong>Jungle Sales Pipeline not tracked</strong> — Deals in the default Jungle Sales Pipeline are not shown anywhere on this hub. Deliberate decision as of May 2026 — the hub focuses on Agency Pipeline. To be revisited if the pipeline setup changes.</div>
       </li>
       <li>
         <div class="gap-dot green"></div>
-        <div><strong>Won (box 09) — resolved</strong> — Closed Won stage added to Agency Pipeline on 1 May 2026 (ID: <code>5277858030</code>). Now shows a live count from HubSpot.</div>
+        <div><strong>Navigation restructured — resolved June 2026</strong> — The original single-page dashboard has been split into eight standalone pages with a shared left-hand icon nav. Meetings, Inquiries, Open Deals (Now/Next/Future), and Events have been promoted out of the dashboard body into their own pages.</div>
       </li>
       <li>
         <div class="gap-dot green"></div>
-        <div><strong>Declined (box 11) — resolved</strong> — Declined stage added to Agency Pipeline on 1 May 2026 (ID: <code>5277854954</code>). Runs as a separate query alongside Lost.</div>
+        <div><strong>Closed Won and Declined stages — resolved May 2026</strong> — Closed Won (<code>5277858030</code>) and Declined (<code>5277854954</code>) added to Agency Pipeline on 1 May 2026. Both now show live counts on the Dashboard and appear as columns on the Opportunities Pipeline view.</div>
       </li>
       <li>
         <div class="gap-dot green"></div>
@@ -486,10 +568,9 @@ main { padding-top: calc(var(--header-h) + 48px); padding-bottom: 80px; max-widt
   </div>
 
   <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);letter-spacing:0.08em;padding-top:12px;border-top:1px solid var(--grey-light)">
-    Last updated: May 2026 · Maintained by Coris Leachman
+    Last updated: June 2026 · Maintained by Coris Leachman
   </div>
 
 </main>
-
 </body>
 </html>
