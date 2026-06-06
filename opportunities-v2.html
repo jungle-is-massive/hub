@@ -323,17 +323,7 @@ html, body {
 .gate-btn:hover { opacity: 0.88; }
 .gate-error { color: var(--coral); font-size: 12px; margin-top: 10px; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; min-height: 18px; }
 
-/* ── PIPELINE MODAL ──────────────────────────────────────────── */
-#pipeline-modal-backdrop { display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.6); }
-#pipeline-modal {
-  display:none;position:fixed;top:0;right:0;bottom:0;z-index:401;
-  width:min(560px,100%);background:var(--cream);
-  border-left:1.5px solid var(--grey-light);
-  box-shadow:-20px 0 60px rgba(0,0,0,0.3);
-  overflow-y:auto;
-  transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.22,1,0.36,1);
-}
-#pipeline-modal.open { transform:translateX(0); }
+/* Pipeline modal styles now inline on the element */
 </style>
 </head>
 <body>
@@ -372,12 +362,13 @@ html, body {
     </div>
   </div>
   <div class="topbar-right">
-    <button class="action-btn action-btn-ghost" onclick="openPipelineModal()">
+    <button class="action-btn action-btn-ghost" onclick="openPipelineModal('opportunity')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
       New Opportunity
     </button>
-    <button class="action-btn action-btn-green" onclick="openHubSpot()">
-      Open in HubSpot ↗
+    <button class="action-btn action-btn-dark" onclick="openPipelineModal('deal')" style="color:var(--green)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+      New Deal
     </button>
     <button class="action-btn action-btn-dark" id="refresh-btn" onclick="reload()">
       <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9m0 18c1.66 0 3-4.03 3-9s-1.34-9-3-9m-9 9a9 9 0 019-9"/></svg>
@@ -414,9 +405,103 @@ html, body {
   <a class="hs-link" href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board" target="_blank" rel="noopener">Open in HubSpot ↗</a>
 </div>
 
-<!-- PIPELINE QUICK ENTRY MODAL (backdrop + panel injected by config) -->
-<div id="pipeline-modal-backdrop" onclick="closePipelineModal()"></div>
-<div id="pipeline-modal"></div>
+<!-- PIPELINE QUICK ENTRY MODAL -->
+<div id="pipeline-modal-backdrop" onclick="closePipelineModal()" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(14,14,14,0.5)"></div>
+<div id="pipeline-modal" role="dialog" aria-label="New pipeline entry" style="display:none;position:fixed;top:0;right:0;bottom:0;z-index:401;width:min(560px,100%);background:var(--cream);border-left:1.5px solid var(--grey-light);box-shadow:-20px 0 60px rgba(0,0,0,0.25);overflow-y:auto;transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.22,1,0.36,1)">
+
+  <div style="position:sticky;top:0;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:22px 24px;background:var(--cream);border-bottom:1.5px solid var(--grey-light)">
+    <div>
+      <h2 id="pipe-modal-title" style="margin:0;font-size:20px;font-weight:800;letter-spacing:-0.02em;color:var(--black)"></h2>
+      <p id="pipe-modal-note" style="margin:5px 0 0;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid)"></p>
+    </div>
+    <button onclick="closePipelineModal()" aria-label="Close" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--grey-mid);line-height:1;padding:4px;flex-shrink:0">×</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:24px">
+
+    <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Brand / Company *</label>
+      <input id="pm-company" type="text" placeholder="e.g. Nike" style="width:100%;height:38px;padding:0 12px;border:1.5px solid var(--grey-light);border-radius:10px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;transition:border-color 0.15s" onfocus="this.style.borderColor='var(--black)'" onblur="this.style.borderColor='var(--grey-light)'" />
+    </div>
+
+    <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Contact name at brand</label>
+      <input id="pm-contact" type="text" placeholder="e.g. Sarah Ahmed, Head of Brand" style="width:100%;height:38px;padding:0 12px;border:1.5px solid var(--grey-light);border-radius:10px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;transition:border-color 0.15s" onfocus="this.style.borderColor='var(--black)'" onblur="this.style.borderColor='var(--grey-light)'" />
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Deal source</label>
+      <select id="pm-source" onchange="handlePmSourceChange()" style="width:100%;height:38px;padding:0 12px;border:1.5px solid var(--grey-light);border-radius:10px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;cursor:pointer">
+        <option value="">Select source…</option>
+        <option value="Cold Inbound">Cold Inbound</option>
+        <option value="Client Referral">Client Referral</option>
+        <option value="Staff Referral">Staff Referral</option>
+        <option value="Intermediary">Intermediary</option>
+        <option value="Owned event">Owned Event</option>
+        <option value="Speaking event">Speaking Event</option>
+        <option value="Paid/SEO">Paid / SEO</option>
+        <option value="Organic social">Organic Social</option>
+        <option value="PR">PR</option>
+      </select>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Nature of relationship</label>
+      <select id="pm-relationship" style="width:100%;height:38px;padding:0 12px;border:1.5px solid var(--grey-light);border-radius:10px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;cursor:pointer">
+        <option value="">Select type…</option>
+        <option value="Personal contact">Personal contact</option>
+        <option value="Past client">Past client</option>
+        <option value="Event">Event</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div id="pm-referred-wrap" style="grid-column:1/-1;display:none;flex-direction:column;gap:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Who has the in? (referred by)</label>
+      <input id="pm-referred" type="text" placeholder="e.g. Jade Smith" style="width:100%;height:38px;padding:0 12px;border:1.5px solid var(--grey-light);border-radius:10px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;transition:border-color 0.15s" onfocus="this.style.borderColor='var(--black)'" onblur="this.style.borderColor='var(--grey-light)'" />
+    </div>
+
+    <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Sector</label>
+      <select id="pm-sector" style="width:100%;height:38px;padding:0 12px;border:1.5px solid var(--grey-light);border-radius:10px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;cursor:pointer">
+        <option value="">Select sector…</option>
+        <option value="ADVERTISING_AND_MARKETING">Advertising &amp; Marketing</option>
+        <option value="AUTOMOTIVE">Automotive</option>
+        <option value="BEAUTY">Beauty &amp; Personal Care</option>
+        <option value="CHARITY">Charity &amp; Non-profit</option>
+        <option value="CONSUMER_GOODS">Consumer Goods &amp; FMCG</option>
+        <option value="FASHION">Fashion &amp; Apparel</option>
+        <option value="FINANCIAL_SERVICES">Financial Services</option>
+        <option value="FOOD_AND_BEVERAGE">Food &amp; Beverage</option>
+        <option value="GAMING">Gaming</option>
+        <option value="HEALTH_AND_WELLNESS">Health &amp; Wellness</option>
+        <option value="MEDIA_AND_ENTERTAINMENT">Media &amp; Entertainment</option>
+        <option value="PUBLIC_SECTOR">Government &amp; Public Sector</option>
+        <option value="RETAIL">Retail &amp; E-commerce</option>
+        <option value="SPORT_AND_LEISURE">Sport &amp; Leisure</option>
+        <option value="TECHNOLOGY">Technology &amp; SaaS</option>
+        <option value="TELECOMS">Telecoms</option>
+        <option value="TRAVEL_AND_HOSPITALITY">Travel &amp; Hospitality</option>
+        <option value="UTILITIES_AND_ENERGY">Utilities &amp; Energy</option>
+        <option value="OTHER">Other</option>
+      </select>
+    </div>
+
+    <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Notes / context</label>
+      <textarea id="pm-notes" placeholder="What's the angle, timing, why now…" rows="4" style="width:100%;padding:10px 12px;border:1.5px solid var(--grey-light);border-radius:10px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;resize:vertical;min-height:92px;transition:border-color 0.15s" onfocus="this.style.borderColor='var(--black)'" onblur="this.style.borderColor='var(--grey-light)'"></textarea>
+    </div>
+
+  </div>
+
+  <div id="pm-success" style="display:none;margin:0 24px 16px;padding:12px 14px;background:rgba(135,251,102,0.15);border:1px solid rgba(135,251,102,0.4);border-radius:10px;font-size:13px;color:#2a6600"></div>
+  <div id="pm-error" style="display:none;margin:0 24px 16px;padding:12px 14px;background:rgba(255,107,74,0.1);border:1px solid rgba(255,107,74,0.3);border-radius:10px;font-size:13px;color:#a03020"></div>
+
+  <div style="display:flex;justify-content:space-between;gap:10px;padding:0 24px 28px">
+    <button onclick="closePipelineModal()" style="padding:0 18px;height:36px;border:1.5px solid var(--grey-light);border-radius:100px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--black);cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--black)'" onmouseout="this.style.borderColor='var(--grey-light)'">Cancel</button>
+    <button id="pm-submit-btn" onclick="submitPipelineModal()" style="padding:0 20px;height:36px;border:none;border-radius:100px;background:var(--black);color:var(--green);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity 0.15s">Save to HubSpot</button>
+  </div>
+</div>
 
 <script src="https://jungle-is-massive.github.io/hub/config.js"></script>
 <script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
@@ -1018,34 +1103,106 @@ function showToast(msg, warn) {
 }
 
 // ── Pipeline modal ────────────────────────────────────────────────────────
-function openPipelineModal() {
+let pmCurrentType = 'opportunity';
+
+function openPipelineModal(type) {
+  pmCurrentType = type || 'opportunity';
+  const isOpportunity = pmCurrentType === 'opportunity';
+  document.getElementById('pipe-modal-title').textContent = isOpportunity ? 'New Opportunity' : 'New Deal';
+  document.getElementById('pipe-modal-note').textContent  = isOpportunity
+    ? 'Agency Pipeline → Cold outreach'
+    : 'Agency Pipeline → Warm';
+  document.getElementById('pm-submit-btn').textContent = isOpportunity ? 'Save Opportunity' : 'Save Deal';
+  // Reset form
+  ['pm-company','pm-contact','pm-referred','pm-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['pm-source','pm-relationship','pm-sector'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('pm-referred-wrap').style.display = 'none';
+  document.getElementById('pm-success').style.display = 'none';
+  document.getElementById('pm-error').style.display = 'none';
+  document.getElementById('pm-submit-btn').disabled = false;
+  // Show
   document.getElementById('pipeline-modal-backdrop').style.display = 'block';
-  const modal = document.getElementById('pipeline-modal');
-  modal.style.display = 'block';
-  modal.innerHTML = `
-    <div style="background:var(--black);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1)">
-      <span style="font-size:13px;font-weight:700;color:var(--white);letter-spacing:-0.01em">New Opportunity</span>
-      <button onclick="closePipelineModal()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:18px;line-height:1;padding:4px">✕</button>
-    </div>
-    <div style="padding:22px;display:flex;flex-direction:column;gap:14px;color:var(--black)">
-      <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);letter-spacing:0.1em;text-transform:uppercase">Add directly in HubSpot for full field support</p>
-      <a href="https://app-eu1.hubspot.com/contacts/145756322/objects/0-3/views/all/board" target="_blank" rel="noopener"
-        style="display:inline-flex;align-items:center;gap:8px;padding:12px 18px;background:var(--black);color:var(--green);border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;letter-spacing:-0.01em;transition:opacity 0.15s"
-        onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-        Open Agency Pipeline in HubSpot ↗
-      </a>
-    </div>`;
-  setTimeout(() => { modal.style.transform = 'translateX(0)'; modal.classList.add('open'); }, 10);
+  const panel = document.getElementById('pipeline-modal');
+  panel.style.display = 'block';
+  requestAnimationFrame(() => { panel.style.transform = 'translateX(0)'; });
+  setTimeout(() => { const el = document.getElementById('pm-company'); if (el) el.focus(); }, 300);
 }
+
 function closePipelineModal() {
-  const modal = document.getElementById('pipeline-modal');
-  modal.classList.remove('open');
-  modal.style.transform = '';
+  const panel = document.getElementById('pipeline-modal');
+  panel.style.transform = 'translateX(100%)';
   setTimeout(() => {
-    modal.style.display = 'none';
+    panel.style.display = 'none';
     document.getElementById('pipeline-modal-backdrop').style.display = 'none';
-  }, 280);
+  }, 300);
 }
+
+function handlePmSourceChange() {
+  const val = document.getElementById('pm-source').value;
+  document.getElementById('pm-referred-wrap').style.display = val === 'Staff Referral' ? 'flex' : 'none';
+}
+
+async function submitPipelineModal() {
+  const company = document.getElementById('pm-company').value.trim();
+  if (!company) {
+    document.getElementById('pm-company').focus();
+    document.getElementById('pm-company').style.borderColor = '#FF6B4A';
+    return;
+  }
+  const btn = document.getElementById('pm-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  document.getElementById('pm-success').style.display = 'none';
+  document.getElementById('pm-error').style.display = 'none';
+
+  const isOpportunity = pmCurrentType === 'opportunity';
+  const dealName  = company + (isOpportunity ? ' — New Opportunity' : ' — New Deal');
+  const dealStage = isOpportunity ? '3846842616' : '3846843578';
+  const descParts = [
+    document.getElementById('pm-contact').value.trim()  ? 'Contact: '      + document.getElementById('pm-contact').value.trim()  : '',
+    document.getElementById('pm-relationship').value    ? 'Relationship: ' + document.getElementById('pm-relationship').value    : '',
+    document.getElementById('pm-referred').value.trim() ? 'Referred by: '  + document.getElementById('pm-referred').value.trim() : '',
+    document.getElementById('pm-notes').value.trim()    ? 'Notes: '        + document.getElementById('pm-notes').value.trim()    : '',
+  ].filter(Boolean).join('\n');
+
+  try {
+    const res = await fetch(HS_PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'x-proxy-target': 'hubspot',
+        'x-hs-path': '/crm/v3/objects/deals',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ properties: {
+        dealname:    dealName,
+        pipeline:    AGENCY_PIPELINE,
+        dealstage:   dealStage,
+        deal_source: document.getElementById('pm-source').value    || undefined,
+        sector:      document.getElementById('pm-sector').value     || undefined,
+        referred_by: document.getElementById('pm-referred').value.trim() || undefined,
+        description: descParts || undefined,
+      }})
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const label = isOpportunity ? 'Opportunity' : 'Deal';
+    const successEl = document.getElementById('pm-success');
+    successEl.textContent = `✓ ${label} for ${company} saved to HubSpot — Agency Pipeline`;
+    successEl.style.display = 'block';
+    btn.textContent = 'Saved ✓';
+    setTimeout(() => { closePipelineModal(); loadDeals(); }, 1800);
+  } catch(err) {
+    const errEl = document.getElementById('pm-error');
+    errEl.textContent = 'Save failed: ' + (err.message || String(err));
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = isOpportunity ? 'Save Opportunity' : 'Save Deal';
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('pipeline-modal').style.display !== 'none') closePipelineModal();
+});
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function fmtAmt(n) {
