@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle — Prospects</title>
+<link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8; --cream-soft: #EFE9DF; --black: #0E0E0E; --green: #87FB66;
+  --grey: #C8C3B8; --grey-mid: #8A8880; --grey-light: #E8E3DA; --white: #FFFFFF;
+  --header-h: 56px; --coral: #FF6B4A; --amber: #F0B429; --teal: #3ECF8E;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--cream); color: var(--black); font-family: 'DM Sans', system-ui, sans-serif; height: 100%; -webkit-font-smoothing: antialiased; overflow: hidden; }
+
+/* ── TOPBAR ─────────────────────────────────────────────────── */
+#topbar { position: fixed; top: 0; right: 0; left: 52px; z-index: 100; height: var(--header-h); background: var(--black); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.topbar-title { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.tbtn { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px; cursor: pointer; transition: all 0.15s; white-space: nowrap; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: rgba(255,255,255,0.55); }
+.tbtn:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); }
+.tbtn svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.tbtn.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── GATE ────────────────────────────────────────────────────── */
+#gate-overlay { position: fixed; inset: 0; z-index: 999; background: var(--black); display: flex; align-items: center; justify-content: center; }
+.gate-box { text-align: center; }
+.gate-wm { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--white); margin-bottom: 28px; display: block; }
+.gate-wm span { color: var(--green); }
+.gate-input { display: block; width: 240px; padding: 12px 18px; margin: 0 auto 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; color: var(--white); font-size: 15px; text-align: center; font-family: 'DM Mono', monospace; letter-spacing: 0.15em; outline: none; }
+.gate-input:focus { border-color: var(--green); }
+.gate-btn { width: 240px; padding: 11px; background: var(--green); color: var(--black); border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+.gate-error { color: var(--coral); font-size: 12px; margin-top: 10px; font-family: 'DM Mono', monospace; min-height: 18px; }
+
+/* ── FULL-PAGE LAYOUT ────────────────────────────────────────── */
+#prospects-page { position: fixed; top: var(--header-h); left: 52px; right: 0; bottom: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--cream); }
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.prsp-header { flex-shrink: 0; padding: 22px 32px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; max-width: 1320px; margin: 0 auto; width: 100%; }
+#prsp-page-title { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; color: var(--black); }
+#prsp-page-sub { margin: 4px 0 0; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-mid); }
+
+/* ── SUB-TABS ────────────────────────────────────────────────── */
+.prsp-sub-tabs-bar { flex-shrink: 0; max-width: 1320px; margin: 0 auto; width: 100%; padding: 16px 32px 0; border-bottom: 1.5px solid var(--grey-light); display: flex; gap: 0; align-items: flex-end; }
+.prsp-sub-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 18px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--grey-mid); cursor: pointer; transition: all 0.15s; margin-bottom: -1.5px; white-space: nowrap; }
+.prsp-sub-tab:hover { color: var(--black); }
+.prsp-sub-tab.active { color: var(--black); border-bottom-color: var(--black); }
+
+/* ── BODY ────────────────────────────────────────────────────── */
+.prsp-body { flex: 1; overflow: auto; position: relative; }
+.prsp-inner { padding: 24px 32px 90px; max-width: 1320px; margin: 0 auto; }
+
+/* ── CONTROLS ────────────────────────────────────────────────── */
+.prsp-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.prsp-search { flex: 1; max-width: 360px; border: 1.5px solid var(--grey-light); border-radius: 100px; padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; color: var(--black); background: var(--white); transition: border-color 0.15s; }
+.prsp-search:focus { border-color: var(--black); }
+.prsp-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--grey-mid); letter-spacing: 0.04em; }
+
+/* ── TABLE ───────────────────────────────────────────────────── */
+.prsp-table-wrap { width: 100%; overflow-x: auto; border-radius: 12px; box-shadow: 0 0 0 1.5px var(--grey-light); }
+.prsp-table { width: 100%; border-collapse: collapse; background: var(--white); font-size: 12px; }
+.prsp-table th { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); padding: 10px 14px; text-align: left; background: var(--grey-light); border-bottom: 1px solid var(--grey-light); white-space: nowrap; }
+.prsp-table td { padding: 11px 14px; border-bottom: 1px solid var(--grey-light); vertical-align: top; color: var(--black); line-height: 1.4; }
+.prsp-table tbody tr:last-child td { border-bottom: none; }
+.prsp-table tbody tr:hover td { background: rgba(0,0,0,0.018); }
+.prsp-table td a { color: var(--black); text-decoration: none; border-bottom: 1px solid var(--grey); transition: border-color 0.15s; }
+.prsp-table td a:hover { border-color: var(--black); }
+.prsp-empty { text-align: center; padding: 32px; color: var(--grey-mid); font-size: 13px; font-style: italic; }
+.prsp-loading { display: flex; align-items: center; gap: 10px; padding: 64px 0; justify-content: center; font-size: 13px; color: var(--grey-mid); }
+.prsp-spinner { width: 16px; height: 16px; border: 2px solid var(--grey-light); border-top-color: var(--black); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+
+/* ── STATUS PILLS ────────────────────────────────────────────── */
+.bd-status-pill { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.s-warm-progress { background: rgba(135,251,102,0.15); color: #2a6600; }
+.s-inprogress { background: rgba(74,191,255,0.12); color: #1a5a8a; }
+.s-linkedin { background: rgba(0,119,181,0.1); color: #0a4a70; }
+.s-not-started { background: var(--cream-soft); color: var(--grey-mid); }
+.s-low { background: rgba(240,180,41,0.12); color: #8a5500; }
+
+/* ── EMAIL BUTTON ────────────────────────────────────────────── */
+.mm-email-btn { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 10px; background: rgba(135,251,102,0.12); border: 1px solid rgba(135,251,102,0.25); border-radius: 100px; color: #2a6600; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background 0.12s, border-color 0.12s; white-space: nowrap; }
+.mm-email-btn:hover { background: rgba(135,251,102,0.22); border-color: rgba(135,251,102,0.5); }
+.mm-email-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── LAST COMMS ──────────────────────────────────────────────── */
+.mm-lastcomms-direction { display: inline-flex; align-items: center; gap: 4px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; white-space: nowrap; margin-bottom: 4px; }
+.mm-lc-sent { background: rgba(135,251,102,0.12); color: #1a6a30; }
+.mm-lc-received { background: rgba(74,191,255,0.12); color: #1a5a8a; }
+.mm-lc-subject { font-size: 12px; font-weight: 600; color: var(--black); line-height: 1.3; margin-bottom: 2px; }
+.mm-lc-snippet { font-size: 11px; color: #777; line-height: 1.4; max-width: 260px; }
+.mm-lc-date { font-family: 'DM Mono', monospace; font-size: 9px; color: #aaa; margin-top: 3px; }
+.mm-lc-none { font-size: 11px; color: #bbb; font-style: italic; }
+.mm-lc-loading { font-size: 11px; color: #bbb; }
+.mm-lc-hs-link { display: inline-block; margin-top: 4px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #aaa; text-decoration: none; border-bottom: 1px solid #ddd; transition: color 0.12s, border-color 0.12s; }
+.mm-lc-hs-link:hover { color: var(--black); border-color: var(--black); }
+
+/* ── EMAIL COMPOSE MODAL ─────────────────────────────────────── */
+#email-compose-modal { position: fixed; inset: 0; background: rgba(14,14,14,0.65); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+#email-compose-modal.open { opacity: 1; pointer-events: all; }
+#email-compose-box { background: var(--cream); border-radius: 16px; width: min(620px, 100%); max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.3); transform: translateY(16px); transition: transform 0.2s; }
+#email-compose-modal.open #email-compose-box { transform: translateY(0); }
+.ecm-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; border-bottom: 1px solid var(--grey-light); }
+.ecm-title { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.ecm-close { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--grey-mid); padding: 2px 6px; border-radius: 6px; transition: color 0.12s, background 0.12s; }
+.ecm-close:hover { color: var(--black); background: var(--grey-light); }
+.ecm-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.ecm-templates { display: flex; gap: 6px; flex-wrap: wrap; }
+.ecm-template-pill { height: 28px; padding: 0 12px; background: var(--grey-light); border: 1.5px solid transparent; border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); cursor: pointer; transition: all 0.12s; }
+.ecm-template-pill:hover { background: var(--black); color: var(--green); }
+.ecm-template-pill.active { background: var(--black); color: var(--green); border-color: var(--green); }
+.ecm-field label { display: block; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 6px; }
+.ecm-field input, .ecm-field textarea { width: 100%; border: 1.5px solid var(--grey-light); border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--black); background: var(--white); outline: none; transition: border-color 0.15s; box-sizing: border-box; resize: vertical; }
+.ecm-field input:focus, .ecm-field textarea:focus { border-color: var(--black); }
+.ecm-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 20px; gap: 10px; }
+.ecm-send-btn { height: 38px; padding: 0 22px; background: var(--black); color: var(--green); border: none; border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s; }
+.ecm-send-btn:hover { opacity: 0.85; }
+.ecm-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ecm-cancel-btn { height: 38px; padding: 0 16px; background: none; border: 1.5px solid var(--grey-light); border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey-mid); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.ecm-cancel-btn:hover { border-color: var(--black); color: var(--black); }
+.ecm-no-token { padding: 12px 14px; background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.25); border-radius: 8px; font-size: 12px; color: var(--grey-mid); line-height: 1.5; }
+.ecm-no-token a { color: var(--black); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div id="gate-overlay">
+  <div class="gate-box">
+    <span class="gate-wm">jungle<span>.</span></span>
+    <input id="gate-input" class="gate-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<div id="topbar">
+  <span class="topbar-title">Prospects</span>
+  <div class="topbar-right">
+    <button class="tbtn" id="refresh-btn" onclick="refreshProspects()">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9m0 18c1.66 0 3-4.03 3-9s-1.34-9-3-9m-9 9a9 9 0 019-9"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<div id="prospects-page">
+  <div class="prsp-header">
+    <div>
+      <h1 id="prsp-page-title">Prospects</h1>
+      <p id="prsp-page-sub">All contacts across every source</p>
+    </div>
+  </div>
+  <div class="prsp-sub-tabs-bar">
+    <button class="prsp-sub-tab active" id="prsp-tab-all"        onclick="switchPrspTab('all',this)">All contacts</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-linkedin"   onclick="switchPrspTab('LinkedIn',this)">LinkedIn</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-dripify"    onclick="switchPrspTab('Dripify',this)">Dripify</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-target"     onclick="switchPrspTab('Target Prospect',this)">Target Prospects</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-inbound"    onclick="switchPrspTab('Inbound',this)">Inbound</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-referral"   onclick="switchPrspTab('Referral',this)">Referral</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-personal"   onclick="switchPrspTab('Personal Contact',this)">Personal</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-madmeets"   onclick="switchPrspTab('mad_meets',this)">MAD Meets</button>
+  </div>
+  <div class="prsp-body">
+    <div class="prsp-inner">
+      <div id="prsp-contacts-view">
+        <div class="prsp-controls" style="margin-top:12px">
+          <input type="text" class="prsp-search" id="prsp-search" placeholder="Search by name, company or title…" oninput="prspFilterContacts()">
+          <div class="prsp-count" id="prsp-count"></div>
+        </div>
+        <div id="prsp-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
+        <div id="prsp-error" style="display:none;padding:32px;text-align:center;font-size:13px;color:var(--grey-mid)"></div>
+        <div class="prsp-table-wrap" id="prsp-table-wrap" style="display:none">
+          <table class="prsp-table" id="prsp-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Company</th><th>Title</th><th>Source</th>
+                <th>Campaign</th><th>Status</th><th>Next Action</th><th>LI</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="prsp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="prsp-madmeets-view" style="display:none;margin-top:12px">
+        <div class="prsp-controls">
+          <input type="text" class="prsp-search" id="prsp-mm-search" placeholder="Search by name, brand or title…" oninput="prspFilterMadMeets()">
+          <div class="prsp-count" id="prsp-mm-count"></div>
+        </div>
+        <div id="prsp-mm-panel">
+          <div id="prsp-mm-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL COMPOSE MODAL -->
+<div id="email-compose-modal" onclick="if(event.target===this)closeEmailModal()">
+  <div id="email-compose-box">
+    <div class="ecm-header">
+      <div class="ecm-title" id="ecm-title">Email prospect</div>
+      <button class="ecm-close" onclick="closeEmailModal()">✕</button>
+    </div>
+    <div class="ecm-body">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:8px">Quick templates</div>
+        <div class="ecm-templates">
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('chaser',this)">Chaser</button>
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('meeting_followup',this)">Meeting follow-up</button>
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('checkin',this)">Check-in</button>
+        </div>
+      </div>
+      <div class="ecm-field"><label>To</label><input type="email" id="ecm-to" placeholder="email@address.com"></div>
+      <div class="ecm-field"><label>Subject</label><input type="text" id="ecm-subject" placeholder="Subject line…"></div>
+      <div class="ecm-field"><label>Message</label><textarea id="ecm-body" rows="10" placeholder="Email body…"></textarea></div>
+      <div id="ecm-no-token-msg" style="display:none" class="ecm-no-token">
+        ⚠️ Google session not active. <a href="javascript:gcalSignIn()">Reconnect Google</a> to send via Gmail, or copy and paste into your email client.
+      </div>
+    </div>
+    <div class="ecm-footer">
+      <button class="ecm-cancel-btn" onclick="closeEmailModal()">Cancel</button>
+      <div style="display:flex;gap:8px">
+        <button class="ecm-cancel-btn" onclick="copyEmailToClipboard()" id="ecm-copy-btn">Copy to clipboard</button>
+        <button class="ecm-send-btn" id="ecm-send-btn" onclick="sendProspectEmail()">Send via Gmail →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://jungle-is-massive.github.io/hub/config.js"></script>
+<script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
+<script>
+// ── Gate ──────────────────────────────────────────────────────────────────
+const GATE_PASSWORD = 'massive';
+function checkGate() {
+  const v = document.getElementById('gate-input').value.trim();
+  if (v === GATE_PASSWORD) { sessionStorage.setItem('jc_auth','1'); document.getElementById('gate-overlay').remove(); init(); }
+  else { document.getElementById('gate-error').textContent = 'Wrong password.'; document.getElementById('gate-input').value = ''; }
+}
+if (sessionStorage.getItem('jc_auth') === '1') document.getElementById('gate-overlay').remove();
+
+document.addEventListener('DOMContentLoaded', () => { if (sessionStorage.getItem('jc_auth') === '1') init(); });
+
+// ── Config ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = (window.JUNGLE_CONFIG||{}).SB_URL || 'https://iehkvlyjumkzccoqqgxl.supabase.co';
+const SUPABASE_KEY = (window.JUNGLE_CONFIG||{}).SB_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaGt2bHlqdW1remNjb3FxZ3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTMwNzYsImV4cCI6MjA5MTM4OTA3Nn0.pF9K9aBwWN10JRT_ODTLPzsdPKH3X0CW30WrPMn9lGs';
+const HS_PROXY = `${SUPABASE_URL}/functions/v1/hs-proxy`;
+const GCAL_CLIENT_ID = '161148155885-jmk24mva9i9akjknkes29kso7n1c9bgl.apps.googleusercontent.com';
+let gcalAccessToken = localStorage.getItem('gcal_access_token') || '';
+let gcalTokenExpiry = parseInt(localStorage.getItem('gcal_token_expiry') || '0');
+function gcalIsConnected() { return gcalAccessToken && Date.now() < gcalTokenExpiry; }
+function gcalSignIn() {
+  const redirect = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GCAL_CLIENT_ID}&redirect_uri=${redirect}&response_type=token&scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.send')}&prompt=select_account`;
+}
+function gcalSignOut() {
+  gcalAccessToken = ''; gcalTokenExpiry = 0;
+  localStorage.removeItem('gcal_access_token'); localStorage.removeItem('gcal_token_expiry');
+}
+function handleGcalCallback() {
+  const hash = window.location.hash.substring(1); if (!hash) return;
+  const params = Object.fromEntries(new URLSearchParams(hash));
+  if (params.access_token) {
+    gcalAccessToken = params.access_token;
+    gcalTokenExpiry = Date.now() + (parseInt(params.expires_in||'3600') * 1000);
+    localStorage.setItem('gcal_access_token', gcalAccessToken);
+    localStorage.setItem('gcal_token_expiry', String(gcalTokenExpiry));
+    history.replaceState(null, '', window.location.pathname);
+  }
+}
+
+function sbFetch(path, opts={}) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...opts, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', ...(opts.headers||{}) } });
+}
+
+function hsProxy(path, body) {
+  return fetch(HS_PROXY, { method:'POST', headers:{ Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json', 'x-proxy-target':'hubspot', 'x-hs-path':path }, body: JSON.stringify(body) }).then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`));
+}
+
+// ── State ─────────────────────────────────────────────────────────────────
+let prspActiveTab = 'all';
+let prspContactsData = [];
+let prspContactsLoaded = false;
+let prspContactsLoadedType = null;
+
+const PRSP_TAB_META = {
+  'all':              { title: 'All Contacts',           sub: 'Every contact across all sources.' },
+  'LinkedIn':         { title: 'LinkedIn',               sub: 'Contacts sourced via LinkedIn.' },
+  'Dripify':          { title: 'Dripify',                sub: 'Connections from Dripify campaigns.' },
+  'Target Prospect':  { title: 'Target Prospects',       sub: "Priority accounts you're actively targeting." },
+  'Inbound':          { title: 'Inbound',                sub: 'Contacts who came to you.' },
+  'Referral':         { title: 'Referrals',              sub: 'Contacts referred by partners or clients.' },
+  'Personal Contact': { title: 'Personal Contacts',      sub: 'Contacts from your personal network.' },
+  'mad_meets':        { title: 'MAD Meets — Ingenuity',  sub: 'Prospects met at Ingenuity MAD Meets events.' },
+};
+
+const PRSP_CONTACT_STATUS_CLASS = {
+  'Warm': 's-warm-progress', 'In progress': 's-inprogress',
+  'Contacted': 's-linkedin', 'Not contacted': 's-not-started', 'Stalled': 's-low',
+};
+
+function init() {
+  handleGcalCallback();
+  switchPrspTab('all', document.getElementById('prsp-tab-all'));
+}
+
+function refreshProspects() {
+  prspContactsLoaded = false;
+  prspContactsLoadedType = null;
+  MAD_MEETS_CONTACTS.forEach(c => { delete c._hsStatus; delete c._lastComms; });
+  switchPrspTab(prspActiveTab, document.getElementById('prsp-tab-' + (prspActiveTab === 'mad_meets' ? 'madmeets' : prspActiveTab === 'all' ? 'all' : prspActiveTab.toLowerCase().replace(/\s+/g,'_').replace('personal_contact','personal').replace('target_prospect','target'))));
+}
+
+function switchPrspTab(tab, btn) {
+  prspActiveTab = tab;
+  document.querySelectorAll('.prsp-sub-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const meta = PRSP_TAB_META[tab] || PRSP_TAB_META['all'];
+  document.getElementById('prsp-page-title').textContent = meta.title;
+  document.getElementById('prsp-page-sub').textContent = meta.sub;
+  const contactsView = document.getElementById('prsp-contacts-view');
+  const madmeetsView = document.getElementById('prsp-madmeets-view');
+  if (tab === 'mad_meets') {
+    contactsView.style.display = 'none';
+    madmeetsView.style.display = 'block';
+    const mmSearch = document.getElementById('prsp-mm-search');
+    if (mmSearch) mmSearch.value = '';
+    renderPrspMadMeets();
+  } else {
+    contactsView.style.display = 'block';
+    madmeetsView.style.display = 'none';
+    loadPrspContacts(tab);
+  }
+}
+
+async function loadPrspContacts(sourceType='all', force=false) {
+  if (!force && prspContactsLoaded && prspContactsLoadedType === sourceType) {
+    renderPrspContactsTable(prspContactsData); return;
+  }
+  const loading = document.getElementById('prsp-loading');
+  const error = document.getElementById('prsp-error');
+  const tableWrap = document.getElementById('prsp-table-wrap');
+  loading.style.display = 'flex'; error.style.display = 'none'; tableWrap.style.display = 'none';
+  const btn = document.getElementById('refresh-btn'); if (btn) btn.classList.add('spinning');
+  try {
+    let rows;
+    if (sourceType === 'Dripify') {
+      const r = await sbFetch('prospects?select=*&order=created_at.desc');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const raw = await r.json();
+      rows = raw.map(p => ({ ...p, full_name: [p.first_name,p.last_name].filter(Boolean).join(' ')||'—', source_type:'Dripify', source_name: p.campaign||'Dripify' }));
+    } else {
+      const filter = sourceType !== 'all' ? `&source_type=eq.${encodeURIComponent(sourceType)}` : '';
+      const r = await sbFetch(`contacts?select=*&order=created_at.desc${filter}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      rows = await r.json();
+    }
+    prspContactsData = rows; prspContactsLoadedType = sourceType; prspContactsLoaded = true;
+    renderPrspContactsTable(rows);
+  } catch(e) {
+    loading.style.display = 'none'; error.style.display = 'block';
+    error.innerHTML = `<strong>Couldn't load contacts.</strong> ${e.message}`;
+  }
+  if (btn) btn.classList.remove('spinning');
+}
+
+function prspEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderPrspContactsTable(rows) {
+  const loading = document.getElementById('prsp-loading');
+  const tableWrap = document.getElementById('prsp-table-wrap');
+  const tbody = document.getElementById('prsp-tbody');
+  const count = document.getElementById('prsp-count');
+  loading.style.display = 'none';
+  const q = (document.getElementById('prsp-search')?.value||'').toLowerCase();
+  const filtered = q ? rows.filter(c =>
+    (c.full_name||c.first_name||'').toLowerCase().includes(q) ||
+    (c.company||'').toLowerCase().includes(q) ||
+    (c.title||'').toLowerCase().includes(q) ||
+    (c.source_type||'').toLowerCase().includes(q)
+  ) : rows;
+  count.textContent = `${filtered.length} contact${filtered.length!==1?'s':''}`;
+  if (!filtered.length) {
+    tableWrap.style.display = 'none';
+    const err = document.getElementById('prsp-error');
+    err.style.display = 'block'; err.innerHTML = 'No contacts found for this filter.'; return;
+  }
+  document.getElementById('prsp-error').style.display = 'none';
+  tableWrap.style.display = '';
+  const sc = s => PRSP_CONTACT_STATUS_CLASS[s] || 's-not-started';
+  tbody.innerHTML = filtered.map(c => {
+    const name = c.full_name || [c.first_name,c.last_name].filter(Boolean).join(' ') || '—';
+    const emailBtn = c.email ? `<button class="mm-email-btn" onclick="openEmailModal(${JSON.stringify({name,company:c.company||'',email:c.email||'',title:c.title||''}).replace(/"/g,'&quot;')})">✉ Email</button>` : '';
+    return `<tr>
+      <td><div style="font-weight:600">${prspEsc(name)}</div>${emailBtn ? `<div style="margin-top:4px">${emailBtn}</div>` : ''}</td>
+      <td>${prspEsc(c.company||'')}</td>
+      <td style="font-size:11px;color:var(--grey-mid)">${prspEsc(c.title||'')}</td>
+      <td><span class="bd-status-pill s-not-started" style="font-size:9px">${prspEsc(c.source_type||'')}</span></td>
+      <td style="font-size:11px;color:var(--grey-mid)">${prspEsc(c.source_name||'')}</td>
+      <td>${c.status ? `<span class="bd-status-pill ${sc(c.status)}">${prspEsc(c.status)}</span>` : '—'}</td>
+      <td style="font-size:11px">${prspEsc(c.next_action||'')}</td>
+      <td>${c.linkedin_url ? `<a href="${prspEsc(c.linkedin_url)}" target="_blank" rel="noopener">↗</a>` : ''}</td>
+      <td></td>
+    </tr>`;
+  }).join('');
+}
+
+function prspFilterContacts() { renderPrspContactsTable(prspContactsData); }
+function prspFilterMadMeets() { renderPrspMadMeetsTable(); }
+
+// ── MAD Meets ─────────────────────────────────────────────────────────────
+const MAD_MEETS_CONTACTS = [
+  { id:'747364268226', email:'chris.waters@gdk.com', name:'Chris Waters', title:'CMO', brand:'GDK', event:'feb', eventLabel:'Feb MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747364268226', status_notes:'No response. Jade chased 27 March.', next_action:'Follow up — personalised angle' },
+  { id:'747114717412', email:'tomsutton@gorillaglue.com', name:'Tom Sutton', title:'Marketing Director', brand:'Gorilla Glue', event:'feb', eventLabel:'Feb MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747114717412', status_notes:'No response. Jade chased 27 March.', next_action:'Follow up — personalised angle' },
+  { id:'745932079304', email:'alison.leigh1@vodafone.com', name:'Alison Leigh', title:'Field Marketing Manager', brand:'Vodafone Automotive', event:'feb', eventLabel:'Feb MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745932079304', status_notes:'Responded — busy in planning mode, not considering agencies yet.', next_action:'Nurture — re-engage Q3' },
+  { id:'745933501652', email:'MStoodley@craghoppers.com', name:'Michelle Stoodley', title:'Head of Marketing', brand:'Craghoppers', event:'feb', eventLabel:'Feb MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745933501652', status_notes:'', next_action:'Make first contact' },
+  { id:'745794924790', email:'kerry.grassick@artisanal-spirits.com', name:'Kerry Grassick', title:'Head of European Marketing', brand:'The Artisanal Spirits Co.', event:'feb', eventLabel:'Feb MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/745794924790', status_notes:'Meeting in diary: Wed 17 June, 11am.', next_action:'Prep for 17 June meeting' },
+  { id:'792700436682', name:'Rosie Jones', title:'Digital Marketing & Creative Manager', brand:'E1 Series', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792700436682', status_notes:"Sent LinkedIn connection request, still pending.", next_action:'Chase LinkedIn connection' },
+  { id:'792671555790', name:'Gio Forino', title:'Social Media & Influencer Manager', brand:'McCormick / Schwartz', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792671555790', status_notes:'Connected on LinkedIn. Presenting agencies to team.', next_action:'Wait for their update, then follow up' },
+  { id:'747371346169', email:'nat.sajal@wagamama.com', name:'Nat Sajal', title:'Senior Paid Media + PR Manager', brand:'Wagamama', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/747371346169', status_notes:'Chatting on email, connected on LinkedIn. Expecting mini brief mid June.', next_action:'Chase mini brief — mid June' },
+  { id:'781107763410', email:'megan_davies@b-f.com', name:'Megan Davies', title:'Integrated Consumer Exp. Director', brand:'Brown-Forman', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/781107763410', status_notes:'Interested in speaking further.', next_action:'Follow up on email thread' },
+  { id:'788235997376', email:'martinjask123@gmail.com', name:'Martin Jask', title:'Global Head of Communications', brand:'William Grant & Sons', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/788235997376', status_notes:'Keen to meet again. Connected on LinkedIn.', next_action:'Book a call' },
+  { id:'792678953202', name:'Rob Cottingham', title:'Senior Content & PR Manager', brand:'Sports Interactive', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/792678953202', status_notes:'Interested in speaking again. No response yet.', next_action:'Chase — first follow up' },
+  { id:'782191400137', email:'david.balko@mac.com', name:'David Balko', title:'Marketing', brand:'Wren Kitchens', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/782191400137', status_notes:'Interested in speaking. Followed up by email, no response.', next_action:'Chase LinkedIn + email' },
+  { id:'776463682776', email:'aimee.cunningham@gousto.co.uk', name:'Aimee Cunningham', title:'Senior Brand Marketing Manager', brand:'Gousto', event:'mar', eventLabel:'Mar MAD Meets', hubspotUrl:'https://app-eu1.hubspot.com/contacts/145756322/record/0-1/776463682776', status_notes:'Positive meeting but proceeding with another agency.', next_action:'—', dead:true },
+];
+
+async function loadMadMeets() {
+  try {
+    const ids = MAD_MEETS_CONTACTS.map(c => c.id);
+    const res = await hsProxy('/crm/v3/objects/contacts/batch/read', { inputs: ids.map(id => ({id})), properties: ['hs_lead_status','notes_last_contacted'] });
+    if (res.results) {
+      res.results.forEach(r => {
+        const c = MAD_MEETS_CONTACTS.find(x => x.id === r.id);
+        if (c) { c._hsStatus = r.properties?.hs_lead_status || 'null'; c._hsLastContacted = r.properties?.notes_last_contacted || null; }
+      });
+    }
+  } catch(e) { console.warn('MAD Meets HS fetch failed:', e); }
+}
+
+async function renderPrspMadMeets() {
+  const panel = document.getElementById('prsp-mm-panel');
+  if (!MAD_MEETS_CONTACTS[0]._hsStatus) {
+    panel.innerHTML = '<div class="prsp-loading"><div class="prsp-spinner"></div>Loading HubSpot data…</div>';
+    await loadMadMeets();
+  }
+  renderPrspMadMeetsTable();
+}
+
+function renderPrspMadMeetsTable() {
+  const panel = document.getElementById('prsp-mm-panel');
+  const countEl = document.getElementById('prsp-mm-count');
+  const q = (document.getElementById('prsp-mm-search')?.value || '').toLowerCase();
+  const now = Date.now();
+  const STATUS_LIGHT = {
+    'NEW': {label:'New',cls:'background:#f0f0ee;color:#888'},
+    'ATTEMPTED_TO_CONTACT': {label:'Attempted',cls:'background:rgba(240,180,41,0.12);color:#b8860b'},
+    'BAD_TIMING': {label:'Bad Timing',cls:'background:rgba(255,107,74,0.1);color:#c0392b'},
+    'IN_PROGRESS': {label:'In Progress',cls:'background:rgba(62,207,142,0.12);color:#1a7a4a'},
+    'null': {label:'No Status',cls:'background:#f0f0ee;color:#aaa'},
+  };
+  const filtered = q ? MAD_MEETS_CONTACTS.filter(c =>
+    c.name.toLowerCase().includes(q) || c.brand.toLowerCase().includes(q) ||
+    c.title.toLowerCase().includes(q) || c.eventLabel.toLowerCase().includes(q)
+  ) : MAD_MEETS_CONTACTS;
+  if (countEl) countEl.textContent = `${filtered.filter(c=>!c.dead).length} contact${filtered.filter(c=>!c.dead).length!==1?'s':''}`;
+  if (!filtered.length) { panel.innerHTML = '<div class="prsp-empty">No contacts match that search.</div>'; return; }
+
+  const rows = filtered.map(contact => {
+    const rawStatus = contact._hsStatus || 'null';
+    const statusInfo = STATUS_LIGHT[rawStatus] || STATUS_LIGHT['null'];
+    const lastContactedRaw = contact._hsLastContacted || null;
+    let lastContactedLabel = '<span style="color:#bbb;font-style:italic">—</span>';
+    if (lastContactedRaw) {
+      const d = new Date(lastContactedRaw);
+      const daysAgo = Math.floor((now - d.getTime()) / 86400000);
+      const fmt = d.toLocaleDateString('en-GB', {day:'numeric',month:'short'});
+      const colour = daysAgo <= 7 ? '#1a7a4a' : daysAgo <= 21 ? '#555' : '#b8860b';
+      const ago = daysAgo === 0 ? 'today' : daysAgo === 1 ? '1d ago' : `${daysAgo}d ago`;
+      lastContactedLabel = `<span style="font-size:12px;color:${colour}">${fmt} <span style="opacity:0.5;font-size:11px">${ago}</span></span>`;
+    }
+    const eventStyle = contact.event === 'feb' ? 'background:rgba(74,191,255,0.12);color:#1a6fa8' : 'background:rgba(30,160,60,0.1);color:#1a6a30';
+    const rowOpacity = contact.dead ? 'opacity:0.4' : '';
+    const contactData = JSON.stringify({name:contact.name,company:contact.brand,email:contact.email||'',title:contact.title}).replace(/"/g,'&quot;');
+    const emailBtn = contact.email
+      ? `<button class="mm-email-btn" style="background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.1);color:var(--black)" onclick="openEmailModal(${contactData})">✉ Email</button>`
+      : `<button class="mm-email-btn" style="opacity:0.25;cursor:not-allowed;background:rgba(0,0,0,0.04);border-color:transparent;color:#999" disabled>✉ Email</button>`;
+    const lcCell = `<div id="lc-${contact.id}"><span class="mm-lc-loading">Loading…</span></div>`;
+    return `<tr style="${rowOpacity}">
+      <td>
+        <div style="font-weight:600;font-size:13px">${contact.name}</div>
+        <div style="font-size:11px;color:var(--grey-mid);margin-top:1px">${contact.title}</div>
+        <div style="margin-top:5px">${emailBtn}</div>
+      </td>
+      <td style="font-size:13px">${contact.brand}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;${eventStyle}">${contact.eventLabel}</span></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;${statusInfo.cls}">${statusInfo.label}</span></td>
+      <td>${lastContactedLabel}</td>
+      <td>${lcCell}</td>
+      <td style="font-size:12px;color:var(--black);font-style:italic;max-width:160px">${contact.next_action}</td>
+      <td><a style="display:inline-block;width:22px;height:22px;background:var(--grey-light);border-radius:6px;text-align:center;line-height:22px;font-size:11px;text-decoration:none;color:var(--grey-mid)" href="${contact.hubspotUrl}" target="_blank" title="Open in HubSpot">↗</a></td>
+    </tr>`;
+  }).join('');
+
+  panel.innerHTML = `<div class="prsp-table-wrap"><table class="prsp-table" style="table-layout:auto">
+    <thead><tr>
+      <th>Contact</th><th>Brand</th><th>Event</th><th>Status</th>
+      <th>Last Contacted</th><th>Last Communication</th><th>Next Action</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+
+  filtered.forEach(contact => {
+    if (contact._lastComms !== undefined) renderLastCommsCell(document.getElementById(`lc-${contact.id}`), contact._lastComms, contact);
+  });
+  if (filtered.some(c => c._lastComms === undefined)) loadAllLastComms();
+}
+
+function renderLastCommsCell(cell, data, contact) {
+  if (!cell) return;
+  if (!data) { cell.innerHTML = '<span class="mm-lc-none">No emails logged</span>'; return; }
+  const dirLabel = data.direction === 'received' ? '↓ They replied' : '↑ You sent';
+  const dirCls = data.direction === 'received' ? 'mm-lc-received' : 'mm-lc-sent';
+  cell.innerHTML = `
+    <span class="mm-lastcomms-direction ${dirCls}">${dirLabel}</span>
+    ${data.subject ? `<div class="mm-lc-subject">${data.subject.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+    ${data.snippet ? `<div class="mm-lc-snippet">${data.snippet.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+    <div class="mm-lc-date">${data.dateStr}</div>
+    <a class="mm-lc-hs-link" href="${data.hsLink}" target="_blank">View in HubSpot ↗</a>`;
+}
+
+async function loadAllLastComms() {
+  try {
+    const assocRes = await hsProxy('/crm/v4/associations/contact/email/batch/read', { inputs: MAD_MEETS_CONTACTS.map(c => ({id:c.id})) });
+    const contactEmailMap = {};
+    for (const r of (assocRes.results||[])) {
+      const cid = String(r.from?.id);
+      const ids = (r.to||[]).map(t => String(t.toObjectId)).sort((a,b) => Number(b)-Number(a));
+      contactEmailMap[cid] = ids;
+    }
+    for (const c of MAD_MEETS_CONTACTS) {
+      if (!contactEmailMap[c.id]) { c._lastComms = null; renderLastCommsCell(document.getElementById(`lc-${c.id}`), null, c); }
+    }
+    const emailsToFetch = Object.entries(contactEmailMap).map(([cid,ids]) => ({contactId:cid,emailId:ids[0]}));
+    if (!emailsToFetch.length) return;
+    const batchRes = await hsProxy('/crm/v3/objects/emails/batch/read', { inputs: emailsToFetch.map(e=>({id:e.emailId})), properties:['hs_email_subject','hs_email_direction','hs_email_text','hs_timestamp'] });
+    const emailDataMap = {};
+    for (const r of (batchRes.results||[])) emailDataMap[String(r.id)] = r.properties;
+    for (const {contactId, emailId} of emailsToFetch) {
+      const contact = MAD_MEETS_CONTACTS.find(c => c.id === contactId);
+      if (!contact) continue;
+      const p = emailDataMap[emailId];
+      if (!p) { contact._lastComms = null; }
+      else {
+        const direction = p.hs_email_direction === 'INCOMING_EMAIL' ? 'received' : 'sent';
+        const ts = p.hs_timestamp ? new Date(p.hs_timestamp).getTime() : 0;
+        const dateStr = new Date(ts).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+        const bodyClean = (p.hs_email_text||'').split(/\r?\n\r?\n/)[0].replace(/\s+/g,' ').trim().slice(0,140);
+        contact._lastComms = { direction, dateStr, subject:p.hs_email_subject||null, snippet:bodyClean, hsLink:`https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contactId}` };
+      }
+      renderLastCommsCell(document.getElementById(`lc-${contactId}`), contact._lastComms, contact);
+    }
+  } catch(e) {
+    console.error('loadAllLastComms failed:', e);
+    document.querySelectorAll('[id^="lc-"]').forEach(cell => {
+      if (cell.innerHTML.includes('Loading')) cell.innerHTML = '<span class="mm-lc-none">Couldn\'t load</span>';
+    });
+  }
+}
+
+// ── Email compose ─────────────────────────────────────────────────────────
+let _emailContact = null;
+
+function getEmailTemplates(name, company) {
+  const firstName = name.split(' ')[0];
+  return {
+    chaser: { subject: 'Following up — Jungle Creations', body: `Hi ${firstName},\n\nI just wanted to follow up on my previous email — I know things get busy and I didn't want it to slip through the cracks.\n\nI'd love to find 20 minutes to show you what we've been doing for brands like yours. We've been helping [relevant brand type] brands build genuine social presence that actually drives commercial results — not just vanity metrics.\n\nWould any time next week work for a quick call?\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations` },
+    meeting_followup: { subject: 'Great to meet you — next steps', body: `Hi ${firstName},\n\nReally enjoyed our conversation — thanks for taking the time.\n\nAs discussed, I'll put together a brief overview of how we could approach [the challenge you mentioned] for ${company}. I'll get that across to you by end of week.\n\nIn the meantime, if anything comes up or you have questions, feel free to drop me a line.\n\nLooking forward to continuing the conversation.\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations` },
+    checkin: { subject: 'Checking in — Jungle Creations', body: `Hi ${firstName},\n\nHope you're well. I wanted to reach out as it's been a little while since we last spoke.\n\nWe've had a few interesting briefs come through recently from brands in a similar space to ${company} and it got me thinking about our conversation.\n\nHappy to share what we've been up to if useful — would a quick 15-minute catch-up work at any point in the next few weeks?\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations` }
+  };
+}
+
+function openEmailModal(contactObj) {
+  _emailContact = typeof contactObj === 'string' ? JSON.parse(contactObj) : contactObj;
+  document.getElementById('ecm-title').textContent = `Email ${_emailContact.name}`;
+  document.getElementById('ecm-to').value = _emailContact.email || '';
+  document.getElementById('ecm-subject').value = '';
+  document.getElementById('ecm-body').value = '';
+  document.querySelectorAll('.ecm-template-pill').forEach(p => p.classList.remove('active'));
+  const noToken = document.getElementById('ecm-no-token-msg');
+  const sendBtn = document.getElementById('ecm-send-btn');
+  if (gcalIsConnected()) { noToken.style.display = 'none'; sendBtn.style.display = ''; }
+  else { noToken.style.display = 'block'; sendBtn.style.display = 'none'; }
+  document.getElementById('email-compose-modal').classList.add('open');
+}
+
+function closeEmailModal() {
+  document.getElementById('email-compose-modal').classList.remove('open');
+  _emailContact = null;
+}
+
+function applyEmailTemplate(type, btn) {
+  if (!_emailContact) return;
+  const templates = getEmailTemplates(_emailContact.name, _emailContact.company || 'your brand');
+  const t = templates[type]; if (!t) return;
+  document.getElementById('ecm-subject').value = t.subject;
+  document.getElementById('ecm-body').value = t.body;
+  document.querySelectorAll('.ecm-template-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ecm-body').focus();
+}
+
+function copyEmailToClipboard() {
+  const subject = document.getElementById('ecm-subject').value;
+  const body = document.getElementById('ecm-body').value;
+  const to = document.getElementById('ecm-to').value;
+  navigator.clipboard.writeText(`To: ${to}\nSubject: ${subject}\n\n${body}`).then(() => {
+    const btn = document.getElementById('ecm-copy-btn'), orig = btn.textContent;
+    btn.textContent = 'Copied ✓'; setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+async function sendProspectEmail() {
+  const to = document.getElementById('ecm-to').value.trim();
+  const subject = document.getElementById('ecm-subject').value.trim();
+  const body = document.getElementById('ecm-body').value.trim();
+  const btn = document.getElementById('ecm-send-btn');
+  if (!to || !subject || !body) { alert('Please fill in all fields.'); return; }
+  if (!gcalIsConnected()) {
+    document.getElementById('ecm-no-token-msg').style.display = 'block';
+    btn.style.display = 'none'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const encodedSubject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
+    const htmlBody = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const HS_BCC = '145756322@bcc.eu1.hubspot.com';
+    const rawMessage = [`To: ${to}`,`Bcc: ${HS_BCC}`,`Subject: ${encodedSubject}`,'MIME-Version: 1.0','Content-Type: text/html; charset=utf-8','',htmlBody].join('\r\n');
+    const encoded = btoa(unescape(encodeURIComponent(rawMessage))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const res = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', { method:'POST', headers:{'Authorization':`Bearer ${gcalAccessToken}`,'Content-Type':'application/json'}, body:JSON.stringify({raw:encoded}) });
+    if (!res.ok) { const err = await res.json(); throw new Error(err?.error?.message || `Gmail API ${res.status}`); }
+    alert(`Email sent to ${to} ✓`);
+    closeEmailModal();
+  } catch(e) { alert(`Error sending: ${e.message}`); }
+  btn.disabled = false; btn.textContent = 'Send via Gmail →';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEmailModal(); });
+</script>
+
+<script>window.JUNGLE_NAV_ACTIVE = 'prospects';</script>
+<script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
+</body>
+</html>
