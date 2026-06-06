@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle — Priorities</title>
+<link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --cream-soft: #EFE9DF;
+  --black: #0E0E0E;
+  --green: #87FB66;
+  --green-dim: #65C247;
+  --grey: #C8C3B8;
+  --grey-mid: #8A8880;
+  --grey-light: #E8E3DA;
+  --white: #FFFFFF;
+  --header-h: 56px;
+  --toolbar-h: 88px;
+  --coral: #FF6B4A;
+  --amber: #F0B429;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--cream);
+  color: var(--black);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  height: 100%; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────────────── */
+#topbar {
+  position: fixed; top: 0; right: 0; left: 52px; z-index: 100;
+  height: var(--header-h); background: var(--black);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.topbar-title {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35);
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.action-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 6px 14px; border-radius: 100px;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.action-btn-ghost {
+  border: 1px solid rgba(255,255,255,0.15); background: transparent;
+  color: rgba(255,255,255,0.55);
+}
+.action-btn-ghost:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); }
+.action-btn-ghost svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.action-btn-ghost.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOOLBAR ─────────────────────────────────────────────────── */
+#pr-toolbar-bar {
+  position: fixed; top: var(--header-h); left: 52px; right: 0;
+  background: var(--cream); z-index: 90;
+  padding: 14px 28px 12px;
+  border-bottom: 1.5px solid var(--grey-light);
+}
+
+/* ── CONTENT ─────────────────────────────────────────────────── */
+#pr-content {
+  position: fixed;
+  top: calc(var(--header-h) + var(--toolbar-h));
+  left: 52px; right: 0; bottom: 0;
+  overflow: auto;
+}
+#pr-loading {
+  display: none; position: absolute; inset: 0;
+  background: var(--cream); align-items: center; justify-content: center; z-index: 5;
+}
+#pr-body {
+  padding: 24px 28px 90px;
+  max-width: 1320px; margin: 0 auto;
+}
+
+/* ── EDIT PANEL ──────────────────────────────────────────────── */
+#pr-edit-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 405;
+  background: rgba(14,14,14,0.44);
+}
+#pr-edit-panel {
+  display: none; position: fixed; top: 0; right: 0; bottom: 0; z-index: 410;
+  width: min(460px,100%); background: var(--cream);
+  border-left: 1.5px solid var(--grey-light);
+  box-shadow: -20px 0 60px rgba(0,0,0,0.2);
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(0.22,1,0.36,1);
+  flex-direction: column; overflow: hidden;
+}
+#pr-edit-panel-head {
+  flex-shrink: 0; background: var(--black); padding: 0 22px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+#pr-edit-title { font-size: 13px; font-weight: 700; color: var(--white); letter-spacing: -0.01em; }
+#pr-edit-form { flex: 1; overflow-y: auto; padding: 20px 22px 30px; display: flex; flex-direction: column; gap: 13px; }
+#pr-edit-footer {
+  flex-shrink: 0; padding: 14px 22px; background: var(--cream);
+  border-top: 1.5px solid var(--grey-light);
+  display: flex; gap: 8px; align-items: center;
+}
+
+/* ── GATE ────────────────────────────────────────────────────── */
+#gate-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--black);
+  display: flex; align-items: center; justify-content: center;
+}
+.gate-box { text-align: center; }
+.gate-wordmark { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--white); margin-bottom: 28px; display: block; }
+.gate-wordmark span { color: var(--green); }
+.gate-input {
+  display: block; width: 240px; padding: 12px 18px; margin: 0 auto 12px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px; color: var(--white); font-size: 15px; text-align: center;
+  font-family: 'DM Mono', monospace; letter-spacing: 0.15em; outline: none;
+}
+.gate-input:focus { border-color: var(--green); }
+.gate-btn {
+  width: 240px; padding: 11px; background: var(--green); color: var(--black);
+  border: none; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.gate-error { color: var(--coral); font-size: 12px; margin-top: 10px; font-family: 'DM Mono', monospace; min-height: 18px; }
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate-overlay">
+  <div class="gate-box">
+    <span class="gate-wordmark">jungle<span>.</span></span>
+    <input id="gate-input" class="gate-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <span class="topbar-title">Priorities</span>
+  <div class="topbar-right">
+    <button class="action-btn action-btn-ghost" id="refresh-btn" onclick="prRefresh()">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9m0 18c1.66 0 3-4.03 3-9s-1.34-9-3-9m-9 9a9 9 0 019-9"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<!-- TOOLBAR (rendered by JS) -->
+<div id="pr-toolbar-bar">
+  <div id="pr-toolbar"></div>
+</div>
+
+<!-- CONTENT -->
+<div id="pr-content">
+  <div id="pr-loading" style="display:none;position:absolute;inset:0;background:var(--cream);align-items:center;justify-content:center;z-index:5">
+    <span style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid)">Loading…</span>
+  </div>
+  <div id="pr-body"></div>
+</div>
+
+<!-- EDIT / CREATE PANEL -->
+<div id="pr-edit-backdrop" onclick="prCloseEdit()"></div>
+<div id="pr-edit-panel">
+  <div id="pr-edit-panel-head">
+    <span id="pr-edit-title"></span>
+    <button onclick="prCloseEdit()" aria-label="Close" style="background:none;border:none;cursor:pointer;color:var(--grey-mid);display:flex;align-items:center" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--grey-mid)'">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div id="pr-edit-form"></div>
+  <div id="pr-edit-footer">
+    <button id="pr-edit-save" onclick="prSave()" style="flex:1;height:40px;background:var(--black);color:var(--green);border:none;border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">Save</button>
+    <button id="pr-edit-delete" onclick="prConfirmDelete()" style="display:none;height:40px;padding:0 14px;background:transparent;color:#FF6B4A;border:1.5px solid rgba(255,107,74,0.4);border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;align-items:center">Delete</button>
+    <button onclick="prCloseEdit()" style="height:40px;padding:0 14px;background:transparent;color:var(--grey-mid);border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Cancel</button>
+  </div>
+</div>
+
+<script src="https://jungle-is-massive.github.io/hub/config.js"></script>
+<script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
+
+<script>
+// ── Gate ──────────────────────────────────────────────────────────────────
+const GATE_PASSWORD = 'massive';
+function checkGate() {
+  const v = document.getElementById('gate-input').value.trim();
+  if (v === GATE_PASSWORD) {
+    sessionStorage.setItem('jc_auth', '1');
+    document.getElementById('gate-overlay').remove();
+    init();
+  } else {
+    document.getElementById('gate-error').textContent = 'Wrong password.';
+    document.getElementById('gate-input').value = '';
+  }
+}
+if (sessionStorage.getItem('jc_auth') === '1') {
+  document.getElementById('gate-overlay').remove();
+}
+
+// ── Config ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = (window.JUNGLE_CONFIG||{}).SB_URL || '';
+const SUPABASE_KEY = (window.JUNGLE_CONFIG||{}).SB_KEY || '';
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('jc_auth') === '1') init();
+});
+
+function init() {
+  prHashRoute();
+  prRefresh();
+}
+
+// ── Refresh button spinning ────────────────────────────────────────────────
+async function prRefresh(){
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  prSetLoading(true);
+  try { await prLoad(true); prRender(); }
+  catch(e){ document.getElementById('pr-body').innerHTML = `<div style="padding:60px;text-align:center;color:var(--grey-mid)">Couldn't load priorities. ${prEsc(e.message||'')}</div>`; }
+  prSetLoading(false);
+  if (btn) btn.classList.remove('spinning');
+}
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// PRIORITIES — full CRUD. Source of truth: Supabase growth_status table.
+// ════════════════════════════════════════════════════════════════════════════
+
+let gsData        = [];
+let prLoaded      = false;
+let prView        = 'list';
+let prTlMode      = 'bars';
+let prFilterPrio  = 'all';
+let prFilterCat   = 'all';
+let prEditingId   = null;
+let prCreating    = false;
+let prCalDate     = new Date();
+let prDragId      = null;
+let prOngoingOpen = false;
+
+const PR_PRIOS = [
+  { key:'high',    label:'High',    colour:'#FF6B4A' },
+  { key:'medium',  label:'Medium',  colour:'#F0B429' },
+  { key:'low',     label:'Low',     colour:'#3ECF8E' },
+  { key:'ongoing', label:'Ongoing', colour:'#8B86C9' },
+];
+const PR_PRIO_ORDER  = { high:0, medium:1, low:2, ongoing:3, '':4 };
+const PR_PRIO_COLOUR = { high:'#FF6B4A', medium:'#F0B429', low:'#3ECF8E', ongoing:'#8B86C9', '':'#C8C3B8' };
+
+const PR_CATS = [
+  { key:'marcomms',  label:'Marcomms',  colour:'#7B6FE0' },
+  { key:'newbiz',    label:'New Biz',   colour:'#3ECF8E' },
+  { key:'marketing', label:'Marketing', colour:'#4ABFFF' },
+];
+const PR_CAT_LABEL  = { marcomms:'Marcomms', newbiz:'New Biz', marketing:'Marketing' };
+const PR_CAT_COLOUR = { marcomms:'#7B6FE0', newbiz:'#3ECF8E', marketing:'#4ABFFF' };
+
+const PR_STATUSES = ['In progress','Scheduled','Reviewing','Planning','Early development','Ideation','Relationship building','Awaiting designer','Under review','Completed'];
+const PR_STATUS_COLOURS = {
+  'in progress':           { bg:'rgba(135,251,102,0.14)', border:'rgba(135,251,102,0.45)', text:'#2a6600' },
+  'scheduled':             { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.4)',   text:'#0a5080' },
+  'reviewing':             { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.45)',  text:'#7a4e00' },
+  'planning':              { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.4)',  text:'#3a2e8a' },
+  'early development':     { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.4)',  text:'#3a2e8a' },
+  'ideation':              { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.4)',   text:'#0a5030' },
+  'relationship building': { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.4)',   text:'#0a5080' },
+  'awaiting designer':     { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.45)',  text:'#7a4e00' },
+  'under review':          { bg:'rgba(200,195,184,0.18)', border:'rgba(200,195,184,0.5)',  text:'#666' },
+  'completed':             { bg:'rgba(62,207,142,0.12)',  border:'rgba(62,207,142,0.4)',   text:'#0a5030' },
+};
+const PR_STATUS_DEFAULT = { bg:'rgba(200,195,184,0.18)', border:'rgba(200,195,184,0.5)', text:'#666' };
+
+// ── helpers ───────────────────────────────────────────────────────────────
+function prEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function prStatusClean(s){ return (s||'').replace(/^[^\w]+/,'').trim(); }
+function prStatusStyle(s){ return PR_STATUS_COLOURS[prStatusClean(s).toLowerCase()] || PR_STATUS_DEFAULT; }
+function prIsBlocked(r){ return r.any_blockers && r.any_blockers.trim().length > 3; }
+function prParse(d){ if(!d) return null; const dt = new Date(String(d).slice(0,10)+'T00:00:00'); return isNaN(dt)?null:dt; }
+function prFmtDate(d){ const dt = prParse(d); if(!dt) return ''; return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+function prToISO(dt){ const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), d=String(dt.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+function prDaysBetween(a,b){ return Math.round((b-a)/86400000); }
+function prPrioKey(r){ return (r.priority_tier||'').toLowerCase(); }
+function prToday0(){ const t=new Date(); t.setHours(0,0,0,0); return t; }
+
+let prMsDraft = [];
+function prUid(){ try { return crypto.randomUUID(); } catch(_){ return 'm'+Date.now().toString(36)+Math.random().toString(16).slice(2,8); } }
+function prMs(r){ const a = Array.isArray(r.milestones) ? r.milestones : []; return a.filter(m=>m && m.date).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date))); }
+function prMsDates(r){ return prMs(r).map(m=>prParse(m.date)).filter(Boolean); }
+function prMsMin(r){ const d=prMsDates(r); return d.length?d[0]:null; }
+function prMsMax(r){ const d=prMsDates(r); return d.length?d[d.length-1]:null; }
+function prNextMs(r){ const t=prToday0(); const ms=prMs(r); return ms.find(m=>{ const pp=prParse(m.date); return pp && pp>=t; }) || ms[ms.length-1] || null; }
+
+const SB_H  = () => ({ apikey: SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` });
+const SB_HJ = () => ({ ...SB_H(), 'Content-Type':'application/json' });
+
+// ── data I/O ──────────────────────────────────────────────────────────────
+async function prLoad(force){
+  if (prLoaded && !force) return;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/growth_status?select=*`, { headers: SB_H() });
+  const raw = await res.json();
+  gsData = (Array.isArray(raw) ? raw : []).filter(r => r.name && r.name.trim());
+  prSort();
+  prLoaded = true;
+}
+function prSort(){
+  gsData.sort((a,b)=>{
+    const pa = PR_PRIO_ORDER[prPrioKey(a)] ?? 4;
+    const pb = PR_PRIO_ORDER[prPrioKey(b)] ?? 4;
+    if (pa!==pb) return pa-pb;
+    const oa = a.display_order ?? 9999, ob = b.display_order ?? 9999;
+    if (oa!==ob) return oa-ob;
+    return (a.name||'').localeCompare(b.name||'');
+  });
+}
+async function prPatch(id, payload){
+  payload.updated_at = new Date().toISOString();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/growth_status?id=eq.${id}`, {
+    method:'PATCH', headers:{...SB_HJ(), Prefer:'return=minimal'}, body: JSON.stringify(payload)
+  });
+  return res.ok;
+}
+async function prInsert(payload){
+  payload.updated_at = new Date().toISOString();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/growth_status`, {
+    method:'POST', headers:{...SB_HJ(), Prefer:'return=representation'}, body: JSON.stringify(payload)
+  });
+  const j = await res.json();
+  return Array.isArray(j) ? j[0] : null;
+}
+async function prDeleteRow(id){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/growth_status?id=eq.${id}`, { method:'DELETE', headers: SB_H() });
+  return res.ok;
+}
+
+// ── hash deep-linking ─────────────────────────────────────────────────────
+function prParseHash(){
+  const h = (location.hash||'').replace(/^#/,'');
+  if (!h) return null;
+  const seg = h.split('/').filter(Boolean);
+  if (seg[0] !== 'priorities') return null;
+  let view='list', tl='bars';
+  if (seg[1]==='timeline'){ view='timeline'; tl = (seg[2]==='calendar') ? 'calendar' : 'bars'; }
+  return { view, tl };
+}
+function prSyncHash(){
+  let h = '#priorities';
+  if (prView==='timeline') h += (prTlMode==='calendar') ? '/timeline/calendar' : '/timeline';
+  if (location.hash !== h) history.replaceState(null, '', h);
+}
+function prHashRoute(){
+  const m = prParseHash();
+  if (m){ prView = m.view; prTlMode = m.tl; }
+}
+
+// ── loading state ─────────────────────────────────────────────────────────
+function prSetLoading(on){
+  const el = document.getElementById('pr-loading');
+  if (el) el.style.display = on ? 'flex' : 'none';
+}
+
+// ── master render ─────────────────────────────────────────────────────────
+function prRender(){
+  prRenderToolbar();
+  if (prView==='list')       prRenderList();
+  else if (prTlMode==='bars') prRenderBars();
+  else                        prRenderCalendar();
+  // Sync toolbar height dynamically (two rows of chips can vary)
+  requestAnimationFrame(() => {
+    const tb = document.getElementById('pr-toolbar-bar');
+    if (tb) {
+      const h = tb.offsetHeight;
+      document.getElementById('pr-content').style.top = `calc(${56}px + ${h}px)`;
+    }
+  });
+}
+
+function prFiltered(){
+  let rows = gsData.slice();
+  if (prFilterPrio!=='all'){
+    if (prFilterPrio==='blocked') rows = rows.filter(prIsBlocked);
+    else rows = rows.filter(r => prPrioKey(r)===prFilterPrio);
+  }
+  if (prFilterCat!=='all') rows = rows.filter(r => (r.category||'')===prFilterCat);
+  return rows;
+}
+
+// ── toolbar ───────────────────────────────────────────────────────────────
+function prChip(label, active, onclick, dot){
+  const dotHtml = dot ? `<span style="width:7px;height:7px;border-radius:50%;background:${dot};display:inline-block;margin-right:5px"></span>` : '';
+  return `<button onclick="${onclick}" style="display:inline-flex;align-items:center;padding:5px 11px;border-radius:20px;border:1.5px solid ${active?'var(--black)':'var(--grey-light)'};background:${active?'var(--black)':'transparent'};color:${active?'var(--green)':'var(--grey-mid)'};font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all .12s">${dotHtml}${label}</button>`;
+}
+function prRenderToolbar(){
+  const seg = (label, on, onclick) => `<button onclick="${onclick}" style="padding:6px 14px;border:none;background:${on?'var(--black)':'transparent'};color:${on?'var(--green)':'var(--grey-mid)'};font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:7px;transition:all .12s">${label}</button>`;
+  let viewSeg = `<div style="display:inline-flex;gap:2px;padding:3px;background:var(--cream-soft);border-radius:9px;border:1px solid var(--grey-light)">`
+    + seg('List', prView==='list', "prSetView('list')")
+    + seg('Timeline', prView==='timeline', "prSetView('timeline')")
+    + `</div>`;
+  let tlSeg = '';
+  if (prView==='timeline'){
+    tlSeg = `<div style="display:inline-flex;gap:2px;padding:3px;background:var(--cream-soft);border-radius:9px;border:1px solid var(--grey-light);margin-left:8px">`
+      + seg('Bars', prTlMode==='bars', "prSetTl('bars')")
+      + seg('Calendar', prTlMode==='calendar', "prSetTl('calendar')")
+      + `</div>`;
+  }
+  let prioF = prChip('All', prFilterPrio==='all', "prSetPrio('all')");
+  PR_PRIOS.forEach(p => { prioF += prChip(p.label, prFilterPrio===p.key, `prSetPrio('${p.key}')`, p.colour); });
+  prioF += prChip('Blocked', prFilterPrio==='blocked', "prSetPrio('blocked')", '#FF6B4A');
+  let catF = prChip('All', prFilterCat==='all', "prSetCat('all')");
+  PR_CATS.forEach(c => { catF += prChip(c.label, prFilterCat===c.key, `prSetCat('${c.key}')`, c.colour); });
+
+  document.getElementById('pr-toolbar').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center">${viewSeg}${tlSeg}</div>
+      <button onclick="prOpenCreate()" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:9px;border:none;background:var(--green);color:var(--black);font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">+ New item</button>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:12px">
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);margin-right:2px">Priority</span>${prioF}
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);margin-right:2px">Category</span>${catF}
+      </div>
+    </div>`;
+}
+function prSetView(v){ prView=v; prRender(); prSyncHash(); }
+function prSetTl(m){ prTlMode=m; prRender(); prSyncHash(); }
+function prSetPrio(v){ prFilterPrio=v; prRender(); }
+function prSetCat(v){ prFilterCat=v; prRender(); }
+
+// ── LIST VIEW ─────────────────────────────────────────────────────────────
+function prRenderList(){
+  const rows = prFiltered();
+  const groups = PR_PRIOS.slice();
+  const noPrio = rows.filter(r => !prPrioKey(r));
+  let html = '';
+  groups.forEach(g => {
+    const items = rows.filter(r => prPrioKey(r)===g.key).sort((a,b)=>(a.display_order??9999)-(b.display_order??9999));
+    const isOngoing = g.key==='ongoing';
+    const collapsed = isOngoing && !prOngoingOpen;
+    html += `<div class="pr-group" style="margin-bottom:22px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px${isOngoing?';cursor:pointer':''}\" ${isOngoing?`onclick="prOngoingOpen=!prOngoingOpen;prRenderList()"`:''}>
+        <span style="width:9px;height:9px;border-radius:50%;background:${g.colour};display:inline-block"></span>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--black)">${g.label}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">${items.length}</span>
+        ${isOngoing?`<span style="font-size:10px;color:var(--grey-mid);margin-left:2px">${collapsed?'▸':'▾'}</span><span style="font-size:9px;color:var(--grey-mid);font-style:italic">parked — check in periodically</span>`:''}
+      </div>
+      <div class="pr-group-body" data-prio="${g.key}" style="display:${collapsed?'none':'flex'};flex-direction:column;gap:8px;min-height:14px;border-radius:10px">
+        ${items.map(prListCard).join('') || `<div style="padding:14px;border:1.5px dashed var(--grey-light);border-radius:10px;text-align:center;color:var(--grey-mid);font-size:12px">Drop items here</div>`}
+      </div>
+    </div>`;
+  });
+  if (noPrio.length){
+    html += `<div class="pr-group" style="margin-bottom:22px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+        <span style="width:9px;height:9px;border-radius:50%;background:#C8C3B8;display:inline-block"></span>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--black)">No priority</span>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid)">${noPrio.length}</span>
+      </div>
+      <div class="pr-group-body" data-prio="" style="display:flex;flex-direction:column;gap:8px;min-height:14px">
+        ${noPrio.map(prListCard).join('')}
+      </div>
+    </div>`;
+  }
+  document.getElementById('pr-body').innerHTML = html || prEmpty('No items match these filters.');
+  prWireDnD();
+}
+
+function prListCard(r){
+  const cat = r.category && PR_CAT_LABEL[r.category]
+    ? `<span style="background:${PR_CAT_COLOUR[r.category]}1a;color:${PR_CAT_COLOUR[r.category]};border:1px solid ${PR_CAT_COLOUR[r.category]}55;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap">${PR_CAT_LABEL[r.category]}</span>` : '';
+  const st = prStatusStyle(r.status), stTxt = prStatusClean(r.status);
+  const status = stTxt ? `<span style="background:${st.bg};color:${st.text};border:1px solid ${st.border};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap">${prEsc(stTxt)}</span>` : '';
+  const ms = prMs(r);
+  let dateChip = '';
+  if (ms.length){
+    const nxt = prNextMs(r) || ms[0];
+    const lbl = nxt.label ? ` ${prEsc(nxt.label)}` : '';
+    const more = ms.length>1 ? `<span style="color:var(--grey-mid);font-weight:400"> +${ms.length-1}</span>` : '';
+    const full = ms.map(m=>prFmtDate(m.date)+(m.label?': '+m.label:'')).join(' · ');
+    dateChip = `<span title="${prEsc(full)}" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--black);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle">⏱ ${prFmtDate(nxt.date)}${lbl}${more}</span>`;
+  } else if (r.hard_deadline){
+    dateChip = `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);white-space:nowrap">⏱ ${prEsc(r.hard_deadline)}</span>`;
+  }
+  const owner   = r.owner ? `<span style="font-size:11px;color:var(--grey-mid);white-space:nowrap">${prEsc(r.owner)}</span>` : '';
+  const blocked = prIsBlocked(r) ? `<span title="Blocked" style="color:#FF6B4A;font-size:11px;flex-shrink:0">⚠</span>` : '';
+  const desc    = r.goal ? `<div style="font-size:12px;color:#6a675f;margin-top:1px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.goal)}</div>` : '';
+  return `<div class="pr-card" draggable="true" data-id="${r.id}" data-prio="${prPrioKey(r)}" onclick="prOpenEdit('${r.id}')"
+      style="background:var(--white);border:1.5px solid var(--grey-light);border-left:3px solid ${PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8'};border-radius:10px;padding:8px 14px;cursor:pointer;transition:border-color .12s,box-shadow .12s;display:flex;align-items:center;gap:12px"
+      onmouseover="this.style.boxShadow='0 3px 14px rgba(0,0,0,0.06)'" onmouseout="this.style.boxShadow='none'">
+    <span class="pr-drag" style="cursor:grab;color:var(--grey-light);font-size:14px;line-height:1;flex-shrink:0" title="Drag to reorder">⠇</span>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px;min-width:0">
+        <span title="${prEsc(r.name)}" style="font-size:13.5px;font-weight:700;letter-spacing:-0.01em;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.name)}</span>${blocked}
+      </div>
+      ${desc}
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">${dateChip}${owner}${cat}${status}</div>
+  </div>`;
+}
+
+function prWireDnD(){
+  document.querySelectorAll('#pr-body .pr-card').forEach(card => {
+    card.addEventListener('dragstart', e => { prDragId = card.dataset.id; e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain',card.dataset.id);}catch(_){}; setTimeout(()=>card.style.opacity='0.35',0); });
+    card.addEventListener('dragend',   () => { card.style.opacity=''; document.querySelectorAll('.pr-group-body').forEach(b=>b.style.background=''); });
+  });
+  document.querySelectorAll('#pr-body .pr-group-body').forEach(body => {
+    body.addEventListener('dragover',  e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; body.style.background='rgba(135,251,102,0.08)'; });
+    body.addEventListener('dragleave', () => { body.style.background=''; });
+    body.addEventListener('drop',      e => prGroupDrop(e, body));
+  });
+}
+async function prGroupDrop(e, body){
+  e.preventDefault(); body.style.background='';
+  const dragged = gsData.find(r => r.id===prDragId); if (!dragged) return;
+  const groupKey = body.dataset.prio;
+  const cards = [...body.querySelectorAll('.pr-card')].filter(c => c.dataset.id !== prDragId);
+  let beforeId = null;
+  for (const c of cards){ const rect=c.getBoundingClientRect(); if (e.clientY < rect.top + rect.height/2){ beforeId = c.dataset.id; break; } }
+  let items = gsData.filter(r => prPrioKey(r)===groupKey && r.id!==dragged.id).sort((a,b)=>(a.display_order??9999)-(b.display_order??9999));
+  const idx = beforeId ? items.findIndex(r=>r.id===beforeId) : items.length;
+  items.splice(idx<0?items.length:idx, 0, dragged);
+  const prioLabel = PR_PRIOS.find(p=>p.key===groupKey)?.label || '';
+  const prioChanged = prPrioKey(dragged) !== groupKey;
+  dragged.priority_tier = prioLabel;
+  const patches = [];
+  items.forEach((r,i) => {
+    const changedOrder = r.display_order !== i; r.display_order = i;
+    if (r.id===dragged.id) patches.push(prPatch(r.id, { display_order:i, priority_tier:prioLabel }));
+    else if (changedOrder) patches.push(prPatch(r.id, { display_order:i }));
+  });
+  prSort(); prRenderList();
+  try { await Promise.all(patches); prToast(prioChanged?'Moved & saved':'Reordered'); }
+  catch(_){ prToast('Save failed — refresh', true); }
+}
+
+// ── TIMELINE: BARS ────────────────────────────────────────────────────────
+const PR_DAY_W = 26;
+function prRenderBars(){
+  const all = prFiltered();
+  const dated = all.filter(r => prMs(r).length>0);
+  const undated = all.filter(r => prMs(r).length===0);
+  if (!dated.length){ document.getElementById('pr-body').innerHTML = prEmpty('No items have dates yet. Open an item and add one or more dates to see it on the timeline.') + prUndatedTray(undated); return; }
+  let min=null, max=null;
+  dated.forEach(r => prMsDates(r).forEach(dt => { if(!min||dt<min)min=dt; if(!max||dt>max)max=dt; }));
+  const dow = (min.getDay()+6)%7; min = new Date(min); min.setDate(min.getDate()-dow);
+  if (prDaysBetween(min,max) < 35){ max = new Date(min); max.setDate(max.getDate()+41); }
+  const endDow = (max.getDay()+6)%7; max = new Date(max); max.setDate(max.getDate()+(6-endDow));
+  const totalDays = prDaysBetween(min,max)+1;
+  const trackW = totalDays*PR_DAY_W;
+  const xOf = dt => prDaysBetween(min, dt)*PR_DAY_W;
+  let ticks = '';
+  for (let i=0;i<totalDays;i+=7){
+    const d = new Date(min); d.setDate(d.getDate()+i);
+    ticks += `<div style="position:absolute;left:${i*PR_DAY_W}px;top:0;bottom:0;border-left:1px solid var(--grey-light)"></div>
+      <div style="position:absolute;left:${i*PR_DAY_W+5}px;top:6px;font-family:'DM Mono',monospace;font-size:9px;color:var(--grey-mid);white-space:nowrap">${d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>`;
+  }
+  const today = prToday0();
+  let todayLine = '';
+  if (today>=min && today<=max){ todayLine = `<div style="position:absolute;left:${xOf(today)}px;top:0;bottom:0;width:2px;background:var(--green);opacity:0.9;z-index:2"></div>`; }
+  const LABEL_W = 220, ROW_H = 40;
+  const rows = dated.sort((a,b)=>{ const da=prMsMin(a), db=prMsMin(b); return (da?da.getTime():0)-(db?db.getTime():0); });
+  let body = '';
+  rows.forEach(r => {
+    const ms=prMs(r), dts=prMsDates(r);
+    const col = r.category ? PR_CAT_COLOUR[r.category] : (PR_PRIO_COLOUR[prPrioKey(r)]||'#8A8880');
+    const lo=dts[0], hi=dts[dts.length-1];
+    const titleAll = ms.map(m=>`${prFmtDate(m.date)}${m.label?': '+m.label:''}`).join(' · ');
+    let mark = '';
+    if (dts.length>=2 && hi>lo){
+      const x=xOf(lo), w=Math.max(PR_DAY_W, (prDaysBetween(lo,hi)+1)*PR_DAY_W);
+      let dots=''; ms.forEach(m=>{ const pp=prParse(m.date); if(!pp) return; const dx=prDaysBetween(lo,pp)*PR_DAY_W; dots+=`<div title="${prEsc((m.label?m.label+' · ':'')+prFmtDate(m.date))}" style="position:absolute;left:${dx}px;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid ${col}"></div>`; });
+      mark = `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)} — ${prEsc(titleAll)}" style="position:absolute;left:${x}px;top:9px;width:${w}px;height:22px;background:${col};border-radius:7px;cursor:pointer;display:flex;align-items:center;padding:0 8px;box-shadow:0 1px 5px rgba(0,0,0,0.12)"><span style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;z-index:1">${prEsc(r.name)}</span><div style="position:absolute;inset:0">${dots}</div></div>`;
+    } else {
+      const x=xOf(lo);
+      mark = `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)} — ${prEsc(titleAll)}" style="position:absolute;left:${x+3}px;top:10px;width:18px;height:18px;background:${col};border-radius:50%;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,0.18);border:2px solid #fff"></div>`;
+    }
+    body += `<div style="display:flex;height:${ROW_H}px;border-bottom:1px solid var(--cream-soft)">
+      <div onclick="prOpenEdit('${r.id}')" style="width:${LABEL_W}px;flex-shrink:0;position:sticky;left:0;background:var(--cream);z-index:3;display:flex;align-items:center;gap:7px;padding:0 12px;border-right:1px solid var(--grey-light);cursor:pointer">
+        <span style="width:7px;height:7px;border-radius:50%;background:${PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8'};flex-shrink:0"></span>
+        <span style="font-size:12px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.name)}</span>
+      </div>
+      <div style="position:relative;width:${trackW}px;flex-shrink:0">${mark}</div>
+    </div>`;
+  });
+  document.getElementById('pr-body').innerHTML = `
+    <div style="border:1.5px solid var(--grey-light);border-radius:12px;overflow:hidden;background:var(--white)">
+      <div style="overflow-x:auto">
+        <div style="min-width:${LABEL_W+trackW}px">
+          <div style="display:flex;height:30px;border-bottom:1.5px solid var(--grey-light)">
+            <div style="width:${LABEL_W}px;flex-shrink:0;position:sticky;left:0;background:var(--cream-soft);z-index:3;border-right:1px solid var(--grey-light)"></div>
+            <div style="position:relative;width:${trackW}px;flex-shrink:0;background:var(--cream-soft)">${ticks}</div>
+          </div>
+          <div style="position:relative">
+            <div style="position:absolute;left:${LABEL_W}px;top:0;bottom:0;right:0">${todayLine}</div>
+            ${body}
+          </div>
+        </div>
+      </div>
+    </div>
+    ${prUndatedTray(undated)}`;
+}
+function prUndatedTray(items){
+  if (!items.length) return '';
+  const chips = items.map(r => `<button onclick="prOpenEdit('${r.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;border:1.5px dashed var(--grey-light);background:var(--white);cursor:pointer;font-size:12px;color:var(--black)"><span style="width:6px;height:6px;border-radius:50%;background:${PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8'}"></span>${prEsc(r.name)}</button>`).join('');
+  return `<div style="margin-top:18px"><div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:9px">Undated — ${items.length} (click to add dates)</div><div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div></div>`;
+}
+
+// ── TIMELINE: CALENDAR ────────────────────────────────────────────────────
+function prRenderCalendar(){
+  const y=prCalDate.getFullYear(), m=prCalDate.getMonth();
+  const first=new Date(y,m,1), startDow=(first.getDay()+6)%7, daysInMonth=new Date(y,m+1,0).getDate();
+  const rows=prFiltered(), byDay={};
+  rows.forEach(r => { prMs(r).forEach(ms => { const dt=prParse(ms.date); if(!dt||dt.getFullYear()!==y||dt.getMonth()!==m) return; (byDay[dt.getDate()]=byDay[dt.getDate()]||[]).push({r,ms}); }); });
+  const monthName=first.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const dows=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let head=dows.map(d=>`<div style="padding:8px 6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);text-align:left">${d}</div>`).join('');
+  let cells='';
+  const totalCells=Math.ceil((startDow+daysInMonth)/7)*7, todayStr=prToISO(prToday0());
+  for (let i=0;i<totalCells;i++){
+    const dayNum=i-startDow+1;
+    if (dayNum<1||dayNum>daysInMonth){ cells+=`<div style="min-height:96px;background:var(--cream-soft);border:1px solid var(--grey-light)"></div>`; continue; }
+    const iso=prToISO(new Date(y,m,dayNum)), isToday=iso===todayStr;
+    const items=byDay[dayNum]||[];
+    const chips=items.map(({r,ms})=>{
+      const col=PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8', label=ms.label?ms.label:r.name;
+      return `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)}${ms.label?' — '+prEsc(ms.label):''}" style="display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:6px;background:${col}1f;border-left:3px solid ${col};cursor:pointer;margin-top:3px;overflow:hidden"><span style="font-size:11px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(label)}</span></div>`;
+    }).join('');
+    cells+=`<div onclick="prOpenCreate({milestones:[{date:'${iso}',label:''}]})" style="min-height:96px;background:var(--white);border:1px solid var(--grey-light);padding:5px 6px;cursor:pointer;position:relative" onmouseover="this.style.background='rgba(135,251,102,0.05)'" onmouseout="this.style.background='var(--white)'">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:${isToday?'800':'500'};color:${isToday?'var(--black)':'var(--grey-mid)'};${isToday?'background:var(--green);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center':''}">${dayNum}</div>
+      ${chips}
+    </div>`;
+  }
+  document.getElementById('pr-body').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em">${monthName}</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button onclick="prCalShift(-1)" style="width:32px;height:32px;border-radius:8px;border:1.5px solid var(--grey-light);background:var(--white);cursor:pointer;font-size:14px">‹</button>
+        <button onclick="prCalToday()" style="padding:0 14px;height:32px;border-radius:8px;border:1.5px solid var(--grey-light);background:var(--white);cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase">Today</button>
+        <button onclick="prCalShift(1)" style="width:32px;height:32px;border-radius:8px;border:1.5px solid var(--grey-light);background:var(--white);cursor:pointer;font-size:14px">›</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);border-radius:12px;overflow:hidden;border:1.5px solid var(--grey-light)">${head}${cells}</div>
+    <div style="margin-top:10px;font-size:11px;color:var(--grey-mid)">Items appear on their due date. Click an empty day to add a new item.</div>`;
+}
+function prCalShift(n){ prCalDate=new Date(prCalDate.getFullYear(),prCalDate.getMonth()+n,1); prRenderCalendar(); }
+function prCalToday(){ prCalDate=new Date(); prRenderCalendar(); }
+
+function prEmpty(msg){ return `<div style="padding:50px 20px;text-align:center;color:var(--grey-mid);font-size:13px">${msg}</div>`; }
+
+// ── EDIT / CREATE PANEL ───────────────────────────────────────────────────
+function prField(label, inner){ return `<div><label style="display:block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:5px">${label}</label>${inner}</div>`; }
+function prInput(id, val, ph){ return `<input id="pr-f-${id}" type="text" value="${prEsc(val)}" placeholder="${ph||''}" style="width:100%;padding:9px 11px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;box-sizing:border-box">`; }
+function prDate(id, val){ return `<input id="pr-f-${id}" type="date" value="${val?String(val).slice(0,10):''}" style="width:100%;padding:8px 11px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;box-sizing:border-box">`; }
+function prArea(id, val){ return `<textarea id="pr-f-${id}" rows="3" style="width:100%;padding:9px 11px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);resize:vertical;outline:none;box-sizing:border-box">${prEsc(val)}</textarea>`; }
+function prSelect(id, val, opts){
+  const o=['<option value="">— select —</option>'].concat(opts.map(op=>{
+    const v=op.value!==undefined?op.value:op, l=op.label!==undefined?op.label:op;
+    return `<option value="${prEsc(v)}" ${String(val||'').toLowerCase()===String(v).toLowerCase()?'selected':''}>${prEsc(l)}</option>`;
+  })).join('');
+  return `<select id="pr-f-${id}" style="width:100%;padding:9px 11px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);color:var(--black);outline:none">${o}</select>`;
+}
+function prMsAdd(){ prMsDraft.push({id:prUid(),date:'',label:''}); prRenderMs(); setTimeout(()=>{ const rows=document.querySelectorAll('#pr-milestones .pr-ms-row'); const last=rows[rows.length-1]; if(last){ const inp=last.querySelector('input[type=date]'); if(inp) inp.focus(); } },0); }
+function prMsRemove(i){ prMsDraft.splice(i,1); prRenderMs(); }
+function prMsSet(i,f,v){ if(prMsDraft[i]) prMsDraft[i][f]=v; }
+function prRenderMs(){
+  const c=document.getElementById('pr-milestones'); if(!c) return;
+  if(!prMsDraft.length){ c.innerHTML='<div style="font-size:12px;color:var(--grey-mid);padding:2px 0">No dates yet — add one below.</div>'; return; }
+  c.innerHTML=prMsDraft.map((m,i)=>`
+    <div class="pr-ms-row" style="display:flex;gap:6px;align-items:center">
+      <input type="date" value="${m.date?String(m.date).slice(0,10):''}" oninput="prMsSet(${i},'date',this.value)" style="width:142px;padding:8px 9px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;box-sizing:border-box">
+      <input type="text" value="${prEsc(m.label)}" placeholder="What's this date?" oninput="prMsSet(${i},'label',this.value)" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--grey-light);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--black);outline:none;box-sizing:border-box">
+      <button type="button" onclick="prMsRemove(${i})" title="Remove" style="flex-shrink:0;width:30px;height:30px;border:1.5px solid var(--grey-light);border-radius:8px;background:var(--white);color:var(--grey-mid);cursor:pointer;font-size:13px;line-height:1">✕</button>
+    </div>`).join('');
+}
+function prRenderForm(r){
+  return prField('Name', prInput('name', r.name||'', 'What is this item?'))
+    + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">`
+      + prField('Priority', prSelect('priority_tier', r.priority_tier||'', PR_PRIOS.map(p=>p.label)))
+      + prField('Category', prSelect('category', r.category||'', PR_CATS.map(c=>({value:c.key,label:c.label}))))
+    + `</div>`
+    + prField('Dates / milestones', `<div id="pr-milestones" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div><button type="button" onclick="prMsAdd()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1.5px dashed var(--grey-light);background:var(--white);color:var(--black);font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">+ Add date</button>`)
+    + prField('Status', prSelect('status', prStatusClean(r.status||''), PR_STATUSES))
+    + prField('Owner', prInput('owner', r.owner||'', 'Who owns this?'))
+    + prField('Goal', prArea('goal', r.goal||''))
+    + prField('Update', prArea('update', r.update||''))
+    + prField('Blockers', prArea('any_blockers', r.any_blockers||''))
+    + prField('Next steps', prArea('next_steps', r.next_steps||''))
+    + prField('Workstream', prInput('workstream', r.workstream||'', 'e.g. Intermediary, Brief'))
+    + prField('Hard deadline (note)', prInput('hard_deadline', r.hard_deadline||'', 'free text, e.g. ASAP'))
+    + prField('Links', prArea('links', r.links||''));
+}
+function prOpenEdit(id){
+  const r=gsData.find(x=>x.id===id); if(!r) return;
+  prEditingId=id; prCreating=false;
+  prMsDraft=prMs(r).map(m=>({id:m.id||prUid(),date:String(m.date).slice(0,10),label:m.label||''}));
+  document.getElementById('pr-edit-title').textContent=r.name||'Edit item';
+  document.getElementById('pr-edit-form').innerHTML=prRenderForm(r);
+  prRenderMs();
+  document.getElementById('pr-edit-delete').style.display='inline-flex';
+  prShowEdit();
+}
+function prOpenCreate(prefill){
+  prEditingId=null; prCreating=true;
+  const r=Object.assign({priority_tier:'Medium',status:'In progress'},prefill||{});
+  prMsDraft=prMs(r).map(m=>({id:m.id||prUid(),date:String(m.date).slice(0,10),label:m.label||''}));
+  document.getElementById('pr-edit-title').textContent='New item';
+  document.getElementById('pr-edit-form').innerHTML=prRenderForm(r);
+  prRenderMs();
+  document.getElementById('pr-edit-delete').style.display='none';
+  prShowEdit();
+}
+function prShowEdit(){
+  const p=document.getElementById('pr-edit-panel'), b=document.getElementById('pr-edit-backdrop');
+  b.style.display='block'; p.style.display='flex';
+  requestAnimationFrame(()=>{ p.style.transform='translateX(0)'; });
+}
+function prCloseEdit(){
+  const p=document.getElementById('pr-edit-panel'), b=document.getElementById('pr-edit-backdrop');
+  if(!p) return;
+  p.style.transform='translateX(100%)';
+  setTimeout(()=>{ p.style.display='none'; if(b) b.style.display='none'; }, 240);
+  prEditingId=null; prCreating=false;
+}
+function prFormVal(id){ const el=document.getElementById('pr-f-'+id); return el?el.value:undefined; }
+async function prSave(){
+  const KEYS=['name','priority_tier','category','status','owner','goal','update','any_blockers','next_steps','workstream','hard_deadline','links'];
+  const payload={};
+  KEYS.forEach(k=>{ let v=prFormVal(k); if(v===undefined) return; payload[k]=v; });
+  payload.milestones=prMsDraft.map(m=>({id:m.id||prUid(),date:(m.date||'').slice(0,10),label:(m.label||'').trim()})).filter(m=>m.date).sort((a,b)=>a.date.localeCompare(b.date));
+  if (!payload.name||!payload.name.trim()){ prToast('Name is required', true); return; }
+  const btn=document.getElementById('pr-edit-save'), orig=btn.textContent;
+  btn.textContent='Saving…'; btn.style.pointerEvents='none';
+  try {
+    if (prCreating){
+      const maxOrder=gsData.filter(r=>prPrioKey(r)===(payload.priority_tier||'').toLowerCase()).reduce((mx,r)=>Math.max(mx,r.display_order??-1),-1);
+      payload.display_order=maxOrder+1;
+      const created=await prInsert(payload);
+      if (created) gsData.push(created);
+    } else {
+      const ok=await prPatch(prEditingId,payload);
+      if (ok){ const r=gsData.find(x=>x.id===prEditingId); if(r) Object.assign(r,payload); }
+    }
+    prSort(); prCloseEdit(); prRender(); prToast('Saved');
+  } catch(e){ prToast('Save failed — check connection', true); }
+  btn.textContent=orig; btn.style.pointerEvents='';
+}
+async function prConfirmDelete(){
+  if (!prEditingId) return;
+  if (!confirm('Delete this item? This cannot be undone.')) return;
+  try {
+    const ok=await prDeleteRow(prEditingId);
+    if (ok){ gsData=gsData.filter(r=>r.id!==prEditingId); prCloseEdit(); prRender(); prToast('Deleted'); }
+    else prToast('Delete failed', true);
+  } catch(e){ prToast('Delete failed', true); }
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+function prToast(msg, isError){
+  let t=document.getElementById('pr-toast');
+  if (!t){ t=document.createElement('div'); t.id='pr-toast';
+    t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;padding:10px 20px;border-radius:8px;font-family:DM Mono,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap';
+    document.body.appendChild(t); }
+  t.textContent=msg; t.style.background=isError?'#FF6B4A':'var(--black)'; t.style.color=isError?'#fff':'var(--green)';
+  t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._timer); t._timer=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(10px)'; }, 2600);
+}
+
+// ── keyboard ───────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key!=='Escape') return;
+  const panel=document.getElementById('pr-edit-panel');
+  if (panel && panel.style.display!=='none'){ prCloseEdit(); return; }
+});
+</script>
+
+<!-- LEFT NAV -->
+<script>window.JUNGLE_NAV_ACTIVE = 'priorities';</script>
+<script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
+
+</body>
+</html>
