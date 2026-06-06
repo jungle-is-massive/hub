@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle — Events</title>
+<link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8; --cream-soft: #EFE9DF; --black: #0E0E0E; --green: #87FB66;
+  --grey: #C8C3B8; --grey-mid: #8A8880; --grey-light: #E8E3DA; --white: #FFFFFF;
+  --header-h: 56px; --coral: #FF6B4A; --amber: #F0B429; --teal: #3ECF8E; --next: #4ABFFF;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--cream);color:var(--black);font-family:'DM Sans',system-ui,sans-serif;height:100%;-webkit-font-smoothing:antialiased;}
+#topbar{position:fixed;top:0;right:0;left:52px;z-index:100;height:var(--header-h);background:var(--black);display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.topbar-title{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.35);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.tbtn{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:6px 14px;border-radius:100px;cursor:pointer;transition:all 0.15s;white-space:nowrap;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.55);}
+.tbtn:hover{border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.9);}
+.tbtn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;}
+.tbtn.spinning svg{animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#main{position:fixed;top:var(--header-h);left:52px;right:0;bottom:0;overflow-y:auto;}
+#gate-overlay{position:fixed;inset:0;z-index:999;background:var(--black);display:flex;align-items:center;justify-content:center;}
+.gate-box{text-align:center;}
+.gate-wm{font-size:28px;font-weight:800;letter-spacing:-0.04em;color:var(--white);margin-bottom:28px;display:block;}
+.gate-wm span{color:var(--green);}
+.gate-input{display:block;width:240px;padding:12px 18px;margin:0 auto 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);border-radius:10px;color:var(--white);font-size:15px;text-align:center;font-family:'DM Mono',monospace;letter-spacing:0.15em;outline:none;}
+.gate-input:focus{border-color:var(--green);}
+.gate-btn{width:240px;padding:11px;background:var(--green);color:var(--black);border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;}
+.gate-error{color:var(--coral);font-size:12px;margin-top:10px;font-family:'DM Mono',monospace;min-height:18px;}
+</style>
+</head>
+<body>
+<div id="gate-overlay">
+  <div class="gate-box">
+    <span class="gate-wm">jungle<span>.</span></span>
+    <input id="gate-input" class="gate-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+<div id="topbar">
+  <span class="topbar-title">Events</span>
+  <div class="topbar-right"><button class="tbtn" id="refresh-btn" onclick="loadEvents()"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9m0 18c1.66 0 3-4.03 3-9s-1.34-9-3-9m-9 9a9 9 0 019-9"/></svg>Refresh</button></div>
+</div>
+<div id="main">
+<style>
+.event-tabs{{display:flex;gap:6px;padding:16px 24px 0;}}
+.etab{{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:7px 14px;border-radius:100px;border:1.5px solid var(--grey-light);background:transparent;color:var(--grey-mid);cursor:pointer;transition:all 0.15s;}}
+.etab:hover{{border-color:var(--black);color:var(--black);}}
+.etab.active{{background:var(--black);color:var(--cream);border-color:var(--black);}}
+.etab-count{{font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;}}
+.etab.active .etab-count{{background:rgba(255,255,255,0.2);}}
+.etab:not(.active) .etab-count{{background:var(--grey-light);color:var(--grey-mid);}}
+#events-list{{padding:16px 24px 40px;display:flex;flex-direction:column;gap:0;}}
+.event-row{{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--grey-light);animation:fadeIn 0.2s ease both;}}
+@keyframes fadeIn{{from{{opacity:0;}}to{{opacity:1;}}}}
+.event-row:last-child{{border-bottom:none;}}
+.event-date-block{{text-align:center;}}
+.event-day{{font-size:22px;font-weight:800;letter-spacing:-0.03em;line-height:1;}}
+.event-mon{{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-mid);margin-top:2px;}}
+.event-name{{font-size:14px;font-weight:700;letter-spacing:-0.01em;}}
+.event-desc{{font-size:12px;color:var(--grey-mid);margin-top:3px;line-height:1.4;}}
+.event-pill{{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1.5px solid;white-space:nowrap;}}
+.empty-state{{padding:40px 24px;color:var(--grey-mid);font-size:13px;}}
+</style>
+<div class="event-tabs">
+  <button class="etab active" id="etab-upcoming" onclick="switchEventTab('upcoming')">
+    Upcoming <span class="etab-count" id="etab-count-upcoming">—</span>
+  </button>
+  <button class="etab" id="etab-past" onclick="switchEventTab('past')">
+    Past <span class="etab-count" id="etab-count-past">—</span>
+  </button>
+</div>
+<div id="events-list"><div class="empty-state">Loading events…</div></div>
+</div>
+<script src="https://jungle-is-massive.github.io/hub/config.js"></script>
+<script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
+<script>
+const GATE_PASSWORD = 'massive';
+function checkGate() {
+  const v = document.getElementById('gate-input').value.trim();
+  if (v === GATE_PASSWORD) { sessionStorage.setItem('jc_auth','1'); document.getElementById('gate-overlay').remove(); init(); }
+  else { document.getElementById('gate-error').textContent = 'Wrong password.'; document.getElementById('gate-input').value = ''; }
+}
+if (sessionStorage.getItem('jc_auth') === '1') document.getElementById('gate-overlay').remove();
+const SUPABASE_URL = (window.JUNGLE_CONFIG||{}).SB_URL || '';
+const SUPABASE_KEY = (window.JUNGLE_CONFIG||{}).SB_KEY || '';
+const HS_PROXY = `${SUPABASE_URL}/functions/v1/hs-proxy`;
+const GCAL_CLIENT_ID = '161148155885-jmk24mva9i9akjknkes29kso7n1c9bgl.apps.googleusercontent.com';
+let gcalAccessToken = localStorage.getItem('gcal_access_token') || '';
+let gcalTokenExpiry = parseInt(localStorage.getItem('gcal_token_expiry') || '0');
+function gcalIsConnected() { return gcalAccessToken && Date.now() < gcalTokenExpiry; }
+function gcalSignIn() {
+  const redirect = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GCAL_CLIENT_ID}&redirect_uri=${redirect}&response_type=token&scope=${encodeURIComponent('https://www.googleapis.com/auth/calendar.events.readonly')}&prompt=select_account`;
+  window.location.href = url;
+}
+function gcalSignOut() {
+  gcalAccessToken=''; gcalTokenExpiry=0;
+  localStorage.removeItem('gcal_access_token'); localStorage.removeItem('gcal_token_expiry');
+  loadMeetings();
+}
+function handleGcalCallback() {
+  const hash = window.location.hash.substring(1); if(!hash) return;
+  const params = Object.fromEntries(new URLSearchParams(hash));
+  if (params.access_token) {
+    gcalAccessToken = params.access_token;
+    gcalTokenExpiry = Date.now() + (parseInt(params.expires_in||'3600')*1000);
+    localStorage.setItem('gcal_access_token', gcalAccessToken);
+    localStorage.setItem('gcal_token_expiry', String(gcalTokenExpiry));
+    history.replaceState(null,'',window.location.pathname);
+    loadMeetings();
+  }
+}
+document.addEventListener('DOMContentLoaded', () => { if (sessionStorage.getItem('jc_auth') === '1') init(); });
+</script>
+<script>
+const EXCL_EVENT_CATEGORIES = ['content','nurture'];
+const EVENT_CATEGORY_LABELS = { intermediary:'Intermediary', speaking:'Speaking', attendance:'Attendance', owned:'Owned Event' };
+const EVENT_CATEGORY_COLOURS = { intermediary:'#4ABFFF', speaking:'#7B6FE0', attendance:'#87FB66', owned:'#FF6B4A' };
+let eventsUpcoming = [], eventsPast = [], activeEventTab = 'upcoming';
+
+async function init() { await loadEvents(); }
+
+async function loadEvents() {
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const notIn = EXCL_EVENT_CATEGORIES.map(c=>`category.neq.${c}`).join('&');
+    const [upRes, paRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/events?select=*&start_date=gte.${today}&${notIn}&order=start_date.asc&limit=50`,
+        { headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }}),
+      fetch(`${SUPABASE_URL}/rest/v1/events?select=*&start_date=lt.${today}&${notIn}&order=start_date.desc&limit=50`,
+        { headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }})
+    ]);
+    if (!upRes.ok) throw new Error(`Supabase ${upRes.status}`);
+    const [up, pa] = await Promise.all([upRes.json(), paRes.json()]);
+    eventsUpcoming = up; eventsPast = pa;
+    document.getElementById('etab-count-upcoming').textContent = up.length;
+    document.getElementById('etab-count-past').textContent = pa.length;
+    renderEvents(activeEventTab);
+  } catch(e) {
+    document.getElementById('events-list').innerHTML = `<div class="empty-state">Unable to load events — ${e.message}</div>`;
+  }
+  if (btn) btn.classList.remove('spinning');
+}
+
+function switchEventTab(tab) {
+  activeEventTab = tab;
+  document.getElementById('etab-upcoming').classList.toggle('active', tab==='upcoming');
+  document.getElementById('etab-past').classList.toggle('active', tab==='past');
+  renderEvents(tab);
+}
+
+function renderEvents(tab) {
+  const container = document.getElementById('events-list');
+  const events = tab==='upcoming' ? eventsUpcoming : eventsPast;
+  if (!events.length) {
+    container.innerHTML = `<div class="empty-state">${tab==='upcoming'?'No upcoming events.':'No past events found.'}</div>`;
+    return;
+  }
+  container.innerHTML = '';
+  events.forEach((ev, i) => {
+    const start = new Date(ev.start_date);
+    const day = start.getUTCDate();
+    const mon = start.toLocaleDateString('en-GB',{month:'short',timeZone:'UTC'}).toUpperCase();
+    const colour = EVENT_CATEGORY_COLOURS[ev.category] || '#C8C3B8';
+    const catLabel = EVENT_CATEGORY_LABELS[ev.category] || ev.category || 'Event';
+    const isPast = tab==='past';
+    const row = document.createElement('div');
+    row.className = 'event-row';
+    row.style.animationDelay = `${i*0.04}s`;
+    if (isPast) row.style.opacity = '0.75';
+    row.innerHTML = `
+      <div class="event-date-block">
+        <div class="event-day" style="color:${isPast?'var(--grey-mid)':'var(--black)'}">${day}</div>
+        <div class="event-mon">${mon}</div>
+      </div>
+      <div>
+        <div class="event-name">${ev.name}</div>
+        <div class="event-desc">${ev.location?ev.location+(ev.description?' — ':''):''}${ev.description?(ev.description.substring(0,120)+(ev.description.length>120?'…':'')):''}</div>
+      </div>
+      <span class="event-pill" style="border-color:${colour};color:${colour==='#87FB66'?'var(--black)':colour};background:${colour}18">${catLabel}</span>`;
+    container.appendChild(row);
+  });
+}
+</script>
+<script>window.JUNGLE_NAV_ACTIVE = 'events';</script>
+<script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
+</body>
+</html>
