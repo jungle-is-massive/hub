@@ -149,7 +149,47 @@ main { margin-top: var(--header-h); padding: 44px 32px 120px; max-width: 1640px;
 .copied-flash { font-family:'DM Mono',monospace; font-size: 11px; color: var(--green-dim); margin-left: 4px; opacity: 0; transition: opacity .2s; }
 .copied-flash.show { opacity: 1; }
 
-/* GATE */
+/* SEND PANEL */
+#send-panel { position: fixed; bottom: 0; left: 52px; right: 0; z-index: 200; background: var(--black); border-top: 1px solid rgba(255,255,255,0.1); transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); padding: 16px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+#send-panel.open { transform: translateY(0); }
+.sp-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.5); white-space: nowrap; }
+.sp-title { font-size: 14px; font-weight: 700; color: var(--cream); letter-spacing: -0.01em; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.sp-chip { display: inline-flex; align-items: center; gap: 5px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.06); cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+.sp-chip:hover { border-color: var(--green); color: var(--black); background: var(--green); }
+.sp-chip.selected { border-color: var(--green); color: var(--black); background: var(--green); }
+.sp-chip.no-email { opacity: 0.35; cursor: not-allowed; }
+.sp-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.sp-send-btn { height: 36px; padding: 0 20px; background: var(--green); color: var(--black); border: none; border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.sp-send-btn:hover { opacity: 0.85; }
+.sp-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.sp-close-btn { height: 36px; padding: 0 14px; background: none; border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.5); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.sp-close-btn:hover { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.9); }
+
+/* EMAIL MODAL */
+#nd-email-modal { position: fixed; inset: 0; background: rgba(14,14,14,0.7); backdrop-filter: blur(4px); z-index: 600; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+#nd-email-modal.open { opacity: 1; pointer-events: all; }
+#nd-email-box { background: var(--cream); border-radius: 16px; width: min(620px, 100%); max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.4); transform: translateY(16px); transition: transform 0.2s; }
+#nd-email-modal.open #nd-email-box { transform: translateY(0); }
+.nd-ecm-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; border-bottom: 1px solid var(--grey-light); }
+.nd-ecm-title { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.nd-ecm-close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--grey-mid); padding: 2px 6px; border-radius: 6px; }
+.nd-ecm-close:hover { color: var(--black); background: var(--grey-light); }
+.nd-ecm-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.nd-ecm-field label { display: block; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 6px; }
+.nd-ecm-field input, .nd-ecm-field textarea { width: 100%; border: 1.5px solid var(--grey-light); border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--black); background: var(--white); outline: none; transition: border-color 0.15s; box-sizing: border-box; resize: vertical; }
+.nd-ecm-field input:focus, .nd-ecm-field textarea:focus { border-color: var(--black); }
+.nd-ecm-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 20px; gap: 10px; }
+.nd-ecm-send-btn { height: 38px; padding: 0 22px; background: var(--black); color: var(--green); border: none; border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s; }
+.nd-ecm-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.nd-ecm-cancel-btn { height: 38px; padding: 0 16px; background: none; border: 1.5px solid var(--grey-light); border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey-mid); cursor: pointer; }
+.nd-ecm-cancel-btn:hover { border-color: var(--black); color: var(--black); }
+.nd-gcal-warn { padding: 10px 14px; background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.25); border-radius: 8px; font-size: 12px; color: var(--grey-mid); line-height: 1.5; }
+.nd-gcal-warn a { color: var(--black); font-weight: 600; cursor: pointer; }
+
+/* CARD SEND BUTTON */
+.card-send-btn { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; background: rgba(135,251,102,0.1); border: 1px solid rgba(135,251,102,0.2); border-radius: 100px; color: var(--black); font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: background 0.12s; }
+.card-send-btn:hover { background: rgba(135,251,102,0.25); }
 #gate-overlay { position: fixed; inset: 0; z-index: 9999; background: #0E0E0E; display: flex; align-items: center; justify-content: center; transition: opacity .3s; }
 #gate-overlay.hidden { opacity: 0; pointer-events: none; }
 .gate-box { text-align: center; padding: 0 24px; }
@@ -213,6 +253,50 @@ main { margin-top: var(--header-h); padding: 44px 32px 120px; max-width: 1640px;
   <div id="loading">Loading the queue…</div>
   <div class="board" id="board" style="display:none"></div>
 </main>
+
+<!-- SEND PANEL -->
+<div id="send-panel">
+  <div>
+    <div class="sp-label">Sending</div>
+    <div class="sp-title" id="sp-item-title">—</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+    <div class="sp-label">Select recipients</div>
+    <div class="sp-chips" id="sp-chips">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.35)">Loading contacts…</div>
+    </div>
+  </div>
+  <div class="sp-actions">
+    <span id="sp-selected-count" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.4)"></span>
+    <button class="sp-send-btn" id="sp-send-btn" onclick="startNdBatchSend()" disabled>✉ Send to selected</button>
+    <button class="sp-close-btn" onclick="closeSendPanel()">✕ Close</button>
+  </div>
+</div>
+
+<!-- NEWS DESK EMAIL MODAL -->
+<div id="nd-email-modal" onclick="if(event.target===this)closeNdModal()">
+  <div id="nd-email-box">
+    <div class="nd-ecm-header">
+      <div class="nd-ecm-title" id="nd-ecm-title">Send email</div>
+      <button class="nd-ecm-close" onclick="closeNdModal()">✕</button>
+    </div>
+    <div class="nd-ecm-body">
+      <div id="nd-gcal-warn" style="display:none" class="nd-gcal-warn">
+        ⚠️ Google session not active. <a onclick="ndGcalSignIn()">Reconnect Google</a> to send via Gmail.
+      </div>
+      <div class="nd-ecm-field"><label>To</label><input type="email" id="nd-ecm-to" readonly style="background:var(--grey-light)"></div>
+      <div class="nd-ecm-field"><label>Subject</label><input type="text" id="nd-ecm-subject" placeholder="Subject line…"></div>
+      <div class="nd-ecm-field"><label>Message</label><textarea id="nd-ecm-body" rows="10" placeholder="Email body…"></textarea></div>
+    </div>
+    <div class="nd-ecm-footer">
+      <button class="nd-ecm-cancel-btn" onclick="closeNdModal()">Cancel</button>
+      <div style="display:flex;gap:8px">
+        <button class="nd-ecm-cancel-btn" id="nd-skip-btn" onclick="ndSkip()" style="display:none">Skip →</button>
+        <button class="nd-ecm-send-btn" id="nd-send-btn" onclick="ndSendCurrent()">Send via Gmail →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL -->
 <div class="modal-bg" id="modal-bg">
@@ -419,9 +503,12 @@ function cardHTML(it){
       (auds||more ? '<div class="aud-row">'+auds+more+'</div>' : '')+
       '<div class="card-foot">'+
         '<span class="byline">'+chIc+'<span class="who">'+esc(it.created_by||'')+'</span></span>'+
+        '<span style="display:flex;align-items:center;gap:6px">'+
+        '<button class="card-send-btn" onclick="event.stopPropagation();openSendPanel(\''+it.id+'\')" title="Send to intermediaries">✉ Send</button>'+
         '<span class="move-btns">'+
           '<button class="mv" title="Move back" onclick="event.stopPropagation();move(\''+it.id+'\',-1)" '+(idx<=0?'disabled':'')+'><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>'+
           '<button class="mv" title="Move forward" onclick="event.stopPropagation();move(\''+it.id+'\',1)" '+(idx>=STATUSES.length-1?'disabled':'')+'><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>'+
+        '</span>'+
         '</span>'+
       '</div>'+
     '</div>';
@@ -604,6 +691,198 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 buildTypeChips();
 buildAudChips();
 loadItems();
+
+// ══════════════════════════════════════════════
+// SEND TO INTERMEDIARIES
+// ══════════════════════════════════════════════
+
+const HS_BCC_ADDR = '145756322@bcc.eu1.hubspot.com';
+const GCAL_CLIENT_ID_ND = '161148155885-jmk24mva9i9akjknkes29kso7n1c9bgl.apps.googleusercontent.com';
+let ndAccessToken = localStorage.getItem('gcal_access_token') || '';
+let ndTokenExpiry = parseInt(localStorage.getItem('gcal_token_expiry') || '0');
+function ndIsConnected() { return ndAccessToken && Date.now() < ndTokenExpiry; }
+function ndGcalSignIn() {
+  const redirect = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GCAL_CLIENT_ID_ND}&redirect_uri=${redirect}&response_type=token&scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.send')}&prompt=select_account`;
+}
+(function handleNdGcalCallback() {
+  const hash = window.location.hash.substring(1); if (!hash) return;
+  const params = Object.fromEntries(new URLSearchParams(hash));
+  if (params.access_token) {
+    ndAccessToken = params.access_token;
+    ndTokenExpiry = Date.now() + (parseInt(params.expires_in || '3600') * 1000);
+    localStorage.setItem('gcal_access_token', ndAccessToken);
+    localStorage.setItem('gcal_token_expiry', String(ndTokenExpiry));
+    history.replaceState(null, '', window.location.pathname);
+  }
+})();
+
+let ND_PEOPLE = [];
+let ND_ORGS = [];
+let ND_LOADED = false;
+let ND_SELECTED = new Set();
+let ND_ACTIVE_ITEM = null;
+
+async function loadNdIntermediaries() {
+  if (ND_LOADED) return;
+  try {
+    const [pRes, oRes] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/intermediary_people?select=id,name,title,org_id,email&order=org_id.asc,name.asc', { headers: SB_HEAD }),
+      fetch(SB_URL + '/rest/v1/intermediaries?select=id,slug,name&order=sort_order.asc', { headers: SB_HEAD })
+    ]);
+    ND_PEOPLE = await pRes.json();
+    ND_ORGS = await oRes.json();
+    ND_LOADED = true;
+  } catch(e) { console.error('ND load failed:', e); }
+}
+
+function ndOrgName(orgId) {
+  const o = ND_ORGS.find(x => x.slug === orgId || x.id === orgId);
+  return o ? o.name : orgId || '—';
+}
+
+async function openSendPanel(itemId) {
+  const item = ITEMS.find(x => x.id === itemId);
+  if (!item) return;
+  ND_ACTIVE_ITEM = item;
+  ND_SELECTED.clear();
+  document.getElementById('sp-item-title').textContent = item.title || 'Untitled';
+  document.getElementById('send-panel').classList.add('open');
+  if (!ND_LOADED) {
+    document.getElementById('sp-chips').innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(255,255,255,0.35)">Loading…</div>';
+    await loadNdIntermediaries();
+  }
+  renderSendPanelChips();
+}
+
+function closeSendPanel() {
+  document.getElementById('send-panel').classList.remove('open');
+  ND_ACTIVE_ITEM = null;
+  ND_SELECTED.clear();
+}
+
+function renderSendPanelChips() {
+  const chipsEl = document.getElementById('sp-chips');
+  let html = '';
+  ND_PEOPLE.forEach(p => {
+    const sel = ND_SELECTED.has(p.id);
+    const noMail = !p.email;
+    html += `<span class="sp-chip ${sel?'selected':''} ${noMail?'no-email':''}"
+      title="${noMail ? 'No email — add in Prospects → Intermediaries' : p.email}"
+      ${noMail ? '' : `onclick="toggleNdChip('${p.id}',this)"`}>
+      ${esc(p.name)}${noMail?' ✕':''}
+    </span>`;
+  });
+  if (!html) html = '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(255,255,255,0.35)">No people found. Add them in Prospects → Intermediaries.</div>';
+  chipsEl.innerHTML = html;
+  updateSpCount();
+}
+
+function toggleNdChip(id, el) {
+  if (ND_SELECTED.has(id)) { ND_SELECTED.delete(id); el.classList.remove('selected'); }
+  else { ND_SELECTED.add(id); el.classList.add('selected'); }
+  updateSpCount();
+}
+
+function updateSpCount() {
+  const n = ND_SELECTED.size;
+  document.getElementById('sp-selected-count').textContent = n > 0 ? `${n} selected` : '';
+  document.getElementById('sp-send-btn').disabled = n === 0;
+}
+
+let ND_BATCH_QUEUE = [];
+let ND_BATCH_SENT = 0;
+let ND_BATCH_SUBJECT = '';
+let ND_BATCH_BODY = '';
+
+function startNdBatchSend() {
+  if (ND_SELECTED.size === 0) return;
+  ND_BATCH_QUEUE = ND_PEOPLE.filter(p => ND_SELECTED.has(p.id) && p.email);
+  if (!ND_BATCH_QUEUE.length) { alert('No selected contacts have email addresses.'); return; }
+  ND_BATCH_SENT = 0;
+  ND_BATCH_SUBJECT = buildSubjectFromItem(ND_ACTIVE_ITEM);
+  ND_BATCH_BODY = buildEmailBodyFromItem(ND_ACTIVE_ITEM);
+  closeSendPanel();
+  openNdNext();
+}
+
+function buildEmailBodyFromItem(item) {
+  if (!item) return '';
+  let body = item.detail || '';
+  if (item.source_url) body += (body ? '\n\n' : '') + item.source_url;
+  body += '\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations';
+  return body;
+}
+
+function buildSubjectFromItem(item) {
+  if (!item) return '';
+  const type = TYPES[item.item_type];
+  return (type ? type.label + ': ' : '') + (item.title || '');
+}
+
+function openNdNext() {
+  if (!ND_BATCH_QUEUE.length) {
+    alert(`✓ Sent ${ND_BATCH_SENT} email${ND_BATCH_SENT!==1?'s':''}. All logged to HubSpot via BCC.`);
+    closeNdModal();
+    return;
+  }
+  const person = ND_BATCH_QUEUE.shift();
+  const total = ND_BATCH_SENT + ND_BATCH_QUEUE.length + 1;
+  const pos = ND_BATCH_SENT + 1;
+  document.getElementById('nd-ecm-title').textContent = `Email ${person.name} (${pos} of ${total})`;
+  document.getElementById('nd-ecm-to').value = person.email;
+  document.getElementById('nd-ecm-subject').value = ND_BATCH_SUBJECT;
+  document.getElementById('nd-ecm-body').value = ND_BATCH_BODY;
+  const skipBtn = document.getElementById('nd-skip-btn');
+  skipBtn.style.display = ND_BATCH_QUEUE.length > 0 ? 'inline-flex' : 'none';
+  const sendBtn = document.getElementById('nd-send-btn');
+  sendBtn.textContent = ND_BATCH_QUEUE.length > 0 ? `Send & next (${ND_BATCH_QUEUE.length} remaining) →` : 'Send final email →';
+  if (ndIsConnected()) { document.getElementById('nd-gcal-warn').style.display = 'none'; sendBtn.style.display = ''; }
+  else { document.getElementById('nd-gcal-warn').style.display = 'block'; sendBtn.style.display = 'none'; }
+  document.getElementById('nd-email-modal').classList.add('open');
+  document.getElementById('nd-ecm-subject').focus();
+}
+
+function ndSkip() { openNdNext(); }
+
+function closeNdModal() {
+  if (ND_BATCH_QUEUE.length > 0) {
+    if (!confirm(`Abort? ${ND_BATCH_SENT} sent, ${ND_BATCH_QUEUE.length + 1} remaining.`)) return;
+    ND_BATCH_QUEUE = [];
+  }
+  document.getElementById('nd-email-modal').classList.remove('open');
+}
+
+async function ndSendCurrent() {
+  const to = document.getElementById('nd-ecm-to').value.trim();
+  const subject = document.getElementById('nd-ecm-subject').value.trim();
+  const body = document.getElementById('nd-ecm-body').value.trim();
+  const btn = document.getElementById('nd-send-btn');
+  if (!subject || !body) { alert('Please fill in subject and message.'); return; }
+  if (!ndIsConnected()) { document.getElementById('nd-gcal-warn').style.display = 'block'; btn.style.display = 'none'; return; }
+  ND_BATCH_SUBJECT = subject;
+  ND_BATCH_BODY = body;
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const encodedSubject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
+    const htmlBody = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const rawMsg = [`To: ${to}`, `Bcc: ${HS_BCC_ADDR}`, `Subject: ${encodedSubject}`, 'MIME-Version: 1.0', 'Content-Type: text/html; charset=utf-8', '', htmlBody].join('\r\n');
+    const encoded = btoa(unescape(encodeURIComponent(rawMsg))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const res = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST', headers: { 'Authorization': `Bearer ${ndAccessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw: encoded })
+    });
+    if (!res.ok) { const err = await res.json(); throw new Error(err?.error?.message || `Gmail API ${res.status}`); }
+    ND_BATCH_SENT++;
+    openNdNext();
+  } catch(e) {
+    alert(`Error sending to ${to}: ${e.message}`);
+    btn.disabled = false;
+    btn.textContent = ND_BATCH_QUEUE.length > 0 ? `Send & next (${ND_BATCH_QUEUE.length} remaining) →` : 'Send final email →';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeNdModal(); closeSendPanel(); } });
 </script>
 
 <!-- LEFT NAV -->
@@ -611,3 +890,4 @@ loadItems();
 <script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
 </body>
 </html>
+
