@@ -163,6 +163,7 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
     <button class="prsp-sub-tab"        id="prsp-tab-referral"   onclick="switchPrspTab('Referral',this)">Referral</button>
     <button class="prsp-sub-tab"        id="prsp-tab-personal"   onclick="switchPrspTab('Personal Contact',this)">Personal</button>
     <button class="prsp-sub-tab"        id="prsp-tab-madmeets"   onclick="switchPrspTab('mad_meets',this)">MAD Meets</button>
+    <button class="prsp-sub-tab"        id="prsp-tab-intermediaries" onclick="switchPrspTab('intermediaries',this)">Intermediaries</button>
   </div>
   <div class="prsp-body">
     <div class="prsp-inner">
@@ -192,6 +193,44 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
         </div>
         <div id="prsp-mm-panel">
           <div id="prsp-mm-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIARIES VIEW -->
+      <div id="prsp-intermediaries-view" style="display:none;margin-top:12px">
+        <div class="prsp-controls" style="gap:10px;flex-wrap:wrap">
+          <input type="text" class="prsp-search" id="prsp-int-search" placeholder="Search by name or organisation…" oninput="renderIntermediariesTable()">
+          <select id="prsp-int-org-filter" style="border:1.5px solid var(--grey-light);border-radius:100px;padding:8px 14px;font-family:'DM Mono',monospace;font-size:11px;outline:none;color:var(--black);background:var(--white);cursor:pointer" onchange="renderIntermediariesTable()">
+            <option value="">All organisations</option>
+          </select>
+          <div class="prsp-count" id="prsp-int-count"></div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <div id="prsp-int-send-bar" style="display:none;align-items:center;gap:10px">
+              <span id="prsp-int-selected-count" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--grey-mid)">0 selected</span>
+              <button onclick="sendToSelected()" style="height:34px;padding:0 18px;background:var(--black);color:var(--green);border:none;border-radius:100px;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">✉ Send to selected</button>
+              <button onclick="clearIntSelection()" style="height:34px;padding:0 14px;background:none;border:1.5px solid var(--grey-light);border-radius:100px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);cursor:pointer">Clear</button>
+            </div>
+            <button onclick="selectAllIntermediariesWithEmail()" style="height:34px;padding:0 14px;background:none;border:1.5px solid var(--grey-light);border-radius:100px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);cursor:pointer" title="Select all with email addresses">Select all with email</button>
+          </div>
+        </div>
+        <div id="prsp-int-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
+        <div id="prsp-int-table-wrap" style="display:none">
+          <div style="background:rgba(135,251,102,0.08);border:1px solid rgba(135,251,102,0.2);border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:12px;color:#2a6600;display:flex;align-items:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+            Click any email cell to edit inline. Saving will update Supabase and auto-create the contact in HubSpot.
+          </div>
+          <div class="prsp-table-wrap">
+            <table class="prsp-table" id="prsp-int-table">
+              <thead>
+                <tr>
+                  <th style="width:36px"><input type="checkbox" id="prsp-int-select-all" onchange="toggleSelectAllInt(this)" style="cursor:pointer"></th>
+                  <th>Name</th><th>Organisation</th><th>Title / Role</th>
+                  <th>Email</th><th>Warmth</th><th>HubSpot</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="prsp-int-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -224,6 +263,7 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
     <div class="ecm-footer">
       <button class="ecm-cancel-btn" onclick="closeEmailModal()">Cancel</button>
       <div style="display:flex;gap:8px">
+        <button class="ecm-cancel-btn" id="ecm-skip-btn" onclick="skipBatchContact()" style="display:none">Skip →</button>
         <button class="ecm-cancel-btn" onclick="copyEmailToClipboard()" id="ecm-copy-btn">Copy to clipboard</button>
         <button class="ecm-send-btn" id="ecm-send-btn" onclick="sendProspectEmail()">Send via Gmail →</button>
       </div>
@@ -296,6 +336,7 @@ const PRSP_TAB_META = {
   'Referral':         { title: 'Referrals',              sub: 'Contacts referred by partners or clients.' },
   'Personal Contact': { title: 'Personal Contacts',      sub: 'Contacts from your personal network.' },
   'mad_meets':        { title: 'MAD Meets — Ingenuity',  sub: 'Prospects met at Ingenuity MAD Meets events.' },
+  'intermediaries':   { title: 'Intermediaries',          sub: 'Key contacts at intermediary organisations. Edit emails inline; saving auto-creates in HubSpot.' },
 };
 
 const PRSP_CONTACT_STATUS_CLASS = {
@@ -324,15 +365,23 @@ function switchPrspTab(tab, btn) {
   document.getElementById('prsp-page-sub').textContent = meta.sub;
   const contactsView = document.getElementById('prsp-contacts-view');
   const madmeetsView = document.getElementById('prsp-madmeets-view');
+  const intermediariesView = document.getElementById('prsp-intermediaries-view');
   if (tab === 'mad_meets') {
     contactsView.style.display = 'none';
     madmeetsView.style.display = 'block';
+    intermediariesView.style.display = 'none';
     const mmSearch = document.getElementById('prsp-mm-search');
     if (mmSearch) mmSearch.value = '';
     renderPrspMadMeets();
+  } else if (tab === 'intermediaries') {
+    contactsView.style.display = 'none';
+    madmeetsView.style.display = 'none';
+    intermediariesView.style.display = 'block';
+    loadIntermediaries();
   } else {
     contactsView.style.display = 'block';
     madmeetsView.style.display = 'none';
+    intermediariesView.style.display = 'none';
     loadPrspContacts(tab);
   }
 }
@@ -650,9 +699,450 @@ async function sendProspectEmail() {
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEmailModal(); });
+
+// ── INTERMEDIARIES TAB ────────────────────────────────────────────────────
+
+let INT_PEOPLE = [];
+let INT_ORGS = [];
+let INT_SELECTED = new Set(); // selected person ids
+let INT_LOADED = false;
+let INT_EDITING_EMAIL = null; // id currently being edited inline
+
+async function loadIntermediaries(force = false) {
+  if (INT_LOADED && !force) { renderIntermediariesTable(); return; }
+  document.getElementById('prsp-int-loading').style.display = 'flex';
+  document.getElementById('prsp-int-table-wrap').style.display = 'none';
+  try {
+    const [pRes, oRes] = await Promise.all([
+      sbFetch('intermediary_people?select=id,name,title,role,org_id,email,warmth,influence,hubspot_contact_id,contact_status&order=org_id.asc,name.asc'),
+      sbFetch('intermediaries?select=id,slug,name&order=sort_order.asc')
+    ]);
+    INT_PEOPLE = await pRes.json();
+    INT_ORGS = await oRes.json();
+    INT_LOADED = true;
+    // populate org filter
+    const sel = document.getElementById('prsp-int-org-filter');
+    sel.innerHTML = '<option value="">All organisations</option>';
+    INT_ORGS.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.slug || o.id;
+      opt.textContent = o.name;
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    document.getElementById('prsp-int-loading').innerHTML = `<span style="color:#c0392b">Failed to load intermediaries: ${e.message}</span>`;
+    return;
+  }
+  document.getElementById('prsp-int-loading').style.display = 'none';
+  document.getElementById('prsp-int-table-wrap').style.display = 'block';
+  renderIntermediariesTable();
+}
+
+function getOrgName(orgId) {
+  const o = INT_ORGS.find(x => x.slug === orgId || x.id === orgId);
+  return o ? o.name : orgId || '—';
+}
+
+function renderIntermediariesTable() {
+  const q = (document.getElementById('prsp-int-search')?.value || '').toLowerCase();
+  const orgFilter = document.getElementById('prsp-int-org-filter')?.value || '';
+  let filtered = INT_PEOPLE.filter(p => {
+    if (orgFilter && p.org_id !== orgFilter) return false;
+    if (q && !(
+      (p.name||'').toLowerCase().includes(q) ||
+      (p.title||'').toLowerCase().includes(q) ||
+      getOrgName(p.org_id).toLowerCase().includes(q)
+    )) return false;
+    return true;
+  });
+
+  const countEl = document.getElementById('prsp-int-count');
+  const noEmail = filtered.filter(p => !p.email).length;
+  countEl.innerHTML = `${filtered.length} person${filtered.length!==1?'s':''}` +
+    (noEmail > 0 ? ` &nbsp;<span style="font-family:'DM Mono',monospace;font-size:10px;background:rgba(240,180,41,0.15);color:#8a5500;padding:2px 8px;border-radius:100px">${noEmail} missing email</span>` : '');
+
+  // Update selection bar
+  updateSelectionBar();
+
+  const tbody = document.getElementById('prsp-int-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="prsp-empty">No people match that search.</td></tr>`;
+    document.getElementById('prsp-int-select-all').checked = false;
+    return;
+  }
+
+  const warmthColour = { warm: '#2a6600', neutral: '#7a4e00', cold: '#9b1c1c' };
+  const warmthBg = { warm: 'rgba(135,251,102,0.15)', neutral: 'rgba(240,180,41,0.12)', cold: 'rgba(224,92,92,0.12)' };
+
+  tbody.innerHTML = filtered.map(p => {
+    const orgName = getOrgName(p.org_id);
+    const isSelected = INT_SELECTED.has(p.id);
+    const wc = warmthColour[p.warmth] || 'var(--grey-mid)';
+    const wb = warmthBg[p.warmth] || 'var(--grey-light)';
+
+    // Email cell — inline editable
+    const emailCell = INT_EDITING_EMAIL === p.id
+      ? `<td style="padding:6px 14px">
+           <div style="display:flex;gap:6px;align-items:center">
+             <input id="email-edit-${p.id}" type="email" value="${prspEsc(p.email||'')}"
+               style="flex:1;min-width:160px;border:1.5px solid var(--black);border-radius:6px;padding:5px 9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;color:var(--black);background:var(--white)"
+               onkeydown="if(event.key==='Enter')commitEmailEdit('${p.id}');if(event.key==='Escape')cancelEmailEdit();"
+               placeholder="email@domain.com">
+             <button onclick="commitEmailEdit('${p.id}')" title="Save" style="height:26px;width:26px;background:var(--black);color:var(--green);border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">✓</button>
+             <button onclick="cancelEmailEdit()" title="Cancel" style="height:26px;width:26px;background:none;border:1.5px solid var(--grey-light);border-radius:6px;cursor:pointer;font-size:12px;color:var(--grey-mid);display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+           </div>
+           <div id="email-edit-status-${p.id}" style="font-size:10px;margin-top:3px;color:var(--grey-mid)"></div>
+         </td>`
+      : `<td style="cursor:pointer" onclick="startEmailEdit('${p.id}')" title="Click to edit">
+           ${p.email
+             ? `<span style="font-size:12px;color:var(--black)">${prspEsc(p.email)}</span>`
+             : `<span style="font-size:11px;color:#c0392b;font-style:italic;display:flex;align-items:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4m0 4h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Add email</span>`
+           }
+         </td>`;
+
+    // HubSpot cell
+    const hsCell = p.hubspot_contact_id
+      ? `<td><a href="https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${p.hubspot_contact_id}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#e65c00;text-decoration:none;padding:3px 8px;background:rgba(230,92,0,0.08);border-radius:100px" title="Open in HubSpot">HS ↗</a></td>`
+      : `<td><span style="font-family:'DM Mono',monospace;font-size:9px;color:#bbb;letter-spacing:0.04em">${p.email ? 'pending' : '—'}</span></td>`;
+
+    return `<tr style="${isSelected ? 'background:rgba(135,251,102,0.06)' : ''}">
+      <td style="text-align:center"><input type="checkbox" ${isSelected?'checked':''} ${!p.email?'disabled title="Add email first"':''} onchange="toggleIntSelection('${p.id}',this)" style="cursor:${p.email?'pointer':'not-allowed'};opacity:${p.email?'1':'0.35'}"></td>
+      <td><div style="font-weight:600;font-size:13px">${prspEsc(p.name)}</div>${p.role ? `<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--grey-mid);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">${prspEsc(p.role)}</div>` : ''}</td>
+      <td style="font-size:12px">${prspEsc(orgName)}</td>
+      <td style="font-size:11px;color:var(--grey-mid)">${prspEsc(p.title||'')}</td>
+      ${emailCell}
+      <td>${p.warmth ? `<span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:100px;background:${wb};color:${wc}">${p.warmth}</span>` : '—'}</td>
+      ${hsCell}
+      <td>${p.email ? `<button class="mm-email-btn" onclick="openEmailModal(${JSON.stringify({name:p.name,company:getOrgName(p.org_id),email:p.email,title:p.title||''}).replace(/"/g,'&quot;')})">✉ Email</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+
+  // Auto-focus if editing
+  if (INT_EDITING_EMAIL) {
+    const el = document.getElementById(`email-edit-${INT_EDITING_EMAIL}`);
+    if (el) { el.focus(); el.select(); }
+  }
+
+  // Update select-all checkbox state
+  const withEmail = filtered.filter(p => p.email);
+  const allChecked = withEmail.length > 0 && withEmail.every(p => INT_SELECTED.has(p.id));
+  document.getElementById('prsp-int-select-all').checked = allChecked;
+}
+
+// ── Inline email edit ─────────────────────────────────────────────────────
+
+function startEmailEdit(id) {
+  INT_EDITING_EMAIL = id;
+  renderIntermediariesTable();
+}
+
+function cancelEmailEdit() {
+  INT_EDITING_EMAIL = null;
+  renderIntermediariesTable();
+}
+
+async function commitEmailEdit(id) {
+  const input = document.getElementById(`email-edit-${id}`);
+  const statusEl = document.getElementById(`email-edit-status-${id}`);
+  if (!input) return;
+  const newEmail = input.value.trim().toLowerCase();
+
+  // Basic validation
+  if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    statusEl.textContent = 'Invalid email address';
+    statusEl.style.color = '#c0392b';
+    input.focus();
+    return;
+  }
+
+  statusEl.textContent = 'Saving…';
+  statusEl.style.color = 'var(--grey-mid)';
+
+  try {
+    // 1. Save email to Supabase
+    const patchRes = await sbFetch(`intermediary_people?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({ email: newEmail || null, updated_at: new Date().toISOString() })
+    });
+    if (!patchRes.ok) throw new Error(`Supabase PATCH ${patchRes.status}`);
+    const patchData = await patchRes.json();
+    const saved = Array.isArray(patchData) ? patchData[0] : patchData;
+
+    // Update local state
+    const person = INT_PEOPLE.find(p => p.id === id);
+    if (person) person.email = saved.email;
+
+    // 2. If email set and no HS contact yet — create in HubSpot
+    if (newEmail && !saved.hubspot_contact_id) {
+      statusEl.textContent = 'Creating in HubSpot…';
+      await createHubSpotContact(id, person);
+    } else {
+      INT_EDITING_EMAIL = null;
+      renderIntermediariesTable();
+    }
+  } catch(e) {
+    statusEl.textContent = `Error: ${e.message}`;
+    statusEl.style.color = '#c0392b';
+  }
+}
+
+async function createHubSpotContact(id, person) {
+  const statusEl = document.getElementById(`email-edit-status-${id}`);
+  try {
+    const nameParts = (person.name || '').trim().split(/\s+/);
+    const firstname = nameParts[0] || '';
+    const lastname = nameParts.slice(1).join(' ') || '';
+    const orgName = getOrgName(person.org_id);
+
+    // Try to create; if 409 conflict, search for existing
+    let hsId = null;
+    const createRes = await hsProxy('/crm/v3/objects/contacts', {
+      properties: {
+        email: person.email,
+        firstname,
+        lastname,
+        jobtitle: person.title || '',
+        company: orgName,
+        hs_lead_status: 'NEW'
+      }
+    });
+
+    if (createRes && createRes.id) {
+      hsId = createRes.id;
+    } else if (createRes && createRes.status === 'error' && createRes.category === 'CONFLICT') {
+      // Contact already exists — search by email
+      const searchRes = await hsProxy('/crm/v3/objects/contacts/search', {
+        filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: person.email }] }],
+        properties: ['email', 'firstname', 'lastname']
+      });
+      if (searchRes?.results?.[0]?.id) hsId = searchRes.results[0].id;
+    }
+
+    if (hsId) {
+      // Save HS contact ID back to Supabase
+      await sbFetch(`intermediary_people?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify({ hubspot_contact_id: hsId, updated_at: new Date().toISOString() })
+      });
+      if (person) person.hubspot_contact_id = hsId;
+      statusEl.textContent = `✓ Saved & created in HubSpot`;
+      statusEl.style.color = '#2a6600';
+    } else {
+      statusEl.textContent = '✓ Saved (HubSpot creation incomplete — check proxy)';
+      statusEl.style.color = '#7a4e00';
+    }
+  } catch(e) {
+    statusEl.textContent = `✓ Email saved. HubSpot error: ${e.message}`;
+    statusEl.style.color = '#7a4e00';
+  }
+  INT_EDITING_EMAIL = null;
+  setTimeout(() => renderIntermediariesTable(), 1400);
+}
+
+// ── Selection & multi-send ────────────────────────────────────────────────
+
+function toggleIntSelection(id, checkbox) {
+  if (checkbox.checked) INT_SELECTED.add(id);
+  else INT_SELECTED.delete(id);
+  updateSelectionBar();
+  renderIntermediariesTable();
+}
+
+function toggleSelectAllInt(masterCb) {
+  const q = (document.getElementById('prsp-int-search')?.value || '').toLowerCase();
+  const orgFilter = document.getElementById('prsp-int-org-filter')?.value || '';
+  const visible = INT_PEOPLE.filter(p => {
+    if (!p.email) return false;
+    if (orgFilter && p.org_id !== orgFilter) return false;
+    if (q && !(
+      (p.name||'').toLowerCase().includes(q) ||
+      (p.title||'').toLowerCase().includes(q) ||
+      getOrgName(p.org_id).toLowerCase().includes(q)
+    )) return false;
+    return true;
+  });
+  if (masterCb.checked) visible.forEach(p => INT_SELECTED.add(p.id));
+  else visible.forEach(p => INT_SELECTED.delete(p.id));
+  updateSelectionBar();
+  renderIntermediariesTable();
+}
+
+function selectAllIntermediariesWithEmail() {
+  INT_PEOPLE.filter(p => p.email).forEach(p => INT_SELECTED.add(p.id));
+  updateSelectionBar();
+  renderIntermediariesTable();
+}
+
+function clearIntSelection() {
+  INT_SELECTED.clear();
+  updateSelectionBar();
+  renderIntermediariesTable();
+}
+
+function updateSelectionBar() {
+  const bar = document.getElementById('prsp-int-send-bar');
+  const countEl = document.getElementById('prsp-int-selected-count');
+  const n = INT_SELECTED.size;
+  if (n > 0) {
+    bar.style.display = 'flex';
+    countEl.textContent = `${n} selected`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+// ── Multi-send queue ──────────────────────────────────────────────────────
+
+let SEND_QUEUE = [];
+let SEND_SUBJECT = '';
+let SEND_BODY = '';
+
+function sendToSelected() {
+  if (INT_SELECTED.size === 0) return;
+  SEND_QUEUE = INT_PEOPLE.filter(p => INT_SELECTED.has(p.id) && p.email);
+  if (!SEND_QUEUE.length) { alert('No selected contacts have email addresses.'); return; }
+  openBatchEmailModal();
+}
+
+// Batch compose modal — we reuse the existing compose modal but in "batch" mode
+let BATCH_MODE = false;
+let BATCH_QUEUE_REMAINING = [];
+let BATCH_SENT_COUNT = 0;
+let BATCH_CURRENT = null;
+
+function openBatchEmailModal() {
+  BATCH_MODE = true;
+  BATCH_QUEUE_REMAINING = [...SEND_QUEUE];
+  BATCH_SENT_COUNT = 0;
+  openNextInBatch();
+}
+
+function openNextInBatch() {
+  if (!BATCH_QUEUE_REMAINING.length) {
+    // All done
+    BATCH_MODE = false;
+    alert(`✓ Sent ${BATCH_SENT_COUNT} email${BATCH_SENT_COUNT!==1?'s':''}. All logged to HubSpot via BCC.`);
+    closeEmailModal();
+    return;
+  }
+  BATCH_CURRENT = BATCH_QUEUE_REMAINING.shift();
+  const contact = {
+    name: BATCH_CURRENT.name,
+    company: getOrgName(BATCH_CURRENT.org_id),
+    email: BATCH_CURRENT.email,
+    title: BATCH_CURRENT.title || ''
+  };
+
+  // Open the modal, pre-populate to + carry over subject/body if already set
+  _emailContact = contact;
+  document.getElementById('ecm-title').textContent = `Email ${contact.name}`;
+  document.getElementById('ecm-to').value = contact.email;
+
+  // Carry subject/body from previous send (batch consistency)
+  if (BATCH_SENT_COUNT > 0 && SEND_SUBJECT) {
+    document.getElementById('ecm-subject').value = SEND_SUBJECT;
+    document.getElementById('ecm-body').value = SEND_BODY;
+  } else {
+    document.getElementById('ecm-subject').value = '';
+    document.getElementById('ecm-body').value = '';
+    document.querySelectorAll('.ecm-template-pill').forEach(p => p.classList.remove('active'));
+  }
+
+  // Update batch progress indicator
+  const total = SEND_QUEUE.length;
+  const remaining = BATCH_QUEUE_REMAINING.length + 1;
+  const done = total - remaining;
+  document.getElementById('ecm-title').textContent = `Email ${contact.name} (${done+1} of ${total})`;
+
+  // Update send button label
+  const sendBtn = document.getElementById('ecm-send-btn');
+  const moreAfter = BATCH_QUEUE_REMAINING.length;
+  sendBtn.textContent = moreAfter > 0 ? `Send & next (${moreAfter} remaining) →` : 'Send final email →';
+
+  const noToken = document.getElementById('ecm-no-token-msg');
+  if (gcalIsConnected()) { noToken.style.display = 'none'; sendBtn.style.display = ''; }
+  else { noToken.style.display = 'block'; sendBtn.style.display = 'none'; }
+
+  document.getElementById('email-compose-modal').classList.add('open');
+}
+
+// Override sendProspectEmail to handle batch mode
+const _origSendProspectEmail = sendProspectEmail;
+window.sendProspectEmail = async function() {
+  if (!BATCH_MODE) { await _origSendProspectEmail(); return; }
+
+  const to = document.getElementById('ecm-to').value.trim();
+  const subject = document.getElementById('ecm-subject').value.trim();
+  const body = document.getElementById('ecm-body').value.trim();
+  const btn = document.getElementById('ecm-send-btn');
+  if (!to || !subject || !body) { alert('Please fill in subject and message.'); return; }
+  if (!gcalIsConnected()) { document.getElementById('ecm-no-token-msg').style.display = 'block'; btn.style.display = 'none'; return; }
+
+  // Store for next in batch
+  SEND_SUBJECT = subject;
+  SEND_BODY = body;
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const encodedSubject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
+    const htmlBody = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const HS_BCC = '145756322@bcc.eu1.hubspot.com';
+    const rawMessage = [`To: ${to}`, `Bcc: ${HS_BCC}`, `Subject: ${encodedSubject}`, 'MIME-Version: 1.0', 'Content-Type: text/html; charset=utf-8', '', htmlBody].join('\r\n');
+    const encoded = btoa(unescape(encodeURIComponent(rawMessage))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const res = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${gcalAccessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw: encoded })
+    });
+    if (!res.ok) { const err = await res.json(); throw new Error(err?.error?.message || `Gmail API ${res.status}`); }
+    BATCH_SENT_COUNT++;
+    openNextInBatch();
+  } catch(e) {
+    alert(`Error sending to ${to}: ${e.message}`);
+    btn.disabled = false;
+    btn.textContent = BATCH_QUEUE_REMAINING.length > 0 ? `Send & next (${BATCH_QUEUE_REMAINING.length} remaining) →` : 'Send final email →';
+  }
+};
+
+function skipBatchContact() {
+  if (!BATCH_MODE) return;
+  openNextInBatch();
+}
+
+// Show/hide skip button based on batch mode — patch openNextInBatch
+const _baseOpenNextInBatch = openNextInBatch;
+function openNextInBatch() {
+  _baseOpenNextInBatch();
+  const skipBtn = document.getElementById('ecm-skip-btn');
+  if (skipBtn) skipBtn.style.display = BATCH_MODE ? 'inline-flex' : 'none';
+}
+
+const _origOpenEmailModal = openEmailModal;
+window.openEmailModal = function(contactObj) {
+  BATCH_MODE = false; // reset batch if opening single
+  _origOpenEmailModal(contactObj);
+};
+
+// Patch closeEmailModal to handle batch abort
+const _origCloseEmailModal = closeEmailModal;
+window.closeEmailModal = function() {
+  if (BATCH_MODE) {
+    const remaining = BATCH_QUEUE_REMAINING.length;
+    if (remaining > 0) {
+      if (!confirm(`Abort batch send? ${BATCH_SENT_COUNT} sent so far, ${remaining + 1} remaining.`)) return;
+    }
+    BATCH_MODE = false;
+    BATCH_QUEUE_REMAINING = [];
+  }
+  _origCloseEmailModal();
+};
+
 </script>
 
 <script>window.JUNGLE_NAV_ACTIVE = 'prospects';</script>
 <script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
 </body>
 </html>
+
