@@ -717,15 +717,50 @@ function renderPrspMadMeetsTable() {
 
 function renderLastCommsCell(cell, data, contact) {
   if (!cell) return;
-  if (!data) { cell.innerHTML = '<span class="mm-lc-none">No emails logged</span>'; return; }
-  const dirLabel = data.direction === 'received' ? '↓ They replied' : '↑ You sent';
-  const dirCls = data.direction === 'received' ? 'mm-lc-received' : 'mm-lc-sent';
+  if (!data) { cell.innerHTML = '<span class="mm-lc-none">No activity logged</span>'; return; }
+  const isNote = data.type === 'note';
+  const dirLabel = isNote ? '📋 Note' : (data.direction === 'received' ? '↓ They replied' : '↑ You sent');
+  const dirCls   = isNote ? 'mm-lc-received' : (data.direction === 'received' ? 'mm-lc-received' : 'mm-lc-sent');
   cell.innerHTML = `
     <span class="mm-lastcomms-direction ${dirCls}">${dirLabel}</span>
     ${data.subject ? `<div class="mm-lc-subject">${data.subject.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
     ${data.snippet ? `<div class="mm-lc-snippet">${data.snippet.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
     <div class="mm-lc-date">${data.dateStr}</div>
     <a class="mm-lc-hs-link" href="${data.hsLink}" target="_blank">View in HubSpot ↗</a>`;
+}
+
+async function fetchEngagementFallback(contact) {
+  // Called when no email CRM objects exist — searches CRM v3 notes for this contact
+  try {
+    const res = await hsProxy('/crm/v3/objects/notes/search', {
+      filterGroups: [{ filters: [{ propertyName: 'associations.contact', operator: 'EQ', value: contact.id }] }],
+      properties: ['hs_note_body', 'hs_timestamp'],
+      sorts: [{ propertyName: 'hs_timestamp', direction: 'DESCENDING' }],
+      limit: 5
+    });
+    const notes = res.results || [];
+    if (!notes.length) return null;
+
+    const top  = notes[0];
+    const ts   = top.properties?.hs_timestamp ? new Date(top.properties.hs_timestamp).getTime() : 0;
+    const dateStr = new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    // Strip HTML and extract Summary section if present
+    const raw = (top.properties?.hs_note_body || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const summaryMatch = raw.match(/Summary[:\s]+(.{10,}?)(?:Next step|Notes:|$)/i);
+    const snippet = (summaryMatch ? summaryMatch[1].trim() : raw).slice(0, 160);
+
+    return {
+      type: 'note',
+      dateStr,
+      subject: null,
+      snippet,
+      hsLink: `https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contact.id}`
+    };
+  } catch(e) {
+    console.warn(`Note fallback failed for ${contact.id}:`, e);
+    return null;
+  }
 }
 
 async function loadAllLastComms() {
@@ -737,32 +772,46 @@ async function loadAllLastComms() {
       const ids = (r.to||[]).map(t => String(t.toObjectId)).sort((a,b) => Number(b)-Number(a));
       contactEmailMap[cid] = ids;
     }
-    for (const c of MAD_MEETS_CONTACTS) {
-      if (!contactEmailMap[c.id]) { c._lastComms = null; renderLastCommsCell(document.getElementById(`lc-${c.id}`), null, c); }
-    }
+
+    // For contacts with no email CRM objects, try the engagements fallback in parallel
+    const noEmailContacts = MAD_MEETS_CONTACTS.filter(c => !contactEmailMap[c.id]);
+    const fallbackPromises = noEmailContacts.map(async c => {
+      const cell = document.getElementById(`lc-${c.id}`);
+      if (cell) cell.innerHTML = '<span class="mm-lc-loading">Checking notes…</span>';
+      const data = await fetchEngagementFallback(c);
+      c._lastComms = data;
+      renderLastCommsCell(document.getElementById(`lc-${c.id}`), data, c);
+    });
+
+    // Fetch email CRM objects for contacts that have them
     const emailsToFetch = Object.entries(contactEmailMap).map(([cid,ids]) => ({contactId:cid,emailId:ids[0]}));
-    if (!emailsToFetch.length) return;
-    const batchRes = await hsProxy('/crm/v3/objects/emails/batch/read', { inputs: emailsToFetch.map(e=>({id:e.emailId})), properties:['hs_email_subject','hs_email_direction','hs_email_text','hs_timestamp'] });
-    const emailDataMap = {};
-    for (const r of (batchRes.results||[])) emailDataMap[String(r.id)] = r.properties;
-    for (const {contactId, emailId} of emailsToFetch) {
-      const contact = MAD_MEETS_CONTACTS.find(c => c.id === contactId);
-      if (!contact) continue;
-      const p = emailDataMap[emailId];
-      if (!p) { contact._lastComms = null; }
-      else {
-        const direction = p.hs_email_direction === 'INCOMING_EMAIL' ? 'received' : 'sent';
-        const ts = p.hs_timestamp ? new Date(p.hs_timestamp).getTime() : 0;
-        const dateStr = new Date(ts).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-        const bodyClean = (p.hs_email_text||'').split(/\r?\n\r?\n/)[0].replace(/\s+/g,' ').trim().slice(0,140);
-        contact._lastComms = { direction, dateStr, subject:p.hs_email_subject||null, snippet:bodyClean, hsLink:`https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contactId}` };
+    if (emailsToFetch.length) {
+      const batchRes = await hsProxy('/crm/v3/objects/emails/batch/read', { inputs: emailsToFetch.map(e=>({id:e.emailId})), properties:['hs_email_subject','hs_email_direction','hs_email_text','hs_timestamp'] });
+      const emailDataMap = {};
+      for (const r of (batchRes.results||[])) emailDataMap[String(r.id)] = r.properties;
+      for (const {contactId, emailId} of emailsToFetch) {
+        const contact = MAD_MEETS_CONTACTS.find(c => c.id === contactId);
+        if (!contact) continue;
+        const p = emailDataMap[emailId];
+        if (!p) { contact._lastComms = null; }
+        else {
+          const direction = p.hs_email_direction === 'INCOMING_EMAIL' ? 'received' : 'sent';
+          const ts = p.hs_timestamp ? new Date(p.hs_timestamp).getTime() : 0;
+          const dateStr = new Date(ts).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+          const bodyClean = (p.hs_email_text||'').split(/\r?\n\r?\n/)[0].replace(/\s+/g,' ').trim().slice(0,140);
+          contact._lastComms = { direction, dateStr, subject:p.hs_email_subject||null, snippet:bodyClean, hsLink:`https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${contactId}` };
+        }
+        renderLastCommsCell(document.getElementById(`lc-${contactId}`), contact._lastComms, contact);
       }
-      renderLastCommsCell(document.getElementById(`lc-${contactId}`), contact._lastComms, contact);
     }
+
+    // Wait for all fallbacks to complete
+    await Promise.all(fallbackPromises);
+
   } catch(e) {
     console.error('loadAllLastComms failed:', e);
     document.querySelectorAll('[id^="lc-"]').forEach(cell => {
-      if (cell.innerHTML.includes('Loading')) cell.innerHTML = '<span class="mm-lc-none">Couldn\'t load</span>';
+      if (cell.innerHTML.includes('Loading') || cell.innerHTML.includes('Checking')) cell.innerHTML = '<span class="mm-lc-none">Couldn\'t load</span>';
     });
   }
 }
