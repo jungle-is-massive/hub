@@ -322,6 +322,36 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
           </select>
         </div>
       </div>
+      <div class="acm-row">
+        <div class="acm-field">
+          <label>Lifecycle stage</label>
+          <select id="acm-lifecycle">
+            <option value="">— Select —</option>
+            <option value="subscriber">Subscriber</option>
+            <option value="lead">Lead</option>
+            <option value="marketingqualifiedlead">Marketing Qualified Lead</option>
+            <option value="salesqualifiedlead">Sales Qualified Lead</option>
+            <option value="opportunity">Opportunity</option>
+            <option value="customer">Customer</option>
+            <option value="evangelist">Evangelist</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="acm-field">
+          <label>Lead status</label>
+          <select id="acm-leadstatus">
+            <option value="">— Select —</option>
+            <option value="NEW">New</option>
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In progress</option>
+            <option value="OPEN_DEAL">Open deal</option>
+            <option value="UNQUALIFIED">Unqualified</option>
+            <option value="ATTEMPTED_TO_CONTACT">Attempted to contact</option>
+            <option value="CONNECTED">Connected</option>
+            <option value="BAD_TIMING">Bad timing</option>
+          </select>
+        </div>
+      </div>
       <div class="acm-section-label" style="margin-top:4px">Contact details</div>
       <div class="acm-row">
         <div class="acm-field">
@@ -916,10 +946,10 @@ function renderIntermediariesTable() {
            }
          </td>`;
 
-    // HubSpot cell
+    // HubSpot cell — icon link
     const hsCell = p.hubspot_contact_id
-      ? `<td><a href="https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${p.hubspot_contact_id}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#e65c00;text-decoration:none;padding:3px 8px;background:rgba(230,92,0,0.08);border-radius:100px" title="Open in HubSpot">HS ↗</a></td>`
-      : `<td><span style="font-family:'DM Mono',monospace;font-size:9px;color:#bbb;letter-spacing:0.04em">${p.email ? 'pending' : '—'}</span></td>`;
+      ? `<td style="text-align:center"><a href="https://app-eu1.hubspot.com/contacts/145756322/record/0-1/${p.hubspot_contact_id}" target="_blank" rel="noopener" title="Open in HubSpot" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:rgba(230,92,0,0.09);border:1px solid rgba(230,92,0,0.18);transition:background 0.12s,border-color 0.12s;text-decoration:none" onmouseover="this.style.background='rgba(230,92,0,0.18)';this.style.borderColor='rgba(230,92,0,0.4)'" onmouseout="this.style.background='rgba(230,92,0,0.09)';this.style.borderColor='rgba(230,92,0,0.18)'"><svg width="14" height="14" viewBox="0 0 512 512" fill="#e65c00" xmlns="http://www.w3.org/2000/svg"><path d="M267.4 147.5V88.3a45.4 45.4 0 0 0 26.2-40.9A45.4 45.4 0 0 0 248.2 2a45.4 45.4 0 0 0-45.4 45.4 45.4 45.4 0 0 0 26.2 40.9v59.2a128.7 128.7 0 0 0-61.1 26.8L73.6 96.6a51.6 51.6 0 0 0 1.5-12.3A51.8 51.8 0 1 0 23.4 136a51.5 51.5 0 0 0 31.7-10.9l93.4 76.8a128.5 128.5 0 0 0 .4 108.5l-28.5 28.5a44.6 44.6 0 0 0-12.9-2 44.9 44.9 0 1 0 44.9 44.9 44.6 44.6 0 0 0-2-12.9l28.1-28.1a128.6 128.6 0 0 0 177.6-18.6c31.3-38.9 36.7-91.5 15.6-136l29.1-17.3a35.5 35.5 0 1 0-19.5-31.6 35.3 35.3 0 0 0 3.9 16.2l-28.6 17a128.8 128.8 0 0 0-89.2-42.5zm-19.2 206.8a76.6 76.6 0 1 1 76.6-76.6 76.6 76.6 0 0 1-76.6 76.6z"/></svg></a></td>`
+      : `<td style="text-align:center"><span style="font-family:'DM Mono',monospace;font-size:9px;color:#ccc">—</span></td>`;
 
     return `<tr style="${isSelected ? 'background:rgba(135,251,102,0.06)' : ''}">
       <td style="text-align:center"><input type="checkbox" ${isSelected?'checked':''} ${!p.email?'disabled title="Add email first"':''} onchange="toggleIntSelection('${p.id}',this)" style="cursor:${p.email?'pointer':'not-allowed'};opacity:${p.email?'1':'0.35'}"></td>
@@ -1131,7 +1161,7 @@ function openAddContactModal() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  ['acm-role','acm-warmth'].forEach(id => {
+  ['acm-role','acm-warmth','acm-lifecycle','acm-leadstatus'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.selectedIndex = 0;
   });
@@ -1173,6 +1203,8 @@ async function saveNewContact() {
   const jobtitle = document.getElementById('acm-jobtitle').value.trim();
   const role     = document.getElementById('acm-role').value;
   const warmth   = document.getElementById('acm-warmth').value;
+  const lifecycle   = document.getElementById('acm-lifecycle').value;
+  const leadstatus  = document.getElementById('acm-leadstatus').value;
   const notes    = document.getElementById('acm-notes').value.trim();
   const fullName = [firstname, lastname].join(' ');
 
@@ -1228,7 +1260,8 @@ async function saveNewContact() {
             jobtitle:  jobtitle || '',
             company:   orgName,
             phone:     phone    || '',
-            hs_lead_status: 'NEW'
+            ...(lifecycle  ? { lifecyclestage: lifecycle }       : {}),
+            ...(leadstatus ? { hs_lead_status: leadstatus }      : { hs_lead_status: 'NEW' })
           }
         });
         if (createRes?.id) {
