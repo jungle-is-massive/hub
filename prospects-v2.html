@@ -124,6 +124,34 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
 .ecm-cancel-btn:hover { border-color: var(--black); color: var(--black); }
 .ecm-no-token { padding: 12px 14px; background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.25); border-radius: 8px; font-size: 12px; color: var(--grey-mid); line-height: 1.5; }
 .ecm-no-token a { color: var(--black); font-weight: 600; }
+
+/* ── ADD CONTACT MODAL ───────────────────────────────────────── */
+#add-contact-modal { position: fixed; inset: 0; background: rgba(14,14,14,0.65); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+#add-contact-modal.open { opacity: 1; pointer-events: all; }
+#add-contact-box { background: var(--cream); border-radius: 16px; width: min(580px, 100%); max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.3); transform: translateY(16px); transition: transform 0.2s; }
+#add-contact-modal.open #add-contact-box { transform: translateY(0); }
+.acm-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; border-bottom: 1px solid var(--grey-light); }
+.acm-title { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.acm-close { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--grey-mid); padding: 2px 6px; border-radius: 6px; transition: color 0.12s, background 0.12s; }
+.acm-close:hover { color: var(--black); background: var(--grey-light); }
+.acm-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.acm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.acm-field { display: flex; flex-direction: column; gap: 5px; }
+.acm-field.full { grid-column: 1 / -1; }
+.acm-field label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); }
+.acm-field label .req { color: var(--coral); margin-left: 2px; }
+.acm-field input, .acm-field select, .acm-field textarea { width: 100%; border: 1.5px solid var(--grey-light); border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--black); background: var(--white); outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+.acm-field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8880' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
+.acm-field input:focus, .acm-field select:focus, .acm-field textarea:focus { border-color: var(--black); }
+.acm-field textarea { resize: vertical; min-height: 72px; }
+.acm-section-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); padding-bottom: 6px; border-bottom: 1px solid var(--grey-light); margin-bottom: 2px; }
+.acm-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 20px; gap: 10px; }
+.acm-save-btn { height: 38px; padding: 0 24px; background: var(--black); color: var(--green); border: none; border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s; }
+.acm-save-btn:hover { opacity: 0.85; }
+.acm-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.acm-cancel-btn { height: 38px; padding: 0 16px; background: none; border: 1.5px solid var(--grey-light); border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey-mid); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.acm-cancel-btn:hover { border-color: var(--black); color: var(--black); }
+.acm-status { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.06em; }
 </style>
 </head>
 <body>
@@ -211,6 +239,10 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
               <button onclick="clearIntSelection()" style="height:34px;padding:0 14px;background:none;border:1.5px solid var(--grey-light);border-radius:100px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);cursor:pointer">Clear</button>
             </div>
             <button onclick="selectAllIntermediariesWithEmail()" style="height:34px;padding:0 14px;background:none;border:1.5px solid var(--grey-light);border-radius:100px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-mid);cursor:pointer" title="Select all with email addresses">Select all with email</button>
+            <button onclick="openAddContactModal()" style="height:34px;padding:0 16px;background:var(--black);color:var(--green);border:none;border-radius:100px;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:6px">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              Add contact
+            </button>
           </div>
         </div>
         <div id="prsp-int-loading" class="prsp-loading"><div class="prsp-spinner"></div>Loading…</div>
@@ -232,6 +264,90 @@ html, body { background: var(--cream); color: var(--black); font-family: 'DM San
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CONTACT MODAL -->
+<div id="add-contact-modal" onclick="if(event.target===this)closeAddContactModal()">
+  <div id="add-contact-box">
+    <div class="acm-header">
+      <div class="acm-title">Add intermediary contact</div>
+      <button class="acm-close" onclick="closeAddContactModal()">✕</button>
+    </div>
+    <div class="acm-body">
+      <div class="acm-section-label">Identity</div>
+      <div class="acm-row">
+        <div class="acm-field">
+          <label>First name <span class="req">*</span></label>
+          <input type="text" id="acm-firstname" placeholder="e.g. Helen" autocomplete="off">
+        </div>
+        <div class="acm-field">
+          <label>Last name <span class="req">*</span></label>
+          <input type="text" id="acm-lastname" placeholder="e.g. Catterall" autocomplete="off">
+        </div>
+      </div>
+      <div class="acm-row">
+        <div class="acm-field">
+          <label>Job title</label>
+          <input type="text" id="acm-jobtitle" placeholder="e.g. Managing Director" autocomplete="off">
+        </div>
+        <div class="acm-field">
+          <label>Role / influence</label>
+          <select id="acm-role">
+            <option value="">— Select —</option>
+            <option value="Decision maker">Decision maker</option>
+            <option value="Influencer">Influencer</option>
+            <option value="Champion">Champion</option>
+            <option value="Gatekeeper">Gatekeeper</option>
+            <option value="User">User</option>
+          </select>
+        </div>
+      </div>
+      <div class="acm-row">
+        <div class="acm-field">
+          <label>Organisation <span class="req">*</span></label>
+          <select id="acm-org">
+            <option value="">— Select organisation —</option>
+          </select>
+        </div>
+        <div class="acm-field">
+          <label>Warmth</label>
+          <select id="acm-warmth">
+            <option value="">— Select —</option>
+            <option value="warm">Warm</option>
+            <option value="neutral">Neutral</option>
+            <option value="cold">Cold</option>
+          </select>
+        </div>
+      </div>
+      <div class="acm-section-label" style="margin-top:4px">Contact details</div>
+      <div class="acm-row">
+        <div class="acm-field">
+          <label>Email</label>
+          <input type="email" id="acm-email" placeholder="name@organisation.com" autocomplete="off">
+        </div>
+        <div class="acm-field">
+          <label>Phone</label>
+          <input type="tel" id="acm-phone" placeholder="+44 7700 000000" autocomplete="off">
+        </div>
+      </div>
+      <div class="acm-field">
+        <label>LinkedIn URL</label>
+        <input type="url" id="acm-linkedin" placeholder="https://www.linkedin.com/in/…" autocomplete="off">
+      </div>
+      <div class="acm-section-label" style="margin-top:4px">Notes</div>
+      <div class="acm-field">
+        <label>Internal notes</label>
+        <textarea id="acm-notes" placeholder="Relationship context, how we know them, key info…"></textarea>
+      </div>
+    </div>
+    <div class="acm-footer">
+      <span class="acm-status" id="acm-status"></span>
+      <div style="display:flex;gap:8px">
+        <button class="acm-cancel-btn" onclick="closeAddContactModal()">Cancel</button>
+        <button class="acm-save-btn" id="acm-save-btn" onclick="saveNewContact()">Save & add to HubSpot →</button>
       </div>
     </div>
   </div>
@@ -698,7 +814,7 @@ async function sendProspectEmail() {
   btn.disabled = false; btn.textContent = 'Send via Gmail →';
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEmailModal(); });
+
 
 // ── INTERMEDIARIES TAB ────────────────────────────────────────────────────
 
@@ -993,6 +1109,181 @@ function updateSelectionBar() {
   }
 }
 
+// ── ADD CONTACT MODAL ─────────────────────────────────────────────────────
+
+function openAddContactModal() {
+  // Populate org dropdown from loaded orgs
+  const sel = document.getElementById('acm-org');
+  sel.innerHTML = '<option value="">— Select organisation —</option>';
+  INT_ORGS.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.slug || o.id;
+    opt.textContent = o.name;
+    sel.appendChild(opt);
+  });
+
+  // Pre-select org if one is currently filtered
+  const activeOrgFilter = document.getElementById('prsp-int-org-filter')?.value || '';
+  if (activeOrgFilter) sel.value = activeOrgFilter;
+
+  // Reset all fields
+  ['acm-firstname','acm-lastname','acm-jobtitle','acm-email','acm-phone','acm-linkedin','acm-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['acm-role','acm-warmth'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+
+  const statusEl = document.getElementById('acm-status');
+  statusEl.textContent = '';
+  statusEl.style.color = '';
+
+  const saveBtn = document.getElementById('acm-save-btn');
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'Save & add to HubSpot →';
+
+  document.getElementById('add-contact-modal').classList.add('open');
+  setTimeout(() => document.getElementById('acm-firstname')?.focus(), 80);
+}
+
+function closeAddContactModal() {
+  document.getElementById('add-contact-modal').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeAddContactModal(); closeEmailModal(); }
+});
+
+async function saveNewContact() {
+  const firstname = document.getElementById('acm-firstname').value.trim();
+  const lastname  = document.getElementById('acm-lastname').value.trim();
+  const orgSlug   = document.getElementById('acm-org').value;
+  if (!firstname || !lastname) {
+    setAcmStatus('First name and last name are required.', '#c0392b'); return;
+  }
+  if (!orgSlug) {
+    setAcmStatus('Please select an organisation.', '#c0392b'); return;
+  }
+
+  const email    = document.getElementById('acm-email').value.trim().toLowerCase();
+  const phone    = document.getElementById('acm-phone').value.trim();
+  const linkedin = document.getElementById('acm-linkedin').value.trim();
+  const jobtitle = document.getElementById('acm-jobtitle').value.trim();
+  const role     = document.getElementById('acm-role').value;
+  const warmth   = document.getElementById('acm-warmth').value;
+  const notes    = document.getElementById('acm-notes').value.trim();
+  const fullName = [firstname, lastname].join(' ');
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setAcmStatus('Invalid email address.', '#c0392b'); return;
+  }
+
+  const saveBtn = document.getElementById('acm-save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+  setAcmStatus('Writing to Supabase…', 'var(--grey-mid)');
+
+  try {
+    // 1 — Insert into Supabase intermediary_people
+    const sbPayload = {
+      name:     fullName,
+      title:    jobtitle || null,
+      role:     role     || null,
+      org_id:   orgSlug,
+      email:    email    || null,
+      phone:    phone    || null,
+      linkedin_url: linkedin || null,
+      warmth:   warmth   || null,
+      notes:    notes    || null,
+      source:   'manual',
+      contact_status: 'not_started'
+    };
+
+    const sbRes = await sbFetch('intermediary_people', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify(sbPayload)
+    });
+    if (!sbRes.ok) {
+      const err = await sbRes.text();
+      throw new Error(`Supabase insert failed (${sbRes.status}): ${err}`);
+    }
+    const sbData = await sbRes.json();
+    const newPerson = Array.isArray(sbData) ? sbData[0] : sbData;
+
+    // 2 — Create or find in HubSpot (only if email provided)
+    let hsId = null;
+    if (email) {
+      setAcmStatus('Creating in HubSpot…', 'var(--grey-mid)');
+      const orgName = getOrgName(orgSlug);
+
+      try {
+        const createRes = await hsProxy('/crm/v3/objects/contacts', {
+          properties: {
+            email,
+            firstname,
+            lastname,
+            jobtitle:  jobtitle || '',
+            company:   orgName,
+            phone:     phone    || '',
+            hs_lead_status: 'NEW'
+          }
+        });
+        if (createRes?.id) {
+          hsId = createRes.id;
+        } else if (createRes?.status === 'error' && createRes?.category === 'CONFLICT') {
+          // Already exists — find by email
+          const searchRes = await hsProxy('/crm/v3/objects/contacts/search', {
+            filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: email }] }],
+            properties: ['email', 'firstname', 'lastname']
+          });
+          if (searchRes?.results?.[0]?.id) hsId = searchRes.results[0].id;
+        }
+      } catch(hsErr) {
+        console.warn('HubSpot create error:', hsErr);
+      }
+
+      // 3 — Store HubSpot ID back in Supabase
+      if (hsId && newPerson?.id) {
+        await sbFetch(`intermediary_people?id=eq.${newPerson.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ hubspot_contact_id: hsId, updated_at: new Date().toISOString() })
+        });
+        newPerson.hubspot_contact_id = hsId;
+      }
+    }
+
+    // 4 — Add to local state and re-render
+    if (newPerson) {
+      newPerson.hubspot_contact_id = hsId;
+      INT_PEOPLE.push(newPerson);
+    }
+
+    const hsMsg = hsId ? ` & added to HubSpot (${hsId})` : (email ? ' (HubSpot pending)' : '');
+    setAcmStatus(`✓ ${fullName} saved${hsMsg}`, '#2a6600');
+    saveBtn.textContent = 'Saved ✓';
+
+    // Refresh the org filter dropdown in case it's new, and re-render table
+    INT_LOADED = true;
+    renderIntermediariesTable();
+
+    setTimeout(() => closeAddContactModal(), 1600);
+
+  } catch(e) {
+    setAcmStatus(`Error: ${e.message}`, '#c0392b');
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save & add to HubSpot →';
+  }
+}
+
+function setAcmStatus(msg, colour) {
+  const el = document.getElementById('acm-status');
+  el.textContent = msg;
+  el.style.color = colour || 'var(--grey-mid)';
+}
+
 // ── Multi-send queue ──────────────────────────────────────────────────────
 
 let SEND_QUEUE = [];
@@ -1145,4 +1436,5 @@ window.closeEmailModal = function() {
 <script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
 </body>
 </html>
+
 
