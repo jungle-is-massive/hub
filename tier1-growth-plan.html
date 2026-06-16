@@ -532,6 +532,35 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 5px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .timeline-item:hover {
+    border-color: rgba(135,251,102,0.35);
+    color: rgba(255,255,255,0.9);
+  }
+
+  .timeline-item.done {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--black);
+    font-weight: 600;
+  }
+
+  .timeline-item .tick {
+    display: none;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+
+  .timeline-item.done .tick {
+    display: inline-block;
   }
 
   /* ── METRICS ── */
@@ -1119,12 +1148,12 @@
           <div>
             <div class="timeline-phase-title">Lock the basics</div>
             <div class="timeline-items">
-              <span class="timeline-item">Lock Tier 1 ICP</span>
-              <span class="timeline-item">Confirm target sectors</span>
-              <span class="timeline-item">Set up CRM + reporting</span>
-              <span class="timeline-item">Build 100-account list</span>
-              <span class="timeline-item">Select top 25 accounts</span>
-              <span class="timeline-item">Assign internal owners</span>
+              <span class="timeline-item" data-id="t1-1"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Lock Tier 1 ICP</span>
+              <span class="timeline-item" data-id="t1-2"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Confirm target sectors</span>
+              <span class="timeline-item" data-id="t1-3"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Set up CRM + reporting</span>
+              <span class="timeline-item" data-id="t1-4"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Build 100-account list</span>
+              <span class="timeline-item" data-id="t1-5"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Select top 25 accounts</span>
+              <span class="timeline-item" data-id="t1-6"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Assign internal owners</span>
             </div>
           </div>
         </div>
@@ -1133,12 +1162,12 @@
           <div>
             <div class="timeline-phase-title">Build before you outreach</div>
             <div class="timeline-items">
-              <span class="timeline-item">Tier 1 proposition one-pager</span>
-              <span class="timeline-item">Intermediary deck</span>
-              <span class="timeline-item">Outreach messaging</span>
-              <span class="timeline-item">Case studies</span>
-              <span class="timeline-item">Thought leadership hook</span>
-              <span class="timeline-item">Event theme + format</span>
+              <span class="timeline-item" data-id="t2-1"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Tier 1 proposition one-pager</span>
+              <span class="timeline-item" data-id="t2-2"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Intermediary deck</span>
+              <span class="timeline-item" data-id="t2-3"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Outreach messaging</span>
+              <span class="timeline-item" data-id="t2-4"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Case studies</span>
+              <span class="timeline-item" data-id="t2-5"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Thought leadership hook</span>
+              <span class="timeline-item" data-id="t2-6"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Event theme + format</span>
             </div>
           </div>
         </div>
@@ -1147,11 +1176,11 @@
           <div>
             <div class="timeline-phase-title">Prepare account pursuit</div>
             <div class="timeline-items">
-              <span class="timeline-item">Account plans for Tier A</span>
-              <span class="timeline-item">Decision-maker mapping</span>
-              <span class="timeline-item">Warm intro mapping</span>
-              <span class="timeline-item">Intermediary target plan</span>
-              <span class="timeline-item">Outreach sequence setup</span>
+              <span class="timeline-item" data-id="t3-1"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Account plans for Tier A</span>
+              <span class="timeline-item" data-id="t3-2"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Decision-maker mapping</span>
+              <span class="timeline-item" data-id="t3-3"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Warm intro mapping</span>
+              <span class="timeline-item" data-id="t3-4"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Intermediary target plan</span>
+              <span class="timeline-item" data-id="t3-5"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Outreach sequence setup</span>
             </div>
           </div>
         </div>
@@ -1160,11 +1189,11 @@
           <div>
             <div class="timeline-phase-title">Activate the plan</div>
             <div class="timeline-items">
-              <span class="timeline-item">Begin Tier A outreach</span>
-              <span class="timeline-item">Run intermediary meetings</span>
-              <span class="timeline-item">Share POV content</span>
-              <span class="timeline-item">Book first meetings</span>
-              <span class="timeline-item">Track weekly conversion</span>
+              <span class="timeline-item" data-id="t4-1"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Begin Tier A outreach</span>
+              <span class="timeline-item" data-id="t4-2"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Run intermediary meetings</span>
+              <span class="timeline-item" data-id="t4-3"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Share POV content</span>
+              <span class="timeline-item" data-id="t4-4"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Book first meetings</span>
+              <span class="timeline-item" data-id="t4-5"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Track weekly conversion</span>
             </div>
           </div>
         </div>
@@ -1173,11 +1202,11 @@
           <div>
             <div class="timeline-phase-title">Run the event</div>
             <div class="timeline-items">
-              <span class="timeline-item">Invite Tier 1 prospects</span>
-              <span class="timeline-item">Run private briefings</span>
-              <span class="timeline-item">48-hour follow-up</span>
-              <span class="timeline-item">Convert to meetings</span>
-              <span class="timeline-item">Move to opportunity stage</span>
+              <span class="timeline-item" data-id="t5-1"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Invite Tier 1 prospects</span>
+              <span class="timeline-item" data-id="t5-2"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Run private briefings</span>
+              <span class="timeline-item" data-id="t5-3"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>48-hour follow-up</span>
+              <span class="timeline-item" data-id="t5-4"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Convert to meetings</span>
+              <span class="timeline-item" data-id="t5-5"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Move to opportunity stage</span>
             </div>
           </div>
         </div>
@@ -1186,11 +1215,11 @@
           <div>
             <div class="timeline-phase-title">Close £1.2m</div>
             <div class="timeline-items">
-              <span class="timeline-item">Strategic meetings</span>
-              <span class="timeline-item">Diagnose commercial challenge</span>
-              <span class="timeline-item">Tailored proposals</span>
-              <span class="timeline-item">Pitch where there's clear need + budget</span>
-              <span class="timeline-item">Convert 2 × £600k clients</span>
+              <span class="timeline-item" data-id="t6-1"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Strategic meetings</span>
+              <span class="timeline-item" data-id="t6-2"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Diagnose commercial challenge</span>
+              <span class="timeline-item" data-id="t6-3"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Tailored proposals</span>
+              <span class="timeline-item" data-id="t6-4"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Pitch where there's clear need + budget</span>
+              <span class="timeline-item" data-id="t6-5"><svg class="tick" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#111110" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Convert 2 × £600k clients</span>
             </div>
           </div>
         </div>
@@ -1302,5 +1331,52 @@
   <p>Private &amp; Confidential</p>
 </footer>
 
+<script>
+  (function () {
+    const STORAGE_KEY = 'jungle-tier1-timeline-done';
+
+    function loadDone() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch (e) { return []; }
+    }
+
+    function saveDone(ids) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ids)); }
+      catch (e) {}
+    }
+
+    function applyState(items, doneIds) {
+      items.forEach(function (item) {
+        var id = item.getAttribute('data-id');
+        if (doneIds.indexOf(id) !== -1) {
+          item.classList.add('done');
+        } else {
+          item.classList.remove('done');
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var items = Array.from(document.querySelectorAll('.timeline-item[data-id]'));
+      var doneIds = loadDone();
+
+      applyState(items, doneIds);
+
+      items.forEach(function (item) {
+        item.addEventListener('click', function () {
+          var id = item.getAttribute('data-id');
+          var idx = doneIds.indexOf(id);
+          if (idx === -1) {
+            doneIds.push(id);
+          } else {
+            doneIds.splice(idx, 1);
+          }
+          saveDone(doneIds);
+          applyState(items, doneIds);
+        });
+      });
+    });
+  })();
+</script>
 </body>
 </html>
