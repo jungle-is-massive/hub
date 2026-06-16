@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tier 1 Growth Plan — Jungle Creations</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #111110;
+    --cream: #F3EFEC;
+    --beige: #F6E6DE;
+    --green: #87FB66;
+    --white: #FFFFFF;
+    --grey: #666666;
+    --grey-light: #999;
+    --border: rgba(255,255,255,0.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(17,17,16,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--grey-light);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 100px 40px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--green);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 36px;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+    max-width: 820px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--green);
+  }
+
+  .hero-sub {
+    font-size: 20px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.6);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 640px;
+  }
+
+  .stat {
+    background: rgba(255,255,255,0.03);
+    padding: 28px 32px;
+  }
+
+  .stat-number {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--grey-light);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .page-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px 120px;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    padding: 80px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 0 32px;
+    margin-bottom: 52px;
+    align-items: start;
+  }
+
+  .section-num {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    padding-top: 6px;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .section-title em {
+    font-style: normal;
+    color: var(--green);
+  }
+
+  .section-content {
+    padding-left: 112px;
+  }
+
+  /* ── ICP DEFINITION CARDS ── */
+  .icp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .icp-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .icp-card-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .icp-card p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.6;
+  }
+
+  /* ── SECTOR PILLS ── */
+  .sectors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 32px;
+  }
+
+  .sector-pill {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 8px 18px;
+    border-radius: 100px;
+    background: var(--beige);
+    color: var(--black);
+  }
+
+  .sector-pill.highlight {
+    background: var(--green);
+  }
+
+  /* ── PROSPECT TIERS ── */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .tier-card {
+    border-radius: 12px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tier-card.tier-a {
+    background: var(--green);
+    color: var(--black);
+  }
+
+  .tier-card.tier-b {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+  }
+
+  .tier-card.tier-c {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+  }
+
+  .tier-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.6;
+  }
+
+  .tier-a .tier-label { color: var(--black); }
+
+  .tier-count {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .tier-a .tier-count { color: var(--black); }
+
+  .tier-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .tier-a .tier-name { color: var(--black); }
+
+  .tier-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.6;
+  }
+
+  .tier-a .tier-desc { color: rgba(0,0,0,0.65); }
+
+  /* ── DATA FIELDS ── */
+  .data-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .data-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .data-field::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  /* ── ASSETS ── */
+  .asset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .asset-item {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+    align-items: start;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+
+  .asset-item:hover {
+    border-color: rgba(135,251,102,0.3);
+  }
+
+  .asset-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: -0.02em;
+  }
+
+  .asset-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .asset-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.6;
+  }
+
+  /* ── OUTREACH CHANNELS ── */
+  .channel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .channel-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .channel-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .channel-title .tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(135,251,102,0.15);
+    color: var(--green);
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  .channel-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .channel-items li {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .channel-items li::before {
+    content: '→';
+    color: var(--green);
+    font-size: 12px;
+  }
+
+  /* ── SEQUENCE STEPS ── */
+  .sequence {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 32px;
+  }
+
+  .seq-step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 20px;
+    align-items: start;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .seq-step:last-child { border-bottom: none; }
+
+  .seq-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--green);
+    opacity: 0.4;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .seq-content { padding-top: 3px; }
+
+  .seq-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .seq-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.6;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .timeline-phase {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 32px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+
+  .timeline-phase:last-child { border-bottom: none; }
+
+  .timeline-period {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-top: 3px;
+  }
+
+  .timeline-phase-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .timeline-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .timeline-item {
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+  }
+
+  /* ── METRICS ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .metric-block {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .metric-block.highlight-block {
+    background: rgba(135,251,102,0.06);
+    border-color: rgba(135,251,102,0.2);
+  }
+
+  .metric-period {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 16px;
+  }
+
+  .metric-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .metric-items li {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .metric-items li::before {
+    content: '✓';
+    color: var(--green);
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── DECISIONS ── */
+  .decisions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .decision-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+
+  .decision-n {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--green);
+    min-width: 22px;
+  }
+
+  .decision-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+  }
+
+  /* ── POV CALLOUT ── */
+  .pov-callout {
+    background: var(--green);
+    border-radius: 16px;
+    padding: 40px 44px;
+    margin: 48px 0;
+  }
+
+  .pov-callout p {
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    max-width: 680px;
+  }
+
+  .pov-callout .pov-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.45);
+    margin-bottom: 12px;
+  }
+
+  /* ── META ROW ── */
+  .meta-row {
+    display: flex;
+    gap: 32px;
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .meta-value {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 500;
+  }
+
+  /* ── EVENT BLOCK ── */
+  .event-block {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(135,251,102,0.2);
+    border-radius: 16px;
+    padding: 36px;
+    margin-top: 32px;
+  }
+
+  .event-theme {
+    font-size: clamp(18px, 2.5vw, 24px);
+    font-weight: 700;
+    color: var(--green);
+    font-style: italic;
+    margin-bottom: 20px;
+    line-height: 1.3;
+  }
+
+  .event-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .event-stat { display: flex; flex-direction: column; gap: 4px; }
+  .event-stat-n {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .event-stat-l { font-size: 12px; color: var(--grey-light); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  footer p {
+    font-size: 12px;
+    color: var(--grey);
+  }
+
+  footer strong { color: var(--green); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 60px 20px 48px; }
+    .hero-stats { grid-template-columns: 1fr; }
+    .page-body { padding: 0 20px 80px; }
+    .section-header { grid-template-columns: 1fr; gap: 8px; }
+    .section-content { padding-left: 0; }
+    .icp-grid, .tier-grid, .channel-grid, .metrics-grid, .decisions-grid { grid-template-columns: 1fr; }
+    .data-fields { grid-template-columns: 1fr; }
+    .timeline-phase { grid-template-columns: 1fr; gap: 8px; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">Jungle × Tier 1 Plan</span>
+  <ul class="nav-links">
+    <li><a href="#icp">ICP</a></li>
+    <li><a href="#prospects">Prospects</a></li>
+    <li><a href="#assets">Assets</a></li>
+    <li><a href="#outreach">Outreach</a></li>
+    <li><a href="#events">Events</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li><a href="#metrics">Metrics</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-eyebrow">Growth Plan 2026</div>
+  <h1>Win 2 Tier 1 clients.<br><em>£1.2m</em> new revenue.</h1>
+  <p class="hero-sub">A focused pursuit engine for Jungle's highest-value new business opportunity — built around a tight ICP, senior relationships, and a clear 24-week plan.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-number">2</div>
+      <div class="stat-label">Target wins</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">£600k</div>
+      <div class="stat-label">Per client</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">£3m+</div>
+      <div class="stat-label">Target pipeline</div>
+    </div>
+  </div>
+</header>
+
+<main class="page-body">
+
+  <!-- SECTION 1: ICP -->
+  <section class="section" id="icp">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2 class="section-title">Define the<br><em>Tier 1 ICP</em></h2>
+    </div>
+    <div class="section-content">
+      <div class="icp-grid">
+        <div class="icp-card">
+          <div class="icp-card-dot"></div>
+          <p>Spends heavily on ATL, paid media, brand, content or social</p>
+        </div>
+        <div class="icp-card">
+          <div class="icp-card-dot"></div>
+          <p>Strong brand awareness but underdeveloped social maturity</p>
+        </div>
+        <div class="icp-card">
+          <div class="icp-card-dot"></div>
+          <p>Needs social to work harder commercially — not just creatively</p>
+        </div>
+        <div class="icp-card">
+          <div class="icp-card-dot"></div>
+          <p>Multiple audiences, markets, channels or content needs</p>
+        </div>
+        <div class="icp-card">
+          <div class="icp-card-dot"></div>
+          <p>Needs an agency combining strategy, creative, production, influencer, paid and social ops</p>
+        </div>
+        <div class="icp-card">
+          <div class="icp-card-dot"></div>
+          <p>Has potential to spend <strong>£500k to £1m+ per year</strong></p>
+        </div>
+      </div>
+
+      <div class="sectors">
+        <span class="sector-pill highlight">Retail</span>
+        <span class="sector-pill highlight">Travel &amp; Leisure</span>
+        <span class="sector-pill highlight">Food &amp; Drink</span>
+        <span class="sector-pill">Consumer Health &amp; Wellness</span>
+        <span class="sector-pill">Entertainment &amp; Culture</span>
+        <span class="sector-pill">Consumer Technology</span>
+        <span class="sector-pill">Financial Services</span>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-item"><span class="meta-label">Owner</span><span class="meta-value">Growth Lead + Jade, Strategy, Creative, Paid, Social</span></div>
+        <div class="meta-item"><span class="meta-label">Timing</span><span class="meta-value">Week 1</span></div>
+        <div class="meta-item"><span class="meta-label">Action</span><span class="meta-value">Lock ICP definition and agree priority sectors</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: PROSPECTS -->
+  <section class="section" id="prospects">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2 class="section-title">Build the<br><em>prospect universe</em></h2>
+    </div>
+    <div class="section-content">
+      <div class="tier-grid">
+        <div class="tier-card tier-a">
+          <div class="tier-label">Priority</div>
+          <div class="tier-count">25</div>
+          <div class="tier-name">Tier A accounts</div>
+          <div class="tier-desc">Highest-fit brands. Personalised outreach, senior attention, warm intro mapping and tailored content.</div>
+        </div>
+        <div class="tier-card tier-b">
+          <div class="tier-label">Next</div>
+          <div class="tier-count">50</div>
+          <div class="tier-name">Tier B accounts</div>
+          <div class="tier-desc">Strong-fit brands. Structured outreach and nurture.</div>
+        </div>
+        <div class="tier-card tier-c">
+          <div class="tier-label">Watchlist</div>
+          <div class="tier-count">25</div>
+          <div class="tier-name">Tier C accounts</div>
+          <div class="tier-desc">Good potential but lower urgency, weaker timing or less obvious buying trigger.</div>
+        </div>
+      </div>
+
+      <p style="font-size:14px; font-weight:600; color:var(--grey-light); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:16px;">Data to capture per account</p>
+      <div class="data-fields">
+        <div class="data-field">Company name &amp; sector</div>
+        <div class="data-field">Why they fit the ICP</div>
+        <div class="data-field">Current social maturity gap</div>
+        <div class="data-field">Known agency relationships</div>
+        <div class="data-field">Key decision-makers</div>
+        <div class="data-field">Known intermediaries / contacts</div>
+        <div class="data-field">Recent business trigger</div>
+        <div class="data-field">Estimated opportunity size</div>
+        <div class="data-field">Priority score</div>
+        <div class="data-field">Next action</div>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-item"><span class="meta-label">Owner</span><span class="meta-value">Growth Lead + Marketing, New Business, Account Leads</span></div>
+        <div class="meta-item"><span class="meta-label">Timing</span><span class="meta-value">Weeks 1–2</span></div>
+        <div class="meta-item"><span class="meta-label">Action</span><span class="meta-value">Build 100-account list, agree top 25 priority accounts</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: ASSETS -->
+  <section class="section" id="assets">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2 class="section-title">Create the<br><em>core assets</em></h2>
+    </div>
+    <div class="section-content">
+      <div class="asset-list">
+        <div class="asset-item">
+          <div class="asset-num">1</div>
+          <div>
+            <div class="asset-name">Tier 1 proposition one-pager</div>
+            <div class="asset-desc">A simple articulation of why Jungle is relevant to large consumer brands now. Core message: Jungle helps ambitious brands turn social from a content channel into a commercial growth system.</div>
+          </div>
+        </div>
+        <div class="asset-item">
+          <div class="asset-num">2</div>
+          <div>
+            <div class="asset-name">Intermediary deck</div>
+            <div class="asset-desc">10–12 slides that make it easy for intermediaries to know when to put Jungle on the list. Must include what we do, who we're perfect for, what problems we solve, 2–3 case studies, a clear ICP slide, and a "when to call us" slide.</div>
+          </div>
+        </div>
+        <div class="asset-item">
+          <div class="asset-num">3</div>
+          <div>
+            <div class="asset-name">Tier 1 outreach narrative</div>
+            <div class="asset-desc">A short POV-led message sequence avoiding cold sales language. Key themes: social has moved into the boardroom; vanity metrics are no longer enough; large brands need connected social systems, not isolated content.</div>
+          </div>
+        </div>
+        <div class="asset-item">
+          <div class="asset-num">4</div>
+          <div>
+            <div class="asset-name">Hero case studies</div>
+            <div class="asset-desc">Priority: DFS, Disney, Red Bull, Itsu, Optimum Nutrition (if usable). Each must prove commercial relevance, scale, social maturity and connected delivery.</div>
+          </div>
+        </div>
+        <div class="asset-item">
+          <div class="asset-num">5</div>
+          <div>
+            <div class="asset-name">Thought leadership hook</div>
+            <div class="asset-desc">Core POV: <em style="color:var(--green)">"Vanity is Dead: why social now needs to prove commercial impact."</em> This becomes the engine for every outreach, event invite and follow-up.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-item"><span class="meta-label">Owner</span><span class="meta-value">Growth Lead, Strategy, Creative, Marketing</span></div>
+        <div class="meta-item"><span class="meta-label">Timing</span><span class="meta-value">Weeks 2–4</span></div>
+        <div class="meta-item"><span class="meta-label">Action</span><span class="meta-value">Create and approve minimum viable asset set before outreach begins</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: OUTREACH -->
+  <section class="section" id="outreach">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2 class="section-title">Outreach &amp;<br><em>engagement plan</em></h2>
+    </div>
+    <div class="section-content">
+      <div class="channel-grid">
+        <div class="channel-card">
+          <div class="channel-title">Warm introductions <span class="tag">Priority</span></div>
+          <ul class="channel-items">
+            <li>Jungle leadership</li>
+            <li>Current and former client teams</li>
+            <li>Agency partners</li>
+            <li>Intermediaries</li>
+            <li>LinkedIn connections</li>
+          </ul>
+        </div>
+        <div class="channel-card">
+          <div class="channel-title">Intermediary route</div>
+          <ul class="channel-items">
+            <li>AAR</li>
+            <li>Oystercatchers</li>
+            <li>Creativebrief</li>
+            <li>GO! Network</li>
+            <li>Ingenuity</li>
+            <li>The Observatory</li>
+            <li>Tufton Hall</li>
+          </ul>
+        </div>
+        <div class="channel-card">
+          <div class="channel-title">Direct senior outreach</div>
+          <p style="font-size:13px; color:var(--grey-light); margin-bottom:14px;">4-step sequence targeting CMOs, Brand, Social, Content, Media &amp; Digital Directors.</p>
+          <ul class="channel-items">
+            <li>Connect with a sharp reason</li>
+            <li>Share a relevant POV</li>
+            <li>Send a useful category observation</li>
+            <li>Invite to conversation, event or roundtable</li>
+          </ul>
+        </div>
+        <div class="channel-card">
+          <div class="channel-title">Owned engagement</div>
+          <ul class="channel-items">
+            <li>Senior invite-only roundtable</li>
+            <li>Breakfast event</li>
+            <li>Private briefing</li>
+            <li>Webinar</li>
+            <li>One-to-one social maturity session</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-item"><span class="meta-label">Owner</span><span class="meta-value">Growth Lead, Marketing, Senior Team</span></div>
+        <div class="meta-item"><span class="meta-label">Timing</span><span class="meta-value">Weeks 4–8</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: ACCOUNT PURSUIT -->
+  <section class="section" id="account-pursuit">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2 class="section-title">Account-based<br><em>pursuit</em></h2>
+    </div>
+    <div class="section-content">
+      <p style="font-size:15px; color:rgba(255,255,255,0.6); margin-bottom:32px; max-width:560px; line-height:1.7;">For each Tier A account, run a 7-step engagement sequence. Account plans to cover: why it matters, likely business issue, Jungle relevance, best route in, outreach angle, and named owner.</p>
+
+      <div class="sequence">
+        <div class="seq-step">
+          <div class="seq-num">01</div>
+          <div class="seq-content">
+            <div class="seq-title">Research</div>
+            <div class="seq-desc">Identify social maturity gap, current brand activity, business triggers and likely pain points.</div>
+          </div>
+        </div>
+        <div class="seq-step">
+          <div class="seq-num">02</div>
+          <div class="seq-content">
+            <div class="seq-title">Map people</div>
+            <div class="seq-desc">Find 3–5 relevant contacts per account across marketing, brand, social, content and media.</div>
+          </div>
+        </div>
+        <div class="seq-step">
+          <div class="seq-num">03</div>
+          <div class="seq-content">
+            <div class="seq-title">Identify best route in</div>
+            <div class="seq-desc">Warm intro first. Intermediary second. Direct outreach third.</div>
+          </div>
+        </div>
+        <div class="seq-step">
+          <div class="seq-num">04</div>
+          <div class="seq-content">
+            <div class="seq-title">Send tailored outreach</div>
+            <div class="seq-desc">A short POV-led message — not a generic sales email.</div>
+          </div>
+        </div>
+        <div class="seq-step">
+          <div class="seq-num">05</div>
+          <div class="seq-content">
+            <div class="seq-title">Invite to useful engagement</div>
+            <div class="seq-desc">Roundtable, briefing, private session or tailored conversation.</div>
+          </div>
+        </div>
+        <div class="seq-step">
+          <div class="seq-num">06</div>
+          <div class="seq-content">
+            <div class="seq-title">Nurture</div>
+            <div class="seq-desc">Continue with relevant content, case studies, category observations and event follow-ups.</div>
+          </div>
+        </div>
+        <div class="seq-step">
+          <div class="seq-num">07</div>
+          <div class="seq-content">
+            <div class="seq-title">Convert to meeting</div>
+            <div class="seq-desc">Aim for a strategic conversation — not a credentials presentation.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-item"><span class="meta-label">Owner</span><span class="meta-value">Growth Lead + named senior sponsor per account</span></div>
+        <div class="meta-item"><span class="meta-label">Timing</span><span class="meta-value">Weeks 4–6, then ongoing</span></div>
+        <div class="meta-item"><span class="meta-label">Action</span><span class="meta-value">Create account plans for top 25 Tier A prospects</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: EVENTS -->
+  <section class="section" id="events">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2 class="section-title">Events &amp;<br><em>intermediary activation</em></h2>
+    </div>
+    <div class="section-content">
+      <p style="font-size:15px; color:rgba(255,255,255,0.6); margin-bottom:32px; max-width:540px; line-height:1.7;">A structured intermediary roadshow plus one focused owned Tier 1 event, designed to create credibility, urgency, and face-to-face engagement with senior decision-makers.</p>
+
+      <div class="pov-callout">
+        <p class="pov-label">Recommended event theme</p>
+        <p>"Vanity is Dead: how leading brands are turning social into a commercial growth system"</p>
+      </div>
+
+      <div class="event-block">
+        <div class="event-theme">Senior invite-only Tier 1 event</div>
+        <div class="event-stats">
+          <div class="event-stat">
+            <span class="event-stat-n">40–60</span>
+            <span class="event-stat-l">Invited</span>
+          </div>
+          <div class="event-stat">
+            <span class="event-stat-n">20–30</span>
+            <span class="event-stat-l">Attendees</span>
+          </div>
+          <div class="event-stat">
+            <span class="event-stat-n">8–10</span>
+            <span class="event-stat-l">Follow-up meetings</span>
+          </div>
+          <div class="event-stat">
+            <span class="event-stat-n">2–4</span>
+            <span class="event-stat-l">Live opportunities</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-item"><span class="meta-label">Owner</span><span class="meta-value">Growth Lead, Marketing, Jade, Oscar, Molly</span></div>
+        <div class="meta-item"><span class="meta-label">Intermediary roadshow</span><span class="meta-value">Weeks 5–10</span></div>
+        <div class="meta-item"><span class="meta-label">Owned event</span><span class="meta-value">Weeks 8–14</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: TIMELINE -->
+  <section class="section" id="timeline">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2 class="section-title">24-week<br><em>timeline</em></h2>
+    </div>
+    <div class="section-content">
+      <div class="timeline">
+        <div class="timeline-phase">
+          <div class="timeline-period">Weeks 1–2<br>Set the foundation</div>
+          <div>
+            <div class="timeline-phase-title">Lock the basics</div>
+            <div class="timeline-items">
+              <span class="timeline-item">Lock Tier 1 ICP</span>
+              <span class="timeline-item">Confirm target sectors</span>
+              <span class="timeline-item">Set up CRM + reporting</span>
+              <span class="timeline-item">Build 100-account list</span>
+              <span class="timeline-item">Select top 25 accounts</span>
+              <span class="timeline-item">Assign internal owners</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-phase">
+          <div class="timeline-period">Weeks 2–4<br>Build assets</div>
+          <div>
+            <div class="timeline-phase-title">Build before you outreach</div>
+            <div class="timeline-items">
+              <span class="timeline-item">Tier 1 proposition one-pager</span>
+              <span class="timeline-item">Intermediary deck</span>
+              <span class="timeline-item">Outreach messaging</span>
+              <span class="timeline-item">Case studies</span>
+              <span class="timeline-item">Thought leadership hook</span>
+              <span class="timeline-item">Event theme + format</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-phase">
+          <div class="timeline-period">Weeks 4–6<br>Account pursuit prep</div>
+          <div>
+            <div class="timeline-phase-title">Prepare account pursuit</div>
+            <div class="timeline-items">
+              <span class="timeline-item">Account plans for Tier A</span>
+              <span class="timeline-item">Decision-maker mapping</span>
+              <span class="timeline-item">Warm intro mapping</span>
+              <span class="timeline-item">Intermediary target plan</span>
+              <span class="timeline-item">Outreach sequence setup</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-phase">
+          <div class="timeline-period">Weeks 6–10<br>Launch outreach</div>
+          <div>
+            <div class="timeline-phase-title">Activate the plan</div>
+            <div class="timeline-items">
+              <span class="timeline-item">Begin Tier A outreach</span>
+              <span class="timeline-item">Run intermediary meetings</span>
+              <span class="timeline-item">Share POV content</span>
+              <span class="timeline-item">Book first meetings</span>
+              <span class="timeline-item">Track weekly conversion</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-phase">
+          <div class="timeline-period">Weeks 8–14<br>Owned engagement</div>
+          <div>
+            <div class="timeline-phase-title">Run the event</div>
+            <div class="timeline-items">
+              <span class="timeline-item">Invite Tier 1 prospects</span>
+              <span class="timeline-item">Run private briefings</span>
+              <span class="timeline-item">48-hour follow-up</span>
+              <span class="timeline-item">Convert to meetings</span>
+              <span class="timeline-item">Move to opportunity stage</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-phase">
+          <div class="timeline-period">Weeks 12–24<br>Convert</div>
+          <div>
+            <div class="timeline-phase-title">Close £1.2m</div>
+            <div class="timeline-items">
+              <span class="timeline-item">Strategic meetings</span>
+              <span class="timeline-item">Diagnose commercial challenge</span>
+              <span class="timeline-item">Tailored proposals</span>
+              <span class="timeline-item">Pitch where there's clear need + budget</span>
+              <span class="timeline-item">Convert 2 × £600k clients</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: METRICS -->
+  <section class="section" id="metrics">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <h2 class="section-title">Success<br><em>metrics</em></h2>
+    </div>
+    <div class="section-content">
+      <div class="metrics-grid">
+        <div class="metric-block">
+          <div class="metric-period">By week 4</div>
+          <ul class="metric-items">
+            <li>100 Tier 1 accounts identified</li>
+            <li>Top 25 priority accounts agreed</li>
+            <li>Core assets completed</li>
+            <li>CRM tracking live</li>
+          </ul>
+        </div>
+        <div class="metric-block">
+          <div class="metric-period">By week 8</div>
+          <ul class="metric-items">
+            <li>25 Tier A account plans completed</li>
+            <li>75–100 senior contacts mapped</li>
+            <li>10 intermediary meetings booked or completed</li>
+            <li>25 priority accounts in active outreach</li>
+          </ul>
+        </div>
+        <div class="metric-block">
+          <div class="metric-period">By week 14</div>
+          <ul class="metric-items">
+            <li>1 owned event or roundtable completed</li>
+            <li>20–30 senior attendees</li>
+            <li>8–10 follow-up meetings</li>
+            <li>4–6 qualified opportunities</li>
+          </ul>
+        </div>
+        <div class="metric-block highlight-block">
+          <div class="metric-period">By month 6</div>
+          <ul class="metric-items">
+            <li>£3m+ qualified Tier 1 pipeline</li>
+            <li>4–6 live opportunities</li>
+            <li>2 late-stage opportunities</li>
+            <li>2 wins at £600k each</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 9: DECISIONS -->
+  <section class="section" id="decisions">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <h2 class="section-title">Decisions<br><em>needed now</em></h2>
+    </div>
+    <div class="section-content">
+      <div class="decisions-grid">
+        <div class="decision-item">
+          <span class="decision-n">1</span>
+          <span class="decision-text">Final Tier 1 ICP definition</span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-n">2</span>
+          <span class="decision-text">Priority sectors to pursue</span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-n">3</span>
+          <span class="decision-text">Top 25 target accounts</span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-n">4</span>
+          <span class="decision-text">Core proposition line</span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-n">5</span>
+          <span class="decision-text">Case studies we can use</span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-n">6</span>
+          <span class="decision-text">Owner for each workstream</span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-n">7</span>
+          <span class="decision-text">Event format and budget</span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-n">8</span>
+          <span class="decision-text">Weekly reporting rhythm</span>
+        </div>
+      </div>
+
+      <div class="pov-callout" style="margin-top:48px;">
+        <p class="pov-label">Recommended next move</p>
+        <p>A two-hour working session to lock ICP, sectors, prospect criteria, core proposition, required assets, workstream owners and the first 30-day action plan. Then move immediately into list building, asset creation and intermediary outreach.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Jungle Creations — <strong>Tier 1 Growth Plan 2026</strong></p>
+  <p>Private &amp; Confidential</p>
+</footer>
+
+</body>
+</html>
