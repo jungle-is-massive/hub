@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martech Ecosystem — Jungle Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #111110;
+    --cream: #F3EFEC;
+    --beige: #F6E6DE;
+    --green: #87FB66;
+    --white: #FFFFFF;
+    --grey: #666666;
+    --grey-light: #999;
+    --border: rgba(255,255,255,0.08);
+    --card-bg: rgba(255,255,255,0.03);
+    --card-bg-hover: rgba(255,255,255,0.06);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── AUTH ── */
+  #auth-wall {
+    position: fixed; inset: 0;
+    background: var(--black);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .auth-box {
+    width: 340px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    text-align: center;
+    background: rgba(255,255,255,0.02);
+  }
+  .auth-logo {
+    width: 44px; height: 44px;
+    background: var(--green);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+  }
+  .auth-logo svg { width: 22px; height: 22px; }
+  .auth-box h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .auth-box p { font-size: 13px; color: var(--grey-light); margin-bottom: 28px; }
+  .auth-box input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--white);
+    font-family: inherit;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .auth-box input:focus { border-color: var(--green); }
+  .auth-box button {
+    width: 100%;
+    background: var(--green);
+    color: var(--black);
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .auth-box button:hover { opacity: 0.85; }
+  .auth-error { font-size: 12px; color: #ff6b6b; margin-top: 10px; display: none; }
+
+  /* ── TOPBAR ── */
+  #topbar {
+    position: sticky; top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(17,17,16,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    height: 52px;
+    display: flex; align-items: center;
+    padding: 0 32px;
+    gap: 16px;
+  }
+  .topbar-eyebrow {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--green);
+  }
+  .topbar-sep { color: var(--border); font-size: 16px; }
+  .topbar-title {
+    font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.02em;
+  }
+  .topbar-tabs {
+    margin-left: auto;
+    display: flex; gap: 4px;
+  }
+  .tab-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    border: none; cursor: pointer;
+    font-family: inherit;
+    background: transparent;
+    color: var(--grey-light);
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+  .tab-btn.active { background: rgba(135,251,102,0.12); color: var(--green); }
+
+  /* ── MAIN ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 72px 48px 64px;
+    max-width: 1160px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--black); background: var(--green);
+    padding: 5px 12px; border-radius: 100px;
+    margin-bottom: 32px;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 5.5vw, 72px);
+    font-weight: 800; line-height: 1.0; letter-spacing: -0.03em;
+    margin-bottom: 20px; max-width: 760px;
+  }
+  .hero h1 em { font-style: normal; color: var(--green); }
+  .hero-sub {
+    font-size: 17px; font-weight: 400;
+    color: rgba(255,255,255,0.55);
+    max-width: 560px; line-height: 1.75;
+    margin-bottom: 48px;
+  }
+  .hero-meta {
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+  .hero-meta-item {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero-meta-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .dot-red { background: #ff5f57; }
+  .dot-amber { background: #febc2e; }
+  .dot-green { background: var(--green); }
+  .hero-meta-label { font-size: 12px; color: var(--grey-light); font-weight: 500; }
+  .hero-meta-val { font-size: 12px; color: var(--white); font-weight: 600; margin-left: 2px; }
+
+  /* ── SECTION WRAPPERS ── */
+  .content-wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 48px 100px;
+  }
+
+  .section {
+    padding: 64px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: clamp(24px, 3vw, 36px);
+    font-weight: 700; line-height: 1.15; letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .section-title em { font-style: normal; color: var(--green); }
+  .section-sub {
+    font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.7;
+    max-width: 560px; margin-bottom: 40px;
+  }
+
+  /* ── AS-IS / TO-BE SPLIT ── */
+  .state-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .state-panel {
+    padding: 36px 36px 40px;
+    background: var(--card-bg);
+  }
+  .state-panel.future { background: rgba(135,251,102,0.04); border-left: 1px solid rgba(135,251,102,0.15); }
+  .state-panel-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+  }
+  .state-panel-label .badge {
+    padding: 3px 10px; border-radius: 100px; font-size: 9px; font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+  .badge-now { background: rgba(255,255,255,0.08); color: var(--grey-light); }
+  .badge-future { background: rgba(135,251,102,0.18); color: var(--green); }
+  .state-panel h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; line-height: 1.3; }
+  .state-panel h3 em { font-style: normal; color: var(--green); }
+  .state-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .state-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6;
+  }
+  .state-list li .icon {
+    flex-shrink: 0; width: 18px; height: 18px; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-x { color: rgba(255,95,87,0.7); font-size: 13px; font-weight: 700; }
+  .icon-check { color: var(--green); font-size: 14px; font-weight: 700; }
+
+  /* ── TOOLS GRID ── */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .tool-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    background: var(--card-bg);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .tool-card:hover { border-color: rgba(135,251,102,0.2); background: var(--card-bg-hover); }
+  .tool-card-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .tool-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .tool-status {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 100px;
+  }
+  .status-live { background: rgba(135,251,102,0.15); color: var(--green); }
+  .status-partial { background: rgba(254,188,46,0.15); color: #febc2e; }
+  .status-unlock { background: rgba(255,255,255,0.06); color: var(--grey-light); }
+  .tool-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .tool-role { font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 500; margin-bottom: 14px; }
+  .tool-uses { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .tool-uses li {
+    font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .tool-uses li::before { content: '→'; color: var(--green); font-size: 10px; margin-top: 2px; flex-shrink: 0; }
+
+  /* ── FUNNEL VISUALISER ── */
+  .funnel-wrap {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .funnel-header {
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .funnel-header h3 { font-size: 14px; font-weight: 600; }
+  .funnel-header p { font-size: 12px; color: var(--grey-light); }
+  .funnel-stages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+  .funnel-stage {
+    background: var(--black);
+    padding: 24px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .funnel-stage:first-child { background: rgba(255,255,255,0.02); }
+  .stage-top {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stage-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(135,251,102,0.12);
+    color: var(--green);
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stage-name { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .stage-qual {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--grey);
+  }
+  .stage-desc { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+  .stage-tool-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--grey-light); padding: 3px 8px; border-radius: 4px;
+    margin-top: auto;
+  }
+  .stage-tool-badge.hs { background: rgba(255,122,0,0.08); border-color: rgba(255,122,0,0.2); color: #ff7a00; }
+
+  /* ── UNLOCK ROWS ── */
+  .unlock-list { display: flex; flex-direction: column; gap: 2px; }
+  .unlock-item {
+    display: grid;
+    grid-template-columns: 48px 1fr 1fr 120px;
+    gap: 20px;
+    align-items: center;
+    padding: 20px 24px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s;
+    margin-bottom: 2px;
+  }
+  .unlock-item:hover { border-color: var(--border); }
+  .unlock-number {
+    font-size: 28px; font-weight: 800; color: rgba(135,251,102,0.2);
+    letter-spacing: -0.03em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .unlock-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .unlock-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+  .unlock-who { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .unlock-effort {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 6px; text-align: center;
+  }
+  .effort-low { background: rgba(135,251,102,0.1); color: var(--green); }
+  .effort-med { background: rgba(254,188,46,0.1); color: #febc2e; }
+  .effort-high { background: rgba(255,95,87,0.1); color: #ff6b6b; }
+
+  /* ── DASHBOARD METRICS ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .metric-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    background: var(--card-bg);
+  }
+  .metric-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .metric-card-header h4 { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--grey-light); }
+  .metric-scope { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey); background: rgba(255,255,255,0.04); padding: 3px 8px; border-radius: 4px; }
+  .metric-items { display: flex; flex-direction: column; gap: 12px; }
+  .metric-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .metric-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .metric-label { font-size: 13px; color: rgba(255,255,255,0.65); }
+  .metric-value { font-size: 13px; font-weight: 700; }
+  .metric-value.green { color: var(--green); }
+  .metric-bar-wrap { flex: 1; margin: 0 16px; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+  .metric-bar { height: 100%; border-radius: 2px; background: var(--green); }
+
+  /* ── LP / GATED ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .feature-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    background: var(--card-bg);
+  }
+  .feature-card.highlight { border-color: rgba(135,251,102,0.25); background: rgba(135,251,102,0.03); }
+  .feature-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(135,251,102,0.1);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+  .feature-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.65; margin-bottom: 16px; }
+  .feature-users {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .user-tag {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(255,255,255,0.06); color: var(--grey-light);
+    padding: 3px 9px; border-radius: 4px;
+  }
+
+  /* ── RESP ── */
+  @media (max-width: 900px) {
+    .state-grid { grid-template-columns: 1fr; }
+    .tools-grid { grid-template-columns: 1fr 1fr; }
+    .funnel-stages { grid-template-columns: 1fr; }
+    .unlock-item { grid-template-columns: 40px 1fr; }
+    .unlock-who, .unlock-effort { display: none; }
+    .metrics-grid { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .tools-grid { grid-template-columns: 1fr; }
+    .hero { padding: 48px 24px 40px; }
+    .content-wrap { padding: 0 24px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH WALL -->
+<div id="auth-wall">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <svg viewBox="0 0 20 20" fill="none">
+        <path d="M3 17L10 3l7 14" stroke="#111110" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 12h8" stroke="#111110" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h2>Jungle Hub</h2>
+    <p>Enter your access password to continue</p>
+    <input type="password" id="auth-input" placeholder="Password" />
+    <button onclick="checkAuth()">Access Hub</button>
+    <div class="auth-error" id="auth-error">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <span class="topbar-eyebrow">Jungle Hub</span>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-title">Martech Ecosystem</span>
+  <div class="topbar-tabs">
+    <button class="tab-btn active" onclick="showPage('overview')">Overview</button>
+    <button class="tab-btn" onclick="showPage('tools')">Tools</button>
+    <button class="tab-btn" onclick="showPage('funnel')">Funnel & Dashboard</button>
+    <button class="tab-btn" onclick="showPage('unlock')">Unlock HubSpot</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE 1: OVERVIEW ═══════════════════ -->
+<div id="page-overview" class="page active">
+  <div class="hero">
+    <div class="hero-pill">Martech Ecosystem</div>
+    <h1>Our tools.<br><em>One engine.</em></h1>
+    <p class="hero-sub">A clear picture of where we are, where we're going, and what it takes to make HubSpot the intelligent centre of everything we do in BD and marketing.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <div class="hero-meta-dot dot-red"></div>
+        <span class="hero-meta-label">As-is:</span>
+        <span class="hero-meta-val">Fragmented & manual</span>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-dot dot-green"></div>
+        <span class="hero-meta-label">Future state:</span>
+        <span class="hero-meta-val">Integrated growth engine</span>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-dot dot-amber"></div>
+        <span class="hero-meta-label">HubSpot:</span>
+        <span class="hero-meta-val">The single source of truth</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    <!-- AS-IS vs FUTURE -->
+    <div class="section">
+      <div class="section-label">State of play</div>
+      <div class="section-title">Where we are <em>vs.</em> where we need to be</div>
+      <p class="section-sub">Honest assessment of the current state so we know exactly what we're building toward — and why the HubSpot investment is justified.</p>
+
+      <div class="state-grid">
+        <div class="state-panel">
+          <div class="state-panel-label">
+            <span class="badge badge-now">As-Is</span>
+            Current reality
+          </div>
+          <h3>Activity happening.<br>But nothing talking to anything.</h3>
+          <ul class="state-list">
+            <li><span class="icon icon-x">✕</span>Outreach happening across LinkedIn, email, and events — but tracked in separate places (spreadsheets, heads, notebooks)</li>
+            <li><span class="icon icon-x">✕</span>HubSpot is being used for event emails, but contacts aren't flowing through a pipeline with lifecycle stages</li>
+            <li><span class="icon icon-x">✕</span>Dripify running LinkedIn outreach independently — no sync back to CRM</li>
+            <li><span class="icon icon-x">✕</span>Sales Navigator prospecting lives in LinkedIn only — no enrichment into HubSpot</li>
+            <li><span class="icon icon-x">✕</span>No visible MQL → SQL → Deal funnel. Can't see where in the journey prospects are</li>
+            <li><span class="icon icon-x">✕</span>Two pipelines (Agency + Partnerships) exist but aren't consistently used by the whole team</li>
+            <li><span class="icon icon-x">✕</span>Make.com automations running but not all pointing to HubSpot as the record of truth</li>
+            <li><span class="icon icon-x">✕</span>No shared visibility — BD, agency team and partnerships team all operating separately</li>
+          </ul>
+        </div>
+        <div class="state-panel future">
+          <div class="state-panel-label">
+            <span class="badge badge-future">Future</span>
+            The well-oiled machine
+          </div>
+          <h3>Every tool feeds HubSpot.<br><em>HubSpot drives everything.</em></h3>
+          <ul class="state-list">
+            <li><span class="icon icon-check">✓</span>All prospect touchpoints — LinkedIn, email, events, referrals — log automatically in HubSpot</li>
+            <li><span class="icon icon-check">✓</span>Dripify → Make → HubSpot: LinkedIn engagement creates or updates contacts in real-time</li>
+            <li><span class="icon icon-check">✓</span>Sales Navigator lists fed into HubSpot for sequencing and lifecycle tracking</li>
+            <li><span class="icon icon-check">✓</span>Clear MQL definition triggers automated nurture sequences; SQLs auto-assign to BD owners</li>
+            <li><span class="icon icon-check">✓</span>Two pipelines (Agency + Partnerships) in active use by both teams — consistent deal hygiene</li>
+            <li><span class="icon icon-check">✓</span>HubSpot landing pages & forms capture event RSVPs and gated content downloads — all tracked in CRM</li>
+            <li><span class="icon icon-check">✓</span>BD Hub dashboard pulls live data from HubSpot via API — one view of pipeline health</li>
+            <li><span class="icon icon-check">✓</span>Referral programme wins auto-create HubSpot deals via Make — team contributions visible</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHY HUBSPOT -->
+    <div class="section">
+      <div class="section-label">The case for HubSpot</div>
+      <div class="section-title">Why this isn't just <em>an email tool</em></div>
+      <p class="section-sub">HubSpot at cost is only justified if it's the engine — not a mailing list. Here's what we're actually paying for when we use it properly.</p>
+
+      <div class="tools-grid" style="grid-template-columns: repeat(2,1fr);">
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(255,122,0,0.12); font-size:20px;">🎯</div>
+          </div>
+          <div class="tool-name">Pipeline visibility across two teams</div>
+          <div class="tool-role">Agency Pipeline + Partnerships Pipeline</div>
+          <ul class="tool-uses">
+            <li>Every live deal tracked with stage, value, owner and next action</li>
+            <li>Both teams have shared line of sight on what's active vs. stale</li>
+            <li>Deal data surfaces in the BD Hub dashboard in real-time</li>
+          </ul>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(135,251,102,0.1); font-size:20px;">⚡</div>
+          </div>
+          <div class="tool-name">Contact lifecycle + nurture automation</div>
+          <div class="tool-role">MQL to SQL to Deal</div>
+          <ul class="tool-uses">
+            <li>Contacts move through lifecycle stages automatically based on behaviour</li>
+            <li>Email sequences nurture MQLs without manual send-by-send effort</li>
+            <li>BCC email tracking keeps every conversation logged without effort</li>
+          </ul>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(135,251,102,0.1); font-size:20px;">🌐</div>
+          </div>
+          <div class="tool-name">Landing pages & gated content</div>
+          <div class="tool-role">Events, downloads, lead gen</div>
+          <ul class="tool-uses">
+            <li>Build event RSVP pages without dev resource — fully tracked in CRM</li>
+            <li>Gate playbooks, reports and toolkits behind forms that auto-create contacts</li>
+            <li>Every form submission becomes an enriched HubSpot contact with source tracking</li>
+          </ul>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(135,251,102,0.1); font-size:20px;">📊</div>
+          </div>
+          <div class="tool-name">Reporting that shows what's working</div>
+          <div class="tool-role">Revenue attribution</div>
+          <ul class="tool-uses">
+            <li>Source reporting: which channel (LinkedIn, event, referral, inbound) is converting</li>
+            <li>Pipeline velocity: how fast deals move from MQL to close</li>
+            <li>Win rate, deal size, and cycle time by team and by pipeline</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE 2: TOOLS ═══════════════════ -->
+<div id="page-tools" class="page">
+  <div class="hero">
+    <div class="hero-pill">Martech Stack</div>
+    <h1>Every tool.<br><em>Its job.</em></h1>
+    <p class="hero-sub">Five tools. One outcome. Here's exactly what each does, who uses it, and how it connects to HubSpot as the centre of the operation.</p>
+  </div>
+
+  <div class="content-wrap">
+    <div class="section">
+      <div class="section-label">Core stack</div>
+      <div class="section-title">The tools in the ecosystem</div>
+      <p class="section-sub">Current status reflects how each tool is being used today. "Unlock" items show the value we're leaving on the table.</p>
+
+      <div class="tools-grid">
+        <!-- HubSpot -->
+        <div class="tool-card" style="border-color: rgba(255,122,0,0.3); background: rgba(255,122,0,0.04);">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(255,122,0,0.15);">🟠</div>
+            <span class="tool-status status-partial">Partial Use</span>
+          </div>
+          <div class="tool-name">HubSpot CRM</div>
+          <div class="tool-role">The engine — CRM, pipeline, email, forms, reporting</div>
+          <ul class="tool-uses">
+            <li>Agency Pipeline (ID: 2808364263) for brand/agency deals</li>
+            <li>Partnerships Pipeline (ID: 2806257864) for partner deals</li>
+            <li>Event email sends to CRM contacts</li>
+            <li>BCC email tracking (145756322@bcc.eu1.hubspot.com)</li>
+            <li>Unlocked next: landing pages, lead scoring, sequences, gated content</li>
+          </ul>
+        </div>
+
+        <!-- Make -->
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(99,102,241,0.12);">⚙️</div>
+            <span class="tool-status status-live">Live</span>
+          </div>
+          <div class="tool-name">Make.com</div>
+          <div class="tool-role">Automation layer — connects all tools without code</div>
+          <ul class="tool-uses">
+            <li>Referral programme: new prospects → Slack DM to Coris</li>
+            <li>Referral wins → auto-create HubSpot deals in correct pipeline</li>
+            <li>Meeting/win → Slack channel notification</li>
+            <li>Next: Dripify engagement → HubSpot contact sync</li>
+          </ul>
+        </div>
+
+        <!-- Dripify -->
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(59,130,246,0.12);">💧</div>
+            <span class="tool-status status-partial">Partial Use</span>
+          </div>
+          <div class="tool-name">Dripify</div>
+          <div class="tool-role">LinkedIn outreach automation at scale</div>
+          <ul class="tool-uses">
+            <li>Runs ICP-targeted connection and message sequences on LinkedIn</li>
+            <li>Prospect data lives in Supabase `prospects` table (synced)</li>
+            <li>Personal emails only — LinkedIn is correct outreach channel</li>
+            <li>Next: accepted connections → Make → HubSpot contact creation</li>
+          </ul>
+        </div>
+
+        <!-- Sales Navigator -->
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(10,102,194,0.12);">🔍</div>
+            <span class="tool-status status-partial">Prospecting Only</span>
+          </div>
+          <div class="tool-name">LinkedIn Sales Navigator</div>
+          <div class="tool-role">ICP identification and account intelligence</div>
+          <ul class="tool-uses">
+            <li>Target CMOs, Heads of Brand at ATL-heavy companies</li>
+            <li>Build ICP1 & ICP2 target lists (200 accounts/ICP monthly)</li>
+            <li>Score by intent signal and decision-maker access</li>
+            <li>Next: export lists → import to HubSpot for lifecycle tracking</li>
+          </ul>
+        </div>
+
+        <!-- Supabase -->
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(62,207,142,0.12);">🗄️</div>
+            <span class="tool-status status-live">Live</span>
+          </div>
+          <div class="tool-name">Supabase</div>
+          <div class="tool-role">Display & cache layer — powers the Hub's live data</div>
+          <ul class="tool-uses">
+            <li>Referral prospects, intermediary contacts, BD meetings all stored here</li>
+            <li>Powers the BD Hub pages (dashboard, meetings, prospects, referrals)</li>
+            <li>hs-proxy edge function routes HubSpot API calls from the browser</li>
+            <li>HubSpot = source of truth; Supabase = display engine</li>
+          </ul>
+        </div>
+
+        <!-- Synergist -->
+        <div class="tool-card">
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:rgba(255,255,255,0.06);">📋</div>
+            <span class="tool-status status-unlock">Context Tool</span>
+          </div>
+          <div class="tool-name">Synergist</div>
+          <div class="tool-role">Client & job data — existing brand relationships</div>
+          <ul class="tool-uses">
+            <li>Source of truth for existing Jungle client list by brand</li>
+            <li>Job type data used to cross-reference against prospect sectors</li>
+            <li>Used to generate personalised outreach (similar client sectors)</li>
+            <li>Next: periodic sync to HubSpot company records for account context</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW THEY CONNECT -->
+    <div class="section">
+      <div class="section-label">Data flow</div>
+      <div class="section-title">How the tools <em>talk to each other</em></div>
+      <p class="section-sub">The current connections vs. the ones we're building. Every arrow represents a manual step we can eliminate.</p>
+
+      <div style="border: 1px solid var(--border); border-radius: 14px; overflow: hidden;">
+        <div style="padding: 20px 28px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <h3 style="font-size:14px; font-weight:600;">Data flow map</h3>
+            <span style="font-size:11px; color:var(--grey-light);">— = live connection &nbsp;&nbsp; ··· = build next</span>
+          </div>
+        </div>
+        <div style="padding:28px; overflow-x:auto;">
+          <div style="display:grid; grid-template-columns: repeat(5,1fr); gap:0; min-width:600px;">
+            <!-- Row labels -->
+            <div style="padding:12px 8px; font-size:11px; font-weight:700; color:var(--grey-light); text-transform:uppercase; letter-spacing:0.08em;">Source</div>
+            <div style="padding:12px 8px; font-size:11px; font-weight:700; color:var(--grey-light); text-transform:uppercase; letter-spacing:0.08em; text-align:center;">Via</div>
+            <div style="padding:12px 8px; font-size:11px; font-weight:700; color:var(--grey-light); text-transform:uppercase; letter-spacing:0.08em; text-align:center;">Into HubSpot</div>
+            <div style="padding:12px 8px; font-size:11px; font-weight:700; color:var(--grey-light); text-transform:uppercase; letter-spacing:0.08em; text-align:center;">Status</div>
+            <div style="padding:12px 8px; font-size:11px; font-weight:700; color:var(--grey-light); text-transform:uppercase; letter-spacing:0.08em; text-align:center;">Priority</div>
+
+            <!-- Rows -->
+            <div style="padding:14px 8px; font-size:13px; border-top:1px solid var(--border);">Referral programme</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.45); border-top:1px solid var(--border); text-align:center;">Make.com</div>
+            <div style="padding:14px 8px; font-size:12px; border-top:1px solid var(--border); text-align:center;">Deal auto-created</div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;"><span class="tool-status status-live">Live</span></div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;">✓</div>
+
+            <div style="padding:14px 8px; font-size:13px; border-top:1px solid var(--border);">Event emails</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.45); border-top:1px solid var(--border); text-align:center;">HubSpot native</div>
+            <div style="padding:14px 8px; font-size:12px; border-top:1px solid var(--border); text-align:center;">Contacts + send tracking</div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;"><span class="tool-status status-live">Live</span></div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;">✓</div>
+
+            <div style="padding:14px 8px; font-size:13px; border-top:1px solid var(--border);">Intermediary meetings</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.45); border-top:1px solid var(--border); text-align:center;">BCC + manual</div>
+            <div style="padding:14px 8px; font-size:12px; border-top:1px solid var(--border); text-align:center;">Contact + activity log</div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;"><span class="tool-status status-partial">Partial</span></div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;">🔼 Next</div>
+
+            <div style="padding:14px 8px; font-size:13px; border-top:1px solid var(--border); color:rgba(255,255,255,0.4); font-style:italic;">Dripify acceptances</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.3); border-top:1px solid var(--border); text-align:center;">Make.com</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.3); border-top:1px solid var(--border); text-align:center;">New contact → MQL</div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;"><span class="tool-status status-unlock">Build next</span></div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center; color:var(--green); font-weight:700;">High</div>
+
+            <div style="padding:14px 8px; font-size:13px; border-top:1px solid var(--border); color:rgba(255,255,255,0.4); font-style:italic;">Sales Navigator lists</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.3); border-top:1px solid var(--border); text-align:center;">CSV import / API</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.3); border-top:1px solid var(--border); text-align:center;">Company + contact records</div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;"><span class="tool-status status-unlock">Build next</span></div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center; color:var(--green); font-weight:700;">High</div>
+
+            <div style="padding:14px 8px; font-size:13px; border-top:1px solid var(--border); color:rgba(255,255,255,0.4); font-style:italic;">Event RSVPs / gated downloads</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.3); border-top:1px solid var(--border); text-align:center;">HubSpot forms/LP</div>
+            <div style="padding:14px 8px; font-size:12px; color:rgba(255,255,255,0.3); border-top:1px solid var(--border); text-align:center;">Contact + source tracking</div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center;"><span class="tool-status status-unlock">Build next</span></div>
+            <div style="padding:14px 8px; border-top:1px solid var(--border); text-align:center; color:#febc2e; font-weight:700;">Med</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE 3: FUNNEL & DASHBOARD ═══════════════════ -->
+<div id="page-funnel" class="page">
+  <div class="hero">
+    <div class="hero-pill">Funnel & Measurement</div>
+    <h1>See the <em>whole journey.</em></h1>
+    <p class="hero-sub">What the pipeline should look like in HubSpot — and what the BD Hub dashboard should surface. MQL to SQL to Deal, visible in one place.</p>
+  </div>
+
+  <div class="content-wrap">
+    <!-- FUNNEL STAGES -->
+    <div class="section">
+      <div class="section-label">Pipeline stages</div>
+      <div class="section-title">MQL to <em>Close</em></div>
+      <p class="section-sub">Every contact should sit in one of these stages in HubSpot. The pipeline is only useful if it's consistently maintained by everyone.</p>
+
+      <div class="funnel-wrap">
+        <div class="funnel-header">
+          <div>
+            <h3>Jungle BD Pipeline</h3>
+          </div>
+          <p>Both Agency + Partnerships pipelines follow this structure</p>
+        </div>
+        <div class="funnel-stages">
+          <div class="funnel-stage" style="background:rgba(255,255,255,0.025);">
+            <div class="stage-top">
+              <div class="stage-num">1</div>
+              <div class="stage-name">Aware</div>
+            </div>
+            <div class="stage-qual">MQL</div>
+            <div class="stage-desc">3+ touchpoints (LinkedIn, email, event). Fits ICP profile. No commercial signal yet.</div>
+            <div class="stage-tool-badge">Dripify</div>
+          </div>
+          <div class="funnel-stage">
+            <div class="stage-top">
+              <div class="stage-num">2</div>
+              <div class="stage-name">Engaged</div>
+            </div>
+            <div class="stage-qual">MQL+</div>
+            <div class="stage-desc">Opened 2+ emails in sequence. Replied to LinkedIn message. Attended event.</div>
+            <div class="stage-tool-badge">Sales Nav</div>
+          </div>
+          <div class="funnel-stage">
+            <div class="stage-top">
+              <div class="stage-num">3</div>
+              <div class="stage-name">Interested</div>
+            </div>
+            <div class="stage-qual">MQL++</div>
+            <div class="stage-desc">Downloaded gated content. Booked a meeting. Budget holder identified.</div>
+            <div class="stage-tool-badge hs">HubSpot</div>
+          </div>
+          <div class="funnel-stage">
+            <div class="stage-top">
+              <div class="stage-num">4</div>
+              <div class="stage-name">Qualified</div>
+            </div>
+            <div class="stage-qual">SQL</div>
+            <div class="stage-desc">Meeting held. Brief received or pitch invitation accepted. Within 90-day close window.</div>
+            <div class="stage-tool-badge hs">HubSpot</div>
+          </div>
+          <div class="funnel-stage">
+            <div class="stage-top">
+              <div class="stage-num">5</div>
+              <div class="stage-name">Converting</div>
+            </div>
+            <div class="stage-qual">SQL+</div>
+            <div class="stage-desc">Proposal submitted. Commercial terms agreed. Deal in final stages.</div>
+            <div class="stage-tool-badge hs">HubSpot</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD METRICS -->
+    <div class="section">
+      <div class="section-label">Dashboard metrics</div>
+      <div class="section-title">What the <em>BD Hub</em> should show</div>
+      <p class="section-sub">These are the metrics that should be surfaced from HubSpot in real-time on the dashboard. Divided by team and by health indicator.</p>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <h4>Pipeline health</h4>
+            <span class="metric-scope">Both pipelines</span>
+          </div>
+          <div class="metric-items">
+            <div class="metric-row">
+              <span class="metric-label">Coverage ratio (target 3:1)</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:40%"></div></div>
+              <span class="metric-value green">Live</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Active MQLs</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:60%"></div></div>
+              <span class="metric-value green">Live</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">New SQLs this quarter</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:30%"></div></div>
+              <span class="metric-value green">Live</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Weighted pipeline value</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:50%"></div></div>
+              <span class="metric-value green">Live</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <h4>Sales velocity</h4>
+            <span class="metric-scope">By team</span>
+          </div>
+          <div class="metric-items">
+            <div class="metric-row">
+              <span class="metric-label">Pitch win rate (target 25%)</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:45%"></div></div>
+              <span class="metric-value green">Track</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Avg deal cycle time</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:20%"></div></div>
+              <span class="metric-value green">Track</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Stage conversion rate</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:35%"></div></div>
+              <span class="metric-value green">Track</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Deal ageing (>90 days)</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:15%"></div></div>
+              <span class="metric-value" style="color:#febc2e;">Flag</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <h4>Source effectiveness</h4>
+            <span class="metric-scope">Where leads come from</span>
+          </div>
+          <div class="metric-items">
+            <div class="metric-row">
+              <span class="metric-label">LinkedIn / Dripify outbound</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:70%"></div></div>
+              <span class="metric-value green">Build</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Intermediary referrals</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:55%"></div></div>
+              <span class="metric-value green">Build</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Events / gated content</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:25%"></div></div>
+              <span class="metric-value" style="color:#febc2e;">Build</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Inbound / website</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:10%"></div></div>
+              <span class="metric-value" style="color:var(--grey-light);">Future</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-card-header">
+            <h4>Commercial health</h4>
+            <span class="metric-scope">Portfolio quality</span>
+          </div>
+          <div class="metric-items">
+            <div class="metric-row">
+              <span class="metric-label">% ICP A/B aligned deals</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:60%"></div></div>
+              <span class="metric-value green">Track</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Avg deal size by type</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:40%"></div></div>
+              <span class="metric-value green">Track</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Revenue concentration risk</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:30%"></div></div>
+              <span class="metric-value" style="color:#febc2e;">Flag</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Gross margin by deal type</span>
+              <div class="metric-bar-wrap"><div class="metric-bar" style="width:25%"></div></div>
+              <span class="metric-value" style="color:var(--grey-light);">Future</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE 4: UNLOCK ═══════════════════ -->
+<div id="page-unlock" class="page">
+  <div class="hero">
+    <div class="hero-pill">Unlock HubSpot</div>
+    <h1>Make more people<br><em>use it.</em></h1>
+    <p class="hero-sub">HubSpot is only worth the cost if more than one person is using it. Here are the concrete things we can build so BD, Agency, Partnerships and Marcomms all have a reason to live in it.</p>
+  </div>
+
+  <div class="content-wrap">
+
+    <!-- TEAM USAGE -->
+    <div class="section">
+      <div class="section-label">Team expansion</div>
+      <div class="section-title">Who uses HubSpot — <em>and for what</em></div>
+      <p class="section-sub">Right now it's predominantly one person's tool. The goal is for every revenue-adjacent person in the business to have a meaningful use case.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card highlight">
+          <div class="feature-icon">📬</div>
+          <div class="feature-title">BD / Growth (Coris)</div>
+          <div class="feature-desc">Pipeline owner. All contacts, deals, sequences, outreach tracking. Dashboard reporting. Referral deal creation via Make.</div>
+          <div class="feature-users">
+            <span class="user-tag">Agency Pipeline</span>
+            <span class="user-tag">Partnerships Pipeline</span>
+            <span class="user-tag">Sequences</span>
+            <span class="user-tag">Reporting</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🤝</div>
+          <div class="feature-title">Agency Team</div>
+          <div class="feature-desc">Log post-meeting notes. Update deal stages after pitch conversations. Access company records before client calls for context. BCC emails to auto-log.</div>
+          <div class="feature-users">
+            <span class="user-tag">Deal updates</span>
+            <span class="user-tag">Meeting notes</span>
+            <span class="user-tag">BCC logging</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-title">Partnerships Team</div>
+          <div class="feature-desc">Own the Partnerships Pipeline. Log intermediary touchpoints. Track which referral sources are converting to deals. Give Mal and team deal visibility.</div>
+          <div class="feature-users">
+            <span class="user-tag">Partnerships Pipeline</span>
+            <span class="user-tag">Intermediary contacts</span>
+            <span class="user-tag">Referral tracking</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📣</div>
+          <div class="feature-title">Marcomms (Ro + team)</div>
+          <div class="feature-desc">Send event invites and newsletters via HubSpot. Build landing pages for events and gated content. Track email performance. All activity flows back into CRM contacts.</div>
+          <div class="feature-users">
+            <span class="user-tag">Email campaigns</span>
+            <span class="user-tag">Landing pages</span>
+            <span class="user-tag">Forms & lists</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNLOCK LIST -->
+    <div class="section">
+      <div class="section-label">Build list</div>
+      <div class="section-title">What to <em>activate next</em></div>
+      <p class="section-sub">Ranked by impact on pipeline visibility and team adoption. These are the moves that turn HubSpot from a cost into an asset.</p>
+
+      <div class="unlock-list">
+        <div class="unlock-item">
+          <div class="unlock-number">01</div>
+          <div>
+            <div class="unlock-title">Dripify → HubSpot contact sync via Make</div>
+            <div class="unlock-desc">Every LinkedIn connection acceptance becomes a HubSpot contact with lifecycle stage MQL. The biggest gap in the current flow — we're outreaching but not capturing to CRM.</div>
+          </div>
+          <div class="unlock-who">Coris + Make</div>
+          <span class="unlock-effort effort-med">Medium effort</span>
+        </div>
+
+        <div class="unlock-item">
+          <div class="unlock-number">02</div>
+          <div>
+            <div class="unlock-title">Event landing pages in HubSpot</div>
+            <div class="unlock-desc">Replace any external RSVP links with HubSpot landing pages. Every registrant auto-creates a contact. Opens the door to pre-event nurture sequences and post-event follow-up — all tracked.</div>
+          </div>
+          <div class="unlock-who">Ro / Marcomms</div>
+          <span class="unlock-effort effort-low">Low effort</span>
+        </div>
+
+        <div class="unlock-item">
+          <div class="unlock-number">03</div>
+          <div>
+            <div class="unlock-title">Gated content — playbooks & reports behind forms</div>
+            <div class="unlock-desc">The Social Systems Scorecard, campaign playbooks, and sector reports should sit behind HubSpot forms. Every download = enriched contact + source tracking. Turns content into a lead gen engine.</div>
+          </div>
+          <div class="unlock-who">Coris + Ro</div>
+          <span class="unlock-effort effort-low">Low effort</span>
+        </div>
+
+        <div class="unlock-item">
+          <div class="unlock-number">04</div>
+          <div>
+            <div class="unlock-title">Sales Navigator → HubSpot import flow</div>
+            <div class="unlock-desc">Monthly list of ICP target accounts exported from Sales Navigator and imported as HubSpot contacts/companies. Gives every outbound target a lifecycle stage from day one.</div>
+          </div>
+          <div class="unlock-who">Coris</div>
+          <span class="unlock-effort effort-low">Low effort</span>
+        </div>
+
+        <div class="unlock-item">
+          <div class="unlock-number">05</div>
+          <div>
+            <div class="unlock-title">Intermediary contact sync — meetings stage</div>
+            <div class="unlock-desc">When an intermediary meeting is logged in the Hub, auto-create or find the HubSpot contact. Every touchpoint with AAR, Ingenuity, Oystercatchers etc. captured in CRM with source tracking.</div>
+          </div>
+          <div class="unlock-who">Coris + Make</div>
+          <span class="unlock-effort effort-med">Medium effort</span>
+        </div>
+
+        <div class="unlock-item">
+          <div class="unlock-number">06</div>
+          <div>
+            <div class="unlock-title">BCC email tracking — team-wide rollout</div>
+            <div class="unlock-desc">Every person sending BD or relationship emails should BCC 145756322@bcc.eu1.hubspot.com. Emails log automatically to the contact record. Zero extra work — just a habit change.</div>
+          </div>
+          <div class="unlock-who">All BD team</div>
+          <span class="unlock-effort effort-low">Zero effort</span>
+        </div>
+
+        <div class="unlock-item">
+          <div class="unlock-number">07</div>
+          <div>
+            <div class="unlock-title">Email sequences for MQL nurture</div>
+            <div class="unlock-desc">6-email sequences per ICP (value before ask). Once a contact hits MQL status in HubSpot, the sequence auto-enrols. Removes the need to manually chase warm contacts — it just runs.</div>
+          </div>
+          <div class="unlock-who">Coris</div>
+          <span class="unlock-effort effort-med">Medium effort</span>
+        </div>
+
+        <div class="unlock-item">
+          <div class="unlock-number">08</div>
+          <div>
+            <div class="unlock-title">Lead scoring — automatic MQL promotion</div>
+            <div class="unlock-desc">HubSpot lead scoring model: ICP match + engagement signals + intent actions = score. Hits threshold → auto-promotes to MQL and notifies BD owner. Removes manual lifecycle management.</div>
+          </div>
+          <div class="unlock-who">Coris</div>
+          <span class="unlock-effort effort-high">High effort</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTS & GATED CONTENT -->
+    <div class="section">
+      <div class="section-label">Events & content</div>
+      <div class="section-title">Can HubSpot run <em>landing pages?</em></div>
+      <p class="section-sub">Yes. And it should. Every event page and gated download built outside HubSpot is a missed contact. Here's exactly what's possible.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card highlight">
+          <div class="feature-icon">🎪</div>
+          <div class="feature-title">Event registration pages</div>
+          <div class="feature-desc">HubSpot landing pages with built-in forms. One click: publish a page, collect RSVPs, auto-add contacts to an event list in CRM. Pre-event reminder sequence auto-fires. Post-event follow-up triggers on day of event.</div>
+          <div class="feature-users">
+            <span class="user-tag">Marcomms</span>
+            <span class="user-tag">BD</span>
+            <span class="user-tag">Any team</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-title">Gated content downloads</div>
+          <div class="feature-desc">Playbooks, scorecards, sector reports, and toolkits sit behind HubSpot forms. Visitors enter details to download. Contact auto-created with source = content title. Every download is a trackable MQL signal.</div>
+          <div class="feature-users">
+            <span class="user-tag">Marketing content</span>
+            <span class="user-tag">BD outreach</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📧</div>
+          <div class="feature-title">Post-event nurture flows</div>
+          <div class="feature-desc">Attendees auto-enrolled in a follow-up sequence: thank you email → insight recap → relevant playbook → intro to relevant Jungle service. All happens without manual send-by-send effort.</div>
+          <div class="feature-users">
+            <span class="user-tag">Marcomms</span>
+            <span class="user-tag">BD</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">Newsletter & content performance</div>
+          <div class="feature-desc">Newsletter sends tracked by contact in HubSpot. See who opened, clicked, downloaded. Engagement signals feed into lead scoring. High-engagement contacts flag as MQLs automatically.</div>
+          <div class="feature-users">
+            <span class="user-tag">Marcomms</span>
+            <span class="user-tag">BD reporting</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── AUTH ──
+  function checkAuth() {
+    const val = document.getElementById('auth-input').value.trim();
+    if (val === 'massive') {
+      sessionStorage.setItem('jc_auth', '1');
+      document.getElementById('auth-wall').style.display = 'none';
+    } else {
+      document.getElementById('auth-error').style.display = 'block';
+    }
+  }
+  document.getElementById('auth-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkAuth();
+  });
+  if (sessionStorage.getItem('jc_auth')) {
+    document.getElementById('auth-wall').style.display = 'none';
+  }
+
+  // ── NAV TABS ──
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    event.target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+</script>
+
+<script>
+  window.JUNGLE_NAV_ACTIVE = 'martech';
+</script>
+<script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
+
+</body>
+</html>
