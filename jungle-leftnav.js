@@ -88,6 +88,15 @@
       icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <path d="M10 2l2 5h5l-4 3.5 1.5 5.5L10 13l-4.5 3 1.5-5.5L3 7h5z"/>
       </svg>`
+    },
+    {
+      id: 'martech',
+      label: 'Martech',
+      href: BASE + 'martech.html',
+      icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10" cy="10" r="3"/>
+        <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"/>
+      </svg>`
     }
   ];
 
@@ -241,6 +250,13 @@
       itemsEl.appendChild(div);
     }
 
+    // Divider before Martech
+    if (item.id === 'martech') {
+      const div2 = document.createElement('div');
+      div2.className = 'jnav-divider';
+      itemsEl.appendChild(div2);
+    }
+
     const a = document.createElement('a');
     a.href = item.href;
     a.className = 'jnav-item' + (item.id === active ? ' active' : '');
@@ -252,3 +268,4 @@
   // Insert nav as first child of body
   document.body.insertBefore(nav, document.body.firstChild);
 })();
+
