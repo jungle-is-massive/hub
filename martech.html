@@ -209,6 +209,9 @@
     overflow: hidden;
     border: 1px solid var(--border);
   }
+  @media (max-width: 1100px) {
+    .state-grid { grid-template-columns: 1fr; }
+  }
   .state-panel {
     padding: 36px 36px 40px;
     background: var(--card-bg);
@@ -237,6 +240,26 @@
   }
   .icon-x { color: rgba(255,95,87,0.7); font-size: 13px; font-weight: 700; }
   .icon-check { color: var(--green); font-size: 14px; font-weight: 700; }
+  .icon-part { color: #febc2e; font-size: 13px; font-weight: 700; }
+
+  /* Future state with actions */
+  .future-item { display: flex; flex-direction: column; gap: 0; }
+  .future-item-top { display: flex; gap: 12px; align-items: flex-start; }
+  .future-item-label {
+    font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.5; font-weight: 500;
+  }
+  .future-actions {
+    margin-top: 8px;
+    margin-left: 30px;
+    display: flex; flex-direction: column; gap: 4px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(135,251,102,0.2);
+  }
+  .future-action {
+    font-size: 11px; color: rgba(255,255,255,0.42); line-height: 1.5;
+    display: flex; gap: 6px; align-items: flex-start;
+  }
+  .future-action::before { content: '↳'; color: rgba(135,251,102,0.5); flex-shrink: 0; font-size: 10px; margin-top: 1px; }
 
   /* ── TOOLS GRID ── */
   .tools-grid {
@@ -478,9 +501,9 @@
     <p class="hero-sub">A clear picture of where we are, where we're going, and what it takes to make HubSpot the intelligent centre of everything we do in BD and marketing.</p>
     <div class="hero-meta">
       <div class="hero-meta-item">
-        <div class="hero-meta-dot dot-red"></div>
+        <div class="hero-meta-dot dot-amber"></div>
         <span class="hero-meta-label">As-is:</span>
-        <span class="hero-meta-val">Fragmented & manual</span>
+        <span class="hero-meta-val">Good foundations, gaps in adoption</span>
       </div>
       <div class="hero-meta-item">
         <div class="hero-meta-dot dot-green"></div>
@@ -508,17 +531,29 @@
             <span class="badge badge-now">As-Is</span>
             Current reality
           </div>
-          <h3>Activity happening.<br>But nothing talking to anything.</h3>
+          <h3>Strong foundations in.<br>Gaps in coverage and<br>team-wide adoption.</h3>
           <ul class="state-list">
-            <li><span class="icon icon-x">✕</span>Outreach happening across LinkedIn, email, and events — but tracked in separate places (spreadsheets, heads, notebooks)</li>
-            <li><span class="icon icon-x">✕</span>HubSpot is being used for event emails, but contacts aren't flowing through a pipeline with lifecycle stages</li>
-            <li><span class="icon icon-x">✕</span>Dripify running LinkedIn outreach independently — no sync back to CRM</li>
-            <li><span class="icon icon-x">✕</span>Sales Navigator prospecting lives in LinkedIn only — no enrichment into HubSpot</li>
-            <li><span class="icon icon-x">✕</span>No visible MQL → SQL → Deal funnel. Can't see where in the journey prospects are</li>
-            <li><span class="icon icon-x">✕</span>Two pipelines (Agency + Partnerships) exist but aren't consistently used by the whole team</li>
-            <li><span class="icon icon-x">✕</span>Make.com automations running but not all pointing to HubSpot as the record of truth</li>
-            <li><span class="icon icon-x">✕</span>No shared visibility — BD, agency team and partnerships team all operating separately</li>
+            <li><span class="icon icon-check">✓</span>Coris's emails are all logged in HubSpot automatically via BCC tracking</li>
+            <li><span class="icon icon-part">~</span>Dripify is live and feeding prospects directly into HubSpot with 10-point lead scores assigned on entry</li>
+            <li><span class="icon icon-check">✓</span>Make.com referral automations route wins to HubSpot — the scenarios that need to write to CRM, do</li>
+            <li><span class="icon icon-check">✓</span>HubSpot used for event email sends to CRM contacts — contacts and send data tracked</li>
+            <li><span class="icon icon-part">~</span>BD Hub dashboard built and live — but not yet shared with or adopted by the wider sales team</li>
+            <li><span class="icon icon-x">✕</span>Sales Navigator prospecting lives in LinkedIn only — target accounts not flowing into HubSpot records</li>
+            <li><span class="icon icon-x">✕</span>No consistent MQL → SQL → Deal funnel being maintained across the team — pipeline hygiene is patchy</li>
+            <li><span class="icon icon-x">✕</span>Email logging not confirmed for the rest of the sales team — BCC habit likely inconsistent</li>
+            <li><span class="icon icon-x">✕</span>Two pipelines (Agency + Partnerships) exist but aren't in consistent use across both teams</li>
           </ul>
+          <div style="margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:16px; flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.45);">
+              <span class="icon icon-check" style="font-size:11px;">✓</span> Done
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.45);">
+              <span class="icon icon-part" style="font-size:11px;">~</span> In progress
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.45);">
+              <span class="icon icon-x" style="font-size:11px;">✕</span> Gap
+            </div>
+          </div>
         </div>
         <div class="state-panel future">
           <div class="state-panel-label">
@@ -527,14 +562,91 @@
           </div>
           <h3>Every tool feeds HubSpot.<br><em>HubSpot drives everything.</em></h3>
           <ul class="state-list">
-            <li><span class="icon icon-check">✓</span>All prospect touchpoints — LinkedIn, email, events, referrals — log automatically in HubSpot</li>
-            <li><span class="icon icon-check">✓</span>Dripify → Make → HubSpot: LinkedIn engagement creates or updates contacts in real-time</li>
-            <li><span class="icon icon-check">✓</span>Sales Navigator lists fed into HubSpot for sequencing and lifecycle tracking</li>
-            <li><span class="icon icon-check">✓</span>Clear MQL definition triggers automated nurture sequences; SQLs auto-assign to BD owners</li>
-            <li><span class="icon icon-check">✓</span>Two pipelines (Agency + Partnerships) in active use by both teams — consistent deal hygiene</li>
-            <li><span class="icon icon-check">✓</span>HubSpot landing pages & forms capture event RSVPs and gated content downloads — all tracked in CRM</li>
-            <li><span class="icon icon-check">✓</span>BD Hub dashboard pulls live data from HubSpot via API — one view of pipeline health</li>
-            <li><span class="icon icon-check">✓</span>Referral programme wins auto-create HubSpot deals via Make — team contributions visible</li>
+
+            <li>
+              <div class="future-item">
+                <div class="future-item-top">
+                  <span class="icon icon-check">✓</span>
+                  <span class="future-item-label">All outreach touchpoints — LinkedIn, email, events, referrals — logged in HubSpot for every person in sales</span>
+                </div>
+                <div class="future-actions">
+                  <span class="future-action">Audit BCC setup for all sales team members — confirm each person has 145756322@bcc.eu1.hubspot.com in their email client</span>
+                  <span class="future-action">Run a HubSpot activity report to identify whose emails are logging vs. who has gaps</span>
+                  <span class="future-action">Share one-pager / quick setup guide to the team so BCC becomes habit, not ask</span>
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <div class="future-item">
+                <div class="future-item-top">
+                  <span class="icon icon-check">✓</span>
+                  <span class="future-item-label">Dripify feeding HubSpot with enriched contacts and lead scores — expanded to capture engagement signals beyond entry</span>
+                </div>
+                <div class="future-actions">
+                  <span class="future-action">Currently: prospects enter HubSpot at 10 points. Next: score increments on LinkedIn reply, meeting acceptance, email open — not just entry</span>
+                  <span class="future-action">Define additional scoring rules in HubSpot (e.g. +15 for meeting booked, +10 for email opened 2x)</span>
+                  <span class="future-action">Set threshold that auto-promotes contact from MQL to SQL and notifies BD owner</span>
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <div class="future-item">
+                <div class="future-item-top">
+                  <span class="icon icon-check">✓</span>
+                  <span class="future-item-label">Sales Navigator target lists flowing into HubSpot as company and contact records from day one</span>
+                </div>
+                <div class="future-actions">
+                  <span class="future-action">Monthly: export ICP1/ICP2 target lists from Sales Navigator as CSV</span>
+                  <span class="future-action">Import into HubSpot — map fields to company size, sector, decision-maker role</span>
+                  <span class="future-action">Set lifecycle stage to "Subscriber" or "Lead" on import so they enter the funnel with a stage</span>
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <div class="future-item">
+                <div class="future-item-top">
+                  <span class="icon icon-check">✓</span>
+                  <span class="future-item-label">Both pipelines in consistent, disciplined use by the full team — no stale deals, every opp has a next action</span>
+                </div>
+                <div class="future-actions">
+                  <span class="future-action">Share the BD Hub dashboard with agency and partnerships teams — give them a read view of their pipeline</span>
+                  <span class="future-action">Set a weekly pipeline review ritual: every deal must have a next action and a close date — no exceptions</span>
+                  <span class="future-action">HubSpot deal hygiene rule: deals with no activity in 14 days auto-flag to BD owner via Make/email</span>
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <div class="future-item">
+                <div class="future-item-top">
+                  <span class="icon icon-check">✓</span>
+                  <span class="future-item-label">HubSpot landing pages capturing event RSVPs and gated content downloads — every submission auto-creates a tracked contact</span>
+                </div>
+                <div class="future-actions">
+                  <span class="future-action">Next event: build RSVP page in HubSpot instead of external tool — takes ~30 mins, contacts auto-create</span>
+                  <span class="future-action">Gate the Social Systems Scorecard and next playbook behind HubSpot forms — host on HubSpot landing page</span>
+                  <span class="future-action">Set source tracking on each form (e.g. "Event: MAD//Fest 2026", "Content: Scorecard") so attribution is clean</span>
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <div class="future-item">
+                <div class="future-item-top">
+                  <span class="icon icon-check">✓</span>
+                  <span class="future-item-label">BD Hub dashboard shared with the full sales team — one place to see all live pipeline across Agency and Partnerships</span>
+                </div>
+                <div class="future-actions">
+                  <span class="future-action">Share the dashboard URL with agency team leads and Partnerships team — brief them on what each section shows</span>
+                  <span class="future-action">Add a "how to read this" tooltip or explainer section to the dashboard for new users</span>
+                  <span class="future-action">Establish a fortnightly check-in where the dashboard is the shared screen — builds the habit of using it</span>
+                </div>
+              </div>
+            </li>
+
           </ul>
         </div>
       </div>
