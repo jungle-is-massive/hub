@@ -205,7 +205,26 @@ table.matrix { border-collapse: separate; border-spacing: 0; }
 }
 .cell-link:hover { color: var(--black); background: var(--white); }
 .cell-link svg { width: 10px; height: 10px; }
-.cell-note-dot { position: absolute; bottom: 4px; left: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--grey-mid); opacity: 0.6; }
+.cell-note-dot { position: absolute; bottom: 4px; left: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--grey-mid); opacity: 0.9; box-shadow: 0 0 0 1.5px rgba(245,240,232,0.85); }
+.s-done .cell-note-dot { background: #2a7d0e; }
+.s-in_progress .cell-note-dot { background: #9a6a00; }
+
+/* drag-to-reorder */
+.rowhead[draggable="true"], .fmt[draggable="true"] { cursor: grab; }
+.rowhead.dragging, .fmt.dragging { opacity: 0.35; }
+.rowhead.drop-above { box-shadow: inset 0 3px 0 var(--green-dim); }
+.rowhead.drop-below { box-shadow: inset 0 -3px 0 var(--green-dim); }
+.fmt.drop-left  { box-shadow: inset 3px 0 0 var(--green-dim); }
+.fmt.drop-right { box-shadow: inset -3px 0 0 var(--green-dim); }
+
+/* rich note tooltip */
+#cs-tip {
+  position: fixed; z-index: 420; max-width: 240px; display: none;
+  background: var(--black); color: #fff; padding: 9px 12px; border-radius: 10px;
+  font-size: 12px; line-height: 1.45; box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+#cs-tip .tip-link { display: block; margin-top: 6px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
 
 /* footer add-row */
 .addrow td { padding: 12px 4px; }
@@ -502,7 +521,7 @@ function csRender(){
   csFormats.forEach(f => {
     const fc = csFormatCount(f.id);
     const full = fc.done === csStudies.length && csStudies.length>0;
-    html += `<th class="fmt" data-fid="${f.id}">
+    html += `<th class="fmt" data-fid="${f.id}" draggable="true">
       <div class="fmt-inner">
         <button class="col-menu-btn" data-colmenu="${f.id}" title="Edit column">
           <svg viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="4" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>
@@ -521,7 +540,7 @@ function csRender(){
     const donePct = Math.round(rc.done/total*100);
     const progPct = Math.round(rc.prog/total*100);
     html += '<tr>';
-    html += `<th class="rowhead" data-sid="${s.id}">
+    html += `<th class="rowhead" data-sid="${s.id}" draggable="true">
       <div class="rowhead-inner">
         <button class="row-menu-btn" data-rowmenu="${s.id}" title="Edit case study">
           <svg viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="4" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>
@@ -540,10 +559,10 @@ function csRender(){
       let glyph = '<span class="cell-add">+</span>';
       if (st === 'done') glyph = `<span class="cell-glyph">${SVG_CHECK}</span>`;
       else if (st === 'in_progress') glyph = `<span class="cell-glyph">${SVG_HALF}</span>`;
-      html += `<td class="cell"><div class="cell-box s-${st}" data-cell data-sid="${s.id}" data-fid="${f.id}">
+      html += `<td class="cell"><div class="cell-box s-${st}" data-cell data-sid="${s.id}" data-fid="${f.id}"${hasNote?` data-note="${csEsc(c.note)}"`:''}${hasLink?` data-haslink="1"`:''}>
         ${glyph}
         ${hasLink ? `<a class="cell-link" href="${csEsc(c.link)}" target="_blank" rel="noopener" data-cell-link title="${csEsc(c.link)}">${SVG_LINK}</a>` : ''}
-        ${hasNote ? `<span class="cell-note-dot" title="${csEsc(c.note)}"></span>` : ''}
+        ${hasNote ? `<span class="cell-note-dot"></span>` : ''}
       </div></td>`;
     });
     html += '<td></td></tr>';
@@ -579,6 +598,7 @@ function csUpdateProgress(){
 // ── cell editor popover ─────────────────────────────────────────────────────
 let popSid=null, popFid=null, popStatus='not_started';
 function csOpenCell(sid, fid, anchorEl){
+  csHideTip();
   popSid=sid; popFid=fid;
   const c = csCells[ckey(sid,fid)] || {status:'not_started', link:'', note:''};
   popStatus = c.status || 'not_started';
@@ -744,16 +764,8 @@ document.getElementById('modal-backdrop').addEventListener('click', e => { if(e.
 function csShowMenu(kind, id, btnEl){
   const menu = document.getElementById('ctx-menu');
   const isStudy = kind==='study';
-  const arr = isStudy ? csStudies : csFormats;
-  const idx = arr.findIndex(x=>x.id===id);
-  const first = idx===0, last = idx===arr.length-1;
-  const moveLabels = isStudy ? ['Move up','Move down'] : ['Move left','Move right'];
-  const icoUp = isStudy ? 'M10 5v10M6 9l4-4 4 4' : 'M5 10h10M9 6l-4 4 4 4';
-  const icoDn = isStudy ? 'M10 5v10M6 11l4 4 4-4' : 'M5 10h10M11 6l4 4-4 4';
   menu.innerHTML =
     `<div class="ctx-item" data-act="rename"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5V16h2.5L15 7.5 12.5 5 4 13.5z"/><path d="M11.5 6l2.5 2.5"/></svg>Rename</div>` +
-    (first?'':`<div class="ctx-item" data-act="up"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${icoUp}"/></svg>${moveLabels[0]}</div>`) +
-    (last?'':`<div class="ctx-item" data-act="down"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${icoDn}"/></svg>${moveLabels[1]}</div>`) +
     `<div class="ctx-sep"></div>` +
     `<div class="ctx-item danger" data-act="delete"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10"/></svg>Delete</div>`;
   menu.style.display='block';
@@ -790,7 +802,106 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('#ctx-menu')) csHideMenu();
 });
 document.addEventListener('keydown', e => { if(e.key==='Escape'){ csCloseCell(); csHideMenu(); } });
-document.getElementById('grid-wrap').addEventListener('scroll', () => { csCloseCell(); csHideMenu(); });
+document.getElementById('grid-wrap').addEventListener('scroll', () => { csCloseCell(); csHideMenu(); csHideTip(); });
+
+// ── drag to reorder (rows & columns) ────────────────────────────────────────
+let dragKind = null, dragId = null;
+
+document.addEventListener('dragstart', (e) => {
+  const rh = e.target.closest('.rowhead');
+  const fh = e.target.closest('.fmt');
+  if (rh && !e.target.closest('[data-rowmenu]')) {
+    dragKind = 'study'; dragId = rh.dataset.sid; rh.classList.add('dragging');
+  } else if (fh && !e.target.closest('[data-colmenu]')) {
+    dragKind = 'format'; dragId = fh.dataset.fid; fh.classList.add('dragging');
+  } else { return; }
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', dragId); } catch(_){}
+  csCloseCell(); csHideMenu(); csHideTip();
+});
+
+document.addEventListener('dragover', (e) => {
+  if (!dragKind) return;
+  if (dragKind === 'study') {
+    const rh = e.target.closest('.rowhead'); if (!rh) return;
+    e.preventDefault(); csClearDropMarks();
+    const r = rh.getBoundingClientRect();
+    rh.classList.add(e.clientY > r.top + r.height/2 ? 'drop-below' : 'drop-above');
+  } else {
+    const fh = e.target.closest('.fmt'); if (!fh) return;
+    e.preventDefault(); csClearDropMarks();
+    const r = fh.getBoundingClientRect();
+    fh.classList.add(e.clientX > r.left + r.width/2 ? 'drop-right' : 'drop-left');
+  }
+});
+
+document.addEventListener('drop', async (e) => {
+  if (!dragKind) return;
+  e.preventDefault();
+  if (dragKind === 'study') {
+    const rh = e.target.closest('.rowhead');
+    if (rh) { const r = rh.getBoundingClientRect(); csReorderArray(csStudies, dragId, rh.dataset.sid, e.clientY > r.top + r.height/2); await csPersistOrder('study'); }
+  } else {
+    const fh = e.target.closest('.fmt');
+    if (fh) { const r = fh.getBoundingClientRect(); csReorderArray(csFormats, dragId, fh.dataset.fid, e.clientX > r.left + r.width/2); await csPersistOrder('format'); }
+  }
+  csCleanupDrag();
+});
+document.addEventListener('dragend', csCleanupDrag);
+
+function csClearDropMarks(){ document.querySelectorAll('.drop-above,.drop-below,.drop-left,.drop-right').forEach(el => el.classList.remove('drop-above','drop-below','drop-left','drop-right')); }
+function csCleanupDrag(){ csClearDropMarks(); document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging')); dragKind = null; dragId = null; }
+
+function csReorderArray(arr, movingId, targetId, after){
+  if (movingId === targetId) return;
+  const from = arr.findIndex(x => x.id === movingId); if (from < 0) return;
+  const [item] = arr.splice(from, 1);
+  let to = arr.findIndex(x => x.id === targetId);
+  if (to < 0) { arr.splice(from, 0, item); return; }
+  if (after) to += 1;
+  arr.splice(to, 0, item);
+}
+
+async function csPersistOrder(kind){
+  const arr = kind === 'study' ? csStudies : csFormats;
+  const table = kind === 'study' ? 'case_studies' : 'case_study_formats';
+  const updates = [];
+  arr.forEach((x, i) => { const no = i + 1; if (x.sort_order !== no) { x.sort_order = no; updates.push(x); } });
+  csRender();   // optimistic — feels instant
+  if (!updates.length) return;
+  try {
+    await Promise.all(updates.map(x => fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${x.id}`, { method:'PATCH', headers: SB_HJ(), body: JSON.stringify({ sort_order: x.sort_order }) })));
+    toast('Reordered');
+  } catch(e){ toast('Reorder failed — refresh', true); }
+}
+
+// ── rich note tooltip ───────────────────────────────────────────────────────
+let tipEl = null;
+function csEnsureTip(){ if (!tipEl){ tipEl = document.createElement('div'); tipEl.id = 'cs-tip'; document.body.appendChild(tipEl); } return tipEl; }
+function csHideTip(){ if (tipEl) tipEl.style.display = 'none'; }
+
+document.addEventListener('mouseover', (e) => {
+  if (dragKind) return;
+  const box = e.target.closest('[data-cell]');
+  if (!box || !box.dataset.note) return;
+  const tip = csEnsureTip();
+  tip.innerHTML = csEsc(box.dataset.note) + (box.dataset.haslink ? '<span class="tip-link">↗ link attached</span>' : '');
+  tip.style.display = 'block';
+  const r = box.getBoundingClientRect();
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let left = r.left + r.width/2 - tw/2;
+  let top = r.top - th - 8;
+  if (left < 8) left = 8;
+  if (left + tw > window.innerWidth - 8) left = window.innerWidth - 8 - tw;
+  if (top < 8) top = r.bottom + 8;
+  tip.style.left = left + 'px'; tip.style.top = top + 'px';
+});
+document.addEventListener('mouseout', (e) => {
+  const box = e.target.closest('[data-cell]'); if (!box) return;
+  const to = e.relatedTarget;
+  if (to && to.closest && to.closest('[data-cell]') === box) return;
+  csHideTip();
+});
 </script>
 
 <script>window.JUNGLE_NAV_ACTIVE = 'casestudies';</script>
