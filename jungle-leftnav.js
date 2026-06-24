@@ -90,6 +90,16 @@
       </svg>`
     },
     {
+      id: 'casestudies',
+      label: 'Case Studies',
+      href: BASE + 'case-studies.html',
+      icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 2l8 4-8 4-8-4 8-4z"/>
+        <path d="M2 10l8 4 8-4"/>
+        <path d="M2 14l8 4 8-4"/>
+      </svg>`
+    },
+    {
       id: 'martech',
       label: 'Martech',
       href: BASE + 'martech.html',

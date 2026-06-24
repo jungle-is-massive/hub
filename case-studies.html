@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jungle — Case Studies</title>
+<link rel="icon" type="image/png" href="https://junglecreations.com/favicon-32x32.png?v=1b5e54ab68eeaed11a7dbfe7d0035e99">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --cream-soft: #EFE9DF;
+  --black: #0E0E0E;
+  --green: #87FB66;
+  --green-dim: #65C247;
+  --grey: #C8C3B8;
+  --grey-mid: #8A8880;
+  --grey-light: #E8E3DA;
+  --white: #FFFFFF;
+  --coral: #FF6B4A;
+  --amber: #F0B429;
+  --header-h: 56px;
+  --col-w: 98px;
+  --row-name-w: 188px;
+  --cell-h: 54px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--cream);
+  color: var(--black);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  height: 100%; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────────────── */
+#topbar {
+  position: fixed; top: 0; right: 0; left: 52px; z-index: 100;
+  height: var(--header-h); background: var(--black);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.topbar-title {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35);
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.action-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 7px 14px; border-radius: 100px; cursor: pointer;
+  transition: all 0.15s; white-space: nowrap; border: none;
+}
+.action-btn svg { width: 12px; height: 12px; }
+.action-btn-ghost {
+  border: 1px solid rgba(255,255,255,0.15); background: transparent;
+  color: rgba(255,255,255,0.55);
+}
+.action-btn-ghost:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.9); }
+.action-btn-green { background: var(--green); color: var(--black); }
+.action-btn-green:hover { filter: brightness(1.05); }
+#refresh-btn.spinning svg { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── PROGRESS HEADER ────────────────────────────────────────── */
+#prog {
+  position: fixed; top: var(--header-h); left: 52px; right: 0; z-index: 90;
+  background: var(--cream); border-bottom: 1px solid var(--grey-light);
+  padding: 16px 28px 14px;
+  display: flex; align-items: center; gap: 24px;
+}
+.prog-frac { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.prog-frac span { font-size: 15px; color: var(--grey-mid); font-weight: 600; }
+.prog-mid { flex: 1; max-width: 460px; }
+.prog-bar {
+  height: 9px; border-radius: 6px; background: var(--grey-light);
+  overflow: hidden; display: flex;
+}
+.prog-bar .seg-done { background: var(--green-dim); }
+.prog-bar .seg-prog { background: var(--amber); }
+.prog-legend {
+  margin-top: 8px; display: flex; gap: 16px;
+  font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--grey-mid);
+}
+.prog-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+
+/* ── GRID ───────────────────────────────────────────────────── */
+#grid-wrap {
+  position: fixed; top: calc(var(--header-h) + 78px); left: 52px; right: 0; bottom: 0;
+  overflow: auto; padding: 18px 28px 60px;
+}
+table.matrix { border-collapse: separate; border-spacing: 0; }
+.matrix th, .matrix td { padding: 0; }
+
+/* corner */
+.corner {
+  position: sticky; top: 0; left: 0; z-index: 30;
+  width: var(--row-name-w); min-width: var(--row-name-w);
+  background: var(--cream);
+  text-align: left; vertical-align: bottom;
+  padding: 0 14px 10px 4px;
+}
+.corner-label {
+  font-family: 'DM Mono', monospace; font-size: 9.5px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid);
+}
+
+/* format header */
+.fmt {
+  position: sticky; top: 0; z-index: 20; background: var(--cream);
+  width: var(--col-w); min-width: var(--col-w);
+  vertical-align: bottom; padding: 0 4px 10px;
+}
+.fmt-inner {
+  position: relative; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  gap: 4px; padding-top: 4px;
+}
+.fmt-label {
+  font-size: 11px; font-weight: 700; text-align: center; line-height: 1.15;
+  letter-spacing: -0.01em; color: var(--black);
+}
+.fmt-count {
+  font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey-mid);
+  letter-spacing: 0.04em;
+}
+.fmt-count.full { color: var(--green-dim); }
+.col-menu-btn, .row-menu-btn {
+  position: absolute; opacity: 0; transition: opacity 0.12s;
+  background: var(--white); border: 1px solid var(--grey-light); border-radius: 6px;
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--grey-mid);
+}
+.col-menu-btn { top: -2px; right: 0; }
+.fmt:hover .col-menu-btn { opacity: 1; }
+.col-menu-btn:hover, .row-menu-btn:hover { color: var(--black); border-color: var(--grey-mid); }
+
+/* add column header */
+.fmt-add {
+  position: sticky; top: 0; z-index: 20; background: var(--cream);
+  width: 46px; min-width: 46px; vertical-align: bottom; padding: 0 4px 10px;
+}
+.fmt-add button {
+  width: 30px; height: 30px; border-radius: 8px; margin: 0 auto;
+  border: 1px dashed var(--grey); background: transparent; color: var(--grey-mid);
+  cursor: pointer; font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+}
+.fmt-add button:hover { border-color: var(--green-dim); color: var(--green-dim); border-style: solid; }
+
+/* row head */
+.rowhead {
+  position: sticky; left: 0; z-index: 15; background: var(--cream);
+  width: var(--row-name-w); min-width: var(--row-name-w);
+  text-align: left; padding: 0 14px 0 4px; vertical-align: middle;
+}
+.rowhead-inner { position: relative; padding: 9px 0; }
+.rowhead-name { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.rowhead-meta { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.rowhead-count {
+  font-family: 'DM Mono', monospace; font-size: 9.5px; color: var(--grey-mid); letter-spacing: 0.04em;
+}
+.rowhead-count.full { color: var(--green-dim); font-weight: 500; }
+.rowbar { flex: 1; max-width: 96px; height: 3px; border-radius: 3px; background: var(--grey-light); overflow: hidden; display: flex; }
+.rowbar .seg-done { background: var(--green-dim); }
+.rowbar .seg-prog { background: var(--amber); }
+.row-menu-btn { top: 6px; right: 6px; }
+.rowhead:hover .row-menu-btn { opacity: 1; }
+
+/* cells */
+.cell {
+  width: var(--col-w); min-width: var(--col-w); height: var(--cell-h);
+  padding: 3px;
+}
+.cell-box {
+  position: relative; width: 100%; height: 100%;
+  border-radius: 9px; cursor: pointer; transition: all 0.13s;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(14,14,14,0.07); background: rgba(14,14,14,0.015);
+}
+.cell-box:hover { border-color: var(--grey-mid); background: rgba(14,14,14,0.05); }
+.cell-box.s-in_progress {
+  background: rgba(240,180,41,0.16); border-color: rgba(240,180,41,0.55);
+}
+.cell-box.s-in_progress:hover { background: rgba(240,180,41,0.26); }
+.cell-box.s-done {
+  background: rgba(135,251,102,0.22); border-color: rgba(101,194,71,0.6);
+}
+.cell-box.s-done:hover { background: rgba(135,251,102,0.34); }
+.cell-glyph { display: flex; align-items: center; justify-content: center; }
+.cell-glyph svg { width: 17px; height: 17px; }
+.s-done .cell-glyph { color: #2a7d0e; }
+.s-in_progress .cell-glyph { color: #9a6a00; }
+.cell-add { font-size: 16px; color: var(--grey); opacity: 0; transition: opacity 0.12s; }
+.cell-box:hover .cell-add { opacity: 1; }
+.cell-link {
+  position: absolute; top: 3px; right: 3px;
+  width: 17px; height: 17px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.75); color: var(--grey-mid);
+}
+.cell-link:hover { color: var(--black); background: var(--white); }
+.cell-link svg { width: 10px; height: 10px; }
+.cell-note-dot { position: absolute; bottom: 4px; left: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--grey-mid); opacity: 0.6; }
+
+/* footer add-row */
+.addrow td { padding: 12px 4px; }
+.addrow button {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey-mid);
+  background: transparent; border: 1px dashed var(--grey); border-radius: 9px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.13s; display: inline-flex; align-items: center; gap: 7px;
+}
+.addrow button:hover { border-color: var(--green-dim); color: var(--green-dim); border-style: solid; }
+
+/* ── CELL EDITOR POPOVER ────────────────────────────────────── */
+#cell-pop {
+  position: fixed; z-index: 400; display: none;
+  width: 280px; background: var(--white); border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid var(--grey-light); overflow: hidden;
+}
+.pop-head { padding: 13px 16px 10px; border-bottom: 1px solid var(--cream-soft); }
+.pop-study { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; }
+.pop-fmt { font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); margin-top: 2px; }
+.pop-body { padding: 13px 16px 15px; }
+.pop-section-label { font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 7px; }
+.status-row { display: flex; gap: 6px; margin-bottom: 14px; }
+.status-pill {
+  flex: 1; padding: 8px 4px; border-radius: 9px; cursor: pointer;
+  font-size: 10.5px; font-weight: 700; text-align: center; transition: all 0.12s;
+  border: 1.5px solid var(--grey-light); background: var(--cream); color: var(--grey-mid);
+}
+.status-pill[data-st="not_started"].on { border-color: var(--grey-mid); background: var(--grey-light); color: var(--black); }
+.status-pill[data-st="in_progress"].on { border-color: var(--amber); background: rgba(240,180,41,0.16); color: #9a6a00; }
+.status-pill[data-st="done"].on { border-color: var(--green-dim); background: rgba(135,251,102,0.22); color: #2a7d0e; }
+.pop-input {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--grey-light); border-radius: 9px;
+  font-family: 'DM Sans', sans-serif; font-size: 12.5px; color: var(--black); outline: none;
+  background: var(--cream); margin-bottom: 12px;
+}
+.pop-input:focus { border-color: var(--green-dim); background: var(--white); }
+.pop-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pop-link-open {
+  font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--green-dim); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+}
+.pop-link-open svg { width: 11px; height: 11px; }
+.pop-btns { display: flex; gap: 7px; margin-left: auto; }
+.pop-btn {
+  font-family: 'DM Mono', monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 8px 14px; border-radius: 8px; cursor: pointer; border: none;
+}
+.pop-btn-clear { background: transparent; color: var(--grey-mid); }
+.pop-btn-clear:hover { color: var(--coral); }
+.pop-btn-save { background: var(--black); color: var(--white); }
+.pop-btn-save:hover { background: #000; }
+
+/* ── GENERIC MODAL ──────────────────────────────────────────── */
+#modal-backdrop {
+  position: fixed; inset: 0; z-index: 500; background: rgba(14,14,14,0.4);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box { width: 100%; max-width: 360px; background: var(--white); border-radius: 16px; padding: 22px; box-shadow: 0 24px 70px rgba(0,0,0,0.3); }
+.modal-title { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+.modal-body { font-size: 13px; color: var(--grey-mid); line-height: 1.5; margin-bottom: 16px; }
+.modal-input {
+  width: 100%; padding: 11px 13px; border: 1px solid var(--grey-light); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; background: var(--cream); margin-bottom: 16px;
+}
+.modal-input:focus { border-color: var(--green-dim); background: var(--white); }
+.modal-foot { display: flex; gap: 9px; justify-content: flex-end; }
+.modal-btn { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 18px; border-radius: 9px; cursor: pointer; border: none; }
+.modal-btn-cancel { background: var(--cream-soft); color: var(--grey-mid); }
+.modal-btn-cancel:hover { color: var(--black); }
+.modal-btn-go { background: var(--black); color: var(--white); }
+.modal-btn-danger { background: var(--coral); color: var(--white); }
+
+/* ── CONTEXT MENU ───────────────────────────────────────────── */
+#ctx-menu {
+  position: fixed; z-index: 450; display: none; min-width: 158px;
+  background: var(--white); border: 1px solid var(--grey-light); border-radius: 11px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.18); padding: 6px; overflow: hidden;
+}
+.ctx-item {
+  display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--black); white-space: nowrap;
+}
+.ctx-item:hover { background: var(--cream-soft); }
+.ctx-item.danger { color: var(--coral); }
+.ctx-item.danger:hover { background: rgba(255,107,74,0.1); }
+.ctx-item svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--grey-mid); }
+.ctx-item.danger svg { color: var(--coral); }
+.ctx-sep { height: 1px; background: var(--cream-soft); margin: 5px 0; }
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--black); color: var(--white); padding: 11px 20px; border-radius: 100px;
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.05em;
+  opacity: 0; transition: all 0.25s; z-index: 600; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.err { background: var(--coral); }
+
+#empty-state { padding: 80px 20px; text-align: center; color: var(--grey-mid); font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.05em; }
+
+/* ── GATE ───────────────────────────────────────────────────── */
+#gate-overlay { position: fixed; inset: 0; z-index: 999; background: var(--black); display: flex; align-items: center; justify-content: center; }
+.gate-box { text-align: center; }
+.gate-wordmark { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--white); margin-bottom: 28px; display: block; }
+.gate-wordmark span { color: var(--green); }
+.gate-input { display: block; width: 240px; padding: 12px 18px; margin: 0 auto 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; color: var(--white); font-size: 15px; text-align: center; font-family: 'DM Mono', monospace; letter-spacing: 0.15em; outline: none; }
+.gate-input:focus { border-color: var(--green); }
+.gate-btn { width: 240px; padding: 11px; background: var(--green); color: var(--black); border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+.gate-error { color: var(--coral); font-size: 12px; margin-top: 10px; font-family: 'DM Mono', monospace; min-height: 18px; }
+</style>
+</head>
+<body>
+
+<div id="gate-overlay">
+  <div class="gate-box">
+    <span class="gate-wordmark">jungle<span>.</span></span>
+    <input id="gate-input" class="gate-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <span class="topbar-title">Case Studies</span>
+  <div class="topbar-right">
+    <button class="action-btn action-btn-green" onclick="csAddStudy()">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+      Case Study
+    </button>
+    <button class="action-btn action-btn-ghost" id="refresh-btn" onclick="csRefresh()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div id="prog">
+  <div class="prog-frac" id="prog-frac">0<span>/0</span></div>
+  <div class="prog-mid">
+    <div class="prog-bar"><div class="seg-done" id="seg-done" style="width:0%"></div><div class="seg-prog" id="seg-prog" style="width:0%"></div></div>
+    <div class="prog-legend">
+      <span><i style="background:var(--green-dim)"></i><span id="lg-done">0 done</span></span>
+      <span><i style="background:var(--amber)"></i><span id="lg-prog">0 in progress</span></span>
+      <span><i style="background:var(--grey-light)"></i><span id="lg-todo">0 to go</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- GRID -->
+<div id="grid-wrap"><div id="grid"></div></div>
+
+<!-- CELL POPOVER -->
+<div id="cell-pop">
+  <div class="pop-head">
+    <div class="pop-study" id="pop-study"></div>
+    <div class="pop-fmt" id="pop-fmt"></div>
+  </div>
+  <div class="pop-body">
+    <div class="pop-section-label">Status</div>
+    <div class="status-row">
+      <div class="status-pill" data-st="not_started" onclick="csPopStatus('not_started')">Not&nbsp;started</div>
+      <div class="status-pill" data-st="in_progress" onclick="csPopStatus('in_progress')">In&nbsp;progress</div>
+      <div class="status-pill" data-st="done" onclick="csPopStatus('done')">Done</div>
+    </div>
+    <div class="pop-section-label">Link</div>
+    <input class="pop-input" id="pop-link" placeholder="https://…  paste where this lives">
+    <div class="pop-section-label">Note <span style="text-transform:none;letter-spacing:0;color:var(--grey)">(optional)</span></div>
+    <input class="pop-input" id="pop-note" placeholder="e.g. with designer, awaiting sign-off">
+    <div class="pop-foot">
+      <a class="pop-link-open" id="pop-open" href="#" target="_blank" rel="noopener" style="display:none">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13L13 7M8 7h5v5"/></svg>Open
+      </a>
+      <div class="pop-btns">
+        <button class="pop-btn pop-btn-clear" onclick="csPopClear()">Clear</button>
+        <button class="pop-btn pop-btn-save" onclick="csPopSave()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GENERIC MODAL -->
+<div id="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body" style="display:none"></div>
+    <input class="modal-input" id="modal-input" style="display:none" onkeydown="if(event.key==='Enter')csModalGo();if(event.key==='Escape')csModalClose()">
+    <div class="modal-foot">
+      <button class="modal-btn modal-btn-cancel" onclick="csModalClose()">Cancel</button>
+      <button class="modal-btn modal-btn-go" id="modal-go" onclick="csModalGo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="https://jungle-is-massive.github.io/hub/config.js"></script>
+<script src="https://jungle-is-massive.github.io/hub/hub-overlay.js" defer></script>
+
+<script>
+// ── Gate ──────────────────────────────────────────────────────────────────
+const GATE_PASSWORD = 'massive';
+function checkGate() {
+  const v = document.getElementById('gate-input').value.trim();
+  if (v === GATE_PASSWORD) {
+    sessionStorage.setItem('jc_auth', '1');
+    document.getElementById('gate-overlay').remove();
+    init();
+  } else {
+    document.getElementById('gate-error').textContent = 'Wrong password.';
+    document.getElementById('gate-input').value = '';
+  }
+}
+if (sessionStorage.getItem('jc_auth') === '1') {
+  const g = document.getElementById('gate-overlay'); if (g) g.remove();
+}
+
+// ── Config ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = (window.JUNGLE_CONFIG||{}).SB_URL || '';
+const SUPABASE_KEY = (window.JUNGLE_CONFIG||{}).SB_KEY || '';
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('jc_auth') === '1') init();
+});
+function init(){ csRefresh(); }
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// CASE STUDY TRACKER — source of truth: Supabase
+//   case_study_formats · case_studies · case_study_cells
+// ════════════════════════════════════════════════════════════════════════════
+
+const STATUSES = ['not_started','in_progress','done'];
+let csFormats = [];          // [{id,name,short_label,sort_order}]
+let csStudies = [];          // [{id,name,sort_order}]
+let csCells   = {};          // key `${sid}:${fid}` -> {status,link,note}
+
+const SB_H  = () => ({ apikey: SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` });
+const SB_HJ = () => ({ ...SB_H(), 'Content-Type':'application/json' });
+
+function csEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ckey(sid,fid){ return sid+':'+fid; }
+function toast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show' + (isErr?' err':'');
+  clearTimeout(window._tt); window._tt = setTimeout(()=>{ t.className = isErr?'err':''; }, 2200);
+}
+
+// ── data load ───────────────────────────────────────────────────────────────
+async function csLoad(){
+  const [fRes, sRes, cRes] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/case_study_formats?select=*&order=sort_order`, { headers: SB_H() }),
+    fetch(`${SUPABASE_URL}/rest/v1/case_studies?select=*&order=sort_order`, { headers: SB_H() }),
+    fetch(`${SUPABASE_URL}/rest/v1/case_study_cells?select=*`, { headers: SB_H() }),
+  ]);
+  csFormats = await fRes.json();
+  csStudies = await sRes.json();
+  const cells = await cRes.json();
+  csCells = {};
+  (Array.isArray(cells)?cells:[]).forEach(c => { csCells[ckey(c.case_study_id, c.format_id)] = c; });
+}
+
+async function csRefresh(){
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  try { await csLoad(); csRender(); }
+  catch(e){ document.getElementById('grid').innerHTML = `<div id="empty-state">Couldn't load. ${csEsc(e.message||'')}</div>`; }
+  if (btn) btn.classList.remove('spinning');
+}
+
+// ── render ────────────────────────────────────────────────────────────────
+const SVG_CHECK = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>';
+const SVG_HALF  = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10" cy="10" r="6"/><path d="M10 4a6 6 0 010 12z" fill="currentColor" stroke="none"/></svg>';
+const SVG_LINK  = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13L13 7M8 7h5v5"/></svg>';
+
+function csRender(){
+  const grid = document.getElementById('grid');
+  if (!csStudies.length){
+    grid.innerHTML = '<div id="empty-state">No case studies yet — hit “+ Case Study” to start.</div>';
+    csUpdateProgress();
+    return;
+  }
+  let html = '<table class="matrix"><thead><tr>';
+  html += '<th class="corner"><div class="corner-label">Case study</div></th>';
+  csFormats.forEach(f => {
+    const fc = csFormatCount(f.id);
+    const full = fc.done === csStudies.length && csStudies.length>0;
+    html += `<th class="fmt" data-fid="${f.id}">
+      <div class="fmt-inner">
+        <button class="col-menu-btn" data-colmenu="${f.id}" title="Edit column">
+          <svg viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="4" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>
+        </button>
+        <div class="fmt-label">${csEsc(f.short_label||f.name)}</div>
+        <div class="fmt-count ${full?'full':''}">${fc.done}/${csStudies.length}</div>
+      </div></th>`;
+  });
+  html += '<th class="fmt-add"><button onclick="csAddFormat()" title="Add format">+</button></th>';
+  html += '</tr></thead><tbody>';
+
+  csStudies.forEach(s => {
+    const rc = csStudyCount(s.id);
+    const total = csFormats.length || 1;
+    const full = rc.done === csFormats.length && csFormats.length>0;
+    const donePct = Math.round(rc.done/total*100);
+    const progPct = Math.round(rc.prog/total*100);
+    html += '<tr>';
+    html += `<th class="rowhead" data-sid="${s.id}">
+      <div class="rowhead-inner">
+        <button class="row-menu-btn" data-rowmenu="${s.id}" title="Edit case study">
+          <svg viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="4" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>
+        </button>
+        <div class="rowhead-name">${csEsc(s.name)}</div>
+        <div class="rowhead-meta">
+          <div class="rowbar"><div class="seg-done" style="width:${donePct}%"></div><div class="seg-prog" style="width:${progPct}%"></div></div>
+          <span class="rowhead-count ${full?'full':''}">${rc.done}/${csFormats.length}</span>
+        </div>
+      </div></th>`;
+    csFormats.forEach(f => {
+      const c = csCells[ckey(s.id, f.id)];
+      const st = c ? c.status : 'not_started';
+      const hasLink = c && c.link && c.link.trim();
+      const hasNote = c && c.note && c.note.trim();
+      let glyph = '<span class="cell-add">+</span>';
+      if (st === 'done') glyph = `<span class="cell-glyph">${SVG_CHECK}</span>`;
+      else if (st === 'in_progress') glyph = `<span class="cell-glyph">${SVG_HALF}</span>`;
+      html += `<td class="cell"><div class="cell-box s-${st}" data-cell data-sid="${s.id}" data-fid="${f.id}">
+        ${glyph}
+        ${hasLink ? `<a class="cell-link" href="${csEsc(c.link)}" target="_blank" rel="noopener" data-cell-link title="${csEsc(c.link)}">${SVG_LINK}</a>` : ''}
+        ${hasNote ? `<span class="cell-note-dot" title="${csEsc(c.note)}"></span>` : ''}
+      </div></td>`;
+    });
+    html += '<td></td></tr>';
+  });
+  html += `<tr class="addrow"><td colspan="${csFormats.length+2}"><button onclick="csAddStudy()"><svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>Add case study</button></td></tr>`;
+  html += '</tbody></table>';
+  grid.innerHTML = html;
+  csUpdateProgress();
+}
+
+function csStudyCount(sid){
+  let done=0, prog=0;
+  csFormats.forEach(f => { const c = csCells[ckey(sid,f.id)]; if(c){ if(c.status==='done')done++; else if(c.status==='in_progress')prog++; } });
+  return {done, prog};
+}
+function csFormatCount(fid){
+  let done=0, prog=0;
+  csStudies.forEach(s => { const c = csCells[ckey(s.id,fid)]; if(c){ if(c.status==='done')done++; else if(c.status==='in_progress')prog++; } });
+  return {done, prog};
+}
+function csUpdateProgress(){
+  const total = csStudies.length * csFormats.length;
+  let done=0, prog=0;
+  Object.values(csCells).forEach(c => { if(c.status==='done')done++; else if(c.status==='in_progress')prog++; });
+  document.getElementById('prog-frac').innerHTML = `${done}<span>/${total}</span>`;
+  document.getElementById('seg-done').style.width = total? (done/total*100)+'%' : '0%';
+  document.getElementById('seg-prog').style.width = total? (prog/total*100)+'%' : '0%';
+  document.getElementById('lg-done').textContent = `${done} done`;
+  document.getElementById('lg-prog').textContent = `${prog} in progress`;
+  document.getElementById('lg-todo').textContent = `${Math.max(0,total-done-prog)} to go`;
+}
+
+// ── cell editor popover ─────────────────────────────────────────────────────
+let popSid=null, popFid=null, popStatus='not_started';
+function csOpenCell(sid, fid, anchorEl){
+  popSid=sid; popFid=fid;
+  const c = csCells[ckey(sid,fid)] || {status:'not_started', link:'', note:''};
+  popStatus = c.status || 'not_started';
+  const study = csStudies.find(s=>s.id===sid) || {};
+  const fmt = csFormats.find(f=>f.id===fid) || {};
+  document.getElementById('pop-study').textContent = study.name||'';
+  document.getElementById('pop-fmt').textContent = fmt.name||fmt.short_label||'';
+  document.getElementById('pop-link').value = c.link||'';
+  document.getElementById('pop-note').value = c.note||'';
+  csPopReflectStatus();
+  csPopReflectOpen();
+  const pop = document.getElementById('cell-pop');
+  pop.style.display = 'block';
+  // position near the clicked cell, clamped to viewport
+  const r = anchorEl.getBoundingClientRect();
+  const pw = 280, ph = pop.offsetHeight || 300;
+  let left = r.left, top = r.bottom + 8;
+  if (left + pw > window.innerWidth - 12) left = window.innerWidth - pw - 12;
+  if (left < 12) left = 12;
+  if (top + ph > window.innerHeight - 12) top = r.top - ph - 8;
+  if (top < 12) top = 12;
+  pop.style.left = left+'px'; pop.style.top = top+'px';
+}
+function csCloseCell(){ document.getElementById('cell-pop').style.display='none'; popSid=null; popFid=null; }
+function csPopReflectStatus(){
+  document.querySelectorAll('#cell-pop .status-pill').forEach(p => p.classList.toggle('on', p.dataset.st===popStatus));
+}
+function csPopReflectOpen(){
+  const link = document.getElementById('pop-link').value.trim();
+  const a = document.getElementById('pop-open');
+  if (link){ a.href = link; a.style.display='inline-flex'; } else { a.style.display='none'; }
+}
+document.getElementById('pop-link').addEventListener('input', csPopReflectOpen);
+function csPopStatus(st){ popStatus = st; csPopReflectStatus(); }   // applied on Save
+async function csPopSave(){
+  const link = document.getElementById('pop-link').value.trim();
+  const note = document.getElementById('pop-note').value.trim();
+  const sid=popSid, fid=popFid, status=popStatus;
+  try {
+    await csUpsertCell(sid, fid, {status, link, note});
+    csCloseCell(); csRender();
+    toast('Saved');
+  } catch(e){ toast('Save failed', true); }
+}
+async function csPopClear(){
+  const sid=popSid, fid=popFid;
+  try { await csDeleteCell(sid, fid); csCloseCell(); csRender(); toast('Cleared'); }
+  catch(e){ toast('Clear failed', true); }
+}
+
+// ── cell persistence ────────────────────────────────────────────────────────
+async function csUpsertCell(sid, fid, fields){
+  const payload = { case_study_id: sid, format_id: fid, status: fields.status, link: fields.link||'', note: fields.note||'', updated_at: new Date().toISOString() };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/case_study_cells?on_conflict=case_study_id,format_id`, {
+    method:'POST', headers:{ ...SB_HJ(), Prefer:'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('upsert '+res.status);
+  const out = await res.json();
+  if (Array.isArray(out) && out[0]) csCells[ckey(sid,fid)] = out[0];
+}
+async function csDeleteCell(sid, fid){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/case_study_cells?case_study_id=eq.${sid}&format_id=eq.${fid}`, { method:'DELETE', headers: SB_H() });
+  if (!res.ok && res.status!==404) throw new Error('delete '+res.status);
+  delete csCells[ckey(sid,fid)];
+}
+
+// ── studies / formats CRUD ──────────────────────────────────────────────────
+function csMaxOrder(arr){ return arr.reduce((m,x)=>Math.max(m, x.sort_order||0), 0); }
+
+function csAddStudy(){
+  csModal({ title:'New case study', placeholder:'e.g. Heinz', go:'Add', onGo: async (name) => {
+    if(!name) return;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/case_studies`, { method:'POST', headers:{...SB_HJ(), Prefer:'return=representation'}, body: JSON.stringify({name, sort_order: csMaxOrder(csStudies)+1}) });
+      if(!res.ok) throw new Error(res.status); const row=(await res.json())[0]; csStudies.push(row); csRender(); toast('Added');
+    } catch(e){ toast('Failed to add', true); }
+  }});
+}
+function csAddFormat(){
+  csModal({ title:'New format / column', placeholder:'e.g. Sizzle reel', go:'Add', onGo: async (name) => {
+    if(!name) return;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/case_study_formats`, { method:'POST', headers:{...SB_HJ(), Prefer:'return=representation'}, body: JSON.stringify({name, short_label:name, sort_order: csMaxOrder(csFormats)+1}) });
+      if(!res.ok) throw new Error(res.status); const row=(await res.json())[0]; csFormats.push(row); csRender(); toast('Added');
+    } catch(e){ toast('Failed to add', true); }
+  }});
+}
+function csRenameStudy(sid){
+  const s = csStudies.find(x=>x.id===sid); if(!s) return;
+  csModal({ title:'Rename case study', value:s.name, go:'Save', onGo: async (name) => {
+    if(!name) return;
+    try { const res=await fetch(`${SUPABASE_URL}/rest/v1/case_studies?id=eq.${sid}`, { method:'PATCH', headers:SB_HJ(), body: JSON.stringify({name}) }); if(!res.ok)throw new Error(res.status); s.name=name; csRender(); toast('Renamed'); }
+    catch(e){ toast('Failed', true); }
+  }});
+}
+function csRenameFormat(fid){
+  const f = csFormats.find(x=>x.id===fid); if(!f) return;
+  csModal({ title:'Rename format', value:f.short_label||f.name, go:'Save', onGo: async (name) => {
+    if(!name) return;
+    try { const res=await fetch(`${SUPABASE_URL}/rest/v1/case_study_formats?id=eq.${fid}`, { method:'PATCH', headers:SB_HJ(), body: JSON.stringify({name, short_label:name}) }); if(!res.ok)throw new Error(res.status); f.name=name; f.short_label=name; csRender(); toast('Renamed'); }
+    catch(e){ toast('Failed', true); }
+  }});
+}
+function csDeleteStudy(sid){
+  const s = csStudies.find(x=>x.id===sid); if(!s) return;
+  csConfirm({ title:`Delete “${s.name}”?`, body:'This removes the case study and all its cells. This can’t be undone.', danger:'Delete', onYes: async () => {
+    try { const res=await fetch(`${SUPABASE_URL}/rest/v1/case_studies?id=eq.${sid}`, { method:'DELETE', headers:SB_H() }); if(!res.ok&&res.status!==404)throw new Error(res.status);
+      csStudies = csStudies.filter(x=>x.id!==sid); Object.keys(csCells).forEach(k=>{ if(k.startsWith(sid+':')) delete csCells[k]; }); csRender(); toast('Deleted'); }
+    catch(e){ toast('Failed', true); }
+  }});
+}
+function csDeleteFormat(fid){
+  const f = csFormats.find(x=>x.id===fid); if(!f) return;
+  csConfirm({ title:`Delete “${f.short_label||f.name}” column?`, body:'This removes the format from every case study. This can’t be undone.', danger:'Delete', onYes: async () => {
+    try { const res=await fetch(`${SUPABASE_URL}/rest/v1/case_study_formats?id=eq.${fid}`, { method:'DELETE', headers:SB_H() }); if(!res.ok&&res.status!==404)throw new Error(res.status);
+      csFormats = csFormats.filter(x=>x.id!==fid); Object.keys(csCells).forEach(k=>{ if(k.endsWith(':'+fid)) delete csCells[k]; }); csRender(); toast('Deleted'); }
+    catch(e){ toast('Failed', true); }
+  }});
+}
+async function csMove(kind, id, dir){
+  const arr = kind==='study' ? csStudies : csFormats;
+  const i = arr.findIndex(x=>x.id===id); const j = i + dir;
+  if (i<0 || j<0 || j>=arr.length) return;
+  const a = arr[i], b = arr[j];
+  const ao = a.sort_order, bo = b.sort_order;
+  const table = kind==='study' ? 'case_studies' : 'case_study_formats';
+  try {
+    await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${a.id}`, { method:'PATCH', headers:SB_HJ(), body: JSON.stringify({sort_order: bo}) }),
+      fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${b.id}`, { method:'PATCH', headers:SB_HJ(), body: JSON.stringify({sort_order: ao}) }),
+    ]);
+    a.sort_order = bo; b.sort_order = ao;
+    arr.sort((x,y)=>(x.sort_order||0)-(y.sort_order||0));
+    csRender();
+  } catch(e){ toast('Reorder failed', true); }
+}
+
+// ── generic modal (text input) ──────────────────────────────────────────────
+let modalGo = null;
+function csModal({title, value='', placeholder='', go='Save', onGo}){
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').style.display='none';
+  const inp = document.getElementById('modal-input');
+  inp.style.display='block'; inp.value = value; inp.placeholder = placeholder;
+  const gb = document.getElementById('modal-go'); gb.textContent = go; gb.className='modal-btn modal-btn-go';
+  modalGo = () => { const v = inp.value.trim(); csModalClose(); onGo(v); };
+  document.getElementById('modal-backdrop').style.display='flex';
+  setTimeout(()=>inp.focus(), 30);
+}
+function csConfirm({title, body='', danger='Delete', onYes}){
+  document.getElementById('modal-title').textContent = title;
+  const b = document.getElementById('modal-body'); b.style.display='block'; b.textContent = body;
+  document.getElementById('modal-input').style.display='none';
+  const gb = document.getElementById('modal-go'); gb.textContent = danger; gb.className='modal-btn modal-btn-danger';
+  modalGo = () => { csModalClose(); onYes(); };
+  document.getElementById('modal-backdrop').style.display='flex';
+}
+function csModalGo(){ if(modalGo) modalGo(); }
+function csModalClose(){ document.getElementById('modal-backdrop').style.display='none'; modalGo=null; }
+document.getElementById('modal-backdrop').addEventListener('click', e => { if(e.target.id==='modal-backdrop') csModalClose(); });
+
+// ── context menu (row / column) ─────────────────────────────────────────────
+function csShowMenu(kind, id, btnEl){
+  const menu = document.getElementById('ctx-menu');
+  const isStudy = kind==='study';
+  const arr = isStudy ? csStudies : csFormats;
+  const idx = arr.findIndex(x=>x.id===id);
+  const first = idx===0, last = idx===arr.length-1;
+  const moveLabels = isStudy ? ['Move up','Move down'] : ['Move left','Move right'];
+  const icoUp = isStudy ? 'M10 5v10M6 9l4-4 4 4' : 'M5 10h10M9 6l-4 4 4 4';
+  const icoDn = isStudy ? 'M10 5v10M6 11l4 4 4-4' : 'M5 10h10M11 6l4 4-4 4';
+  menu.innerHTML =
+    `<div class="ctx-item" data-act="rename"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5V16h2.5L15 7.5 12.5 5 4 13.5z"/><path d="M11.5 6l2.5 2.5"/></svg>Rename</div>` +
+    (first?'':`<div class="ctx-item" data-act="up"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${icoUp}"/></svg>${moveLabels[0]}</div>`) +
+    (last?'':`<div class="ctx-item" data-act="down"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${icoDn}"/></svg>${moveLabels[1]}</div>`) +
+    `<div class="ctx-sep"></div>` +
+    `<div class="ctx-item danger" data-act="delete"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10"/></svg>Delete</div>`;
+  menu.style.display='block';
+  const r = btnEl.getBoundingClientRect();
+  let left = r.right - 158, top = r.bottom + 4;
+  if (left < 12) left = 12;
+  if (top + menu.offsetHeight > window.innerHeight-12) top = r.top - menu.offsetHeight - 4;
+  menu.style.left = left+'px'; menu.style.top = top+'px';
+  menu.onclick = (e) => {
+    const it = e.target.closest('.ctx-item'); if(!it) return;
+    const act = it.dataset.act; csHideMenu();
+    if (act==='rename') isStudy ? csRenameStudy(id) : csRenameFormat(id);
+    else if (act==='up')   csMove(kind, id, -1);
+    else if (act==='down') csMove(kind, id, +1);
+    else if (act==='delete') isStudy ? csDeleteStudy(id) : csDeleteFormat(id);
+  };
+}
+function csHideMenu(){ document.getElementById('ctx-menu').style.display='none'; }
+
+// ── global delegated clicks ─────────────────────────────────────────────────
+document.addEventListener('click', (e) => {
+  // cell link → let it open, don't open editor
+  if (e.target.closest('[data-cell-link]')) { e.stopPropagation(); return; }
+  // open cell editor
+  const cell = e.target.closest('[data-cell]');
+  if (cell) { csOpenCell(cell.dataset.sid, cell.dataset.fid, cell); return; }
+  // row / column menu buttons
+  const cm = e.target.closest('[data-colmenu]');
+  if (cm) { e.stopPropagation(); csShowMenu('format', cm.dataset.colmenu, cm); return; }
+  const rm = e.target.closest('[data-rowmenu]');
+  if (rm) { e.stopPropagation(); csShowMenu('study', rm.dataset.rowmenu, rm); return; }
+  // outside clicks close popover + menu
+  if (!e.target.closest('#cell-pop')) csCloseCell();
+  if (!e.target.closest('#ctx-menu')) csHideMenu();
+});
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ csCloseCell(); csHideMenu(); } });
+document.getElementById('grid-wrap').addEventListener('scroll', () => { csCloseCell(); csHideMenu(); });
+</script>
+
+<script>window.JUNGLE_NAV_ACTIVE = 'casestudies';</script>
+<script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
+</body>
+</html>
