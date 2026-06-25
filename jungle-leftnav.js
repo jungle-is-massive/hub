@@ -3,7 +3,8 @@
  * Shared left navigation for the Jungle Hub.
  * Include this script on every hub page — it injects the nav and adjusts layout.
  * Set window.JUNGLE_NAV_ACTIVE = 'dashboard' | 'opportunities' | 'priorities' |
- *   'newsdesk' | 'prospects' | 'meetings' | 'inquiries' | 'events'
+ *   'newsdesk' | 'prospects' | 'meetings' | 'inquiries' | 'events' | 'calendar' |
+ *   'casestudies' | 'martech'
  * before loading this script (or in a data attribute).
  */
 
@@ -87,6 +88,16 @@
       href: BASE + 'events-v2.html',
       icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <path d="M10 2l2 5h5l-4 3.5 1.5 5.5L10 13l-4.5 3 1.5-5.5L3 7h5z"/>
+      </svg>`
+    },
+    {
+      id: 'calendar',
+      label: 'Calendar',
+      href: 'https://jungle-is-massive.github.io/jungle-bd-planner/calendar.html',
+      icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2.5" y="3.5" width="15" height="14" rx="2"/>
+        <path d="M2.5 8h15M6.5 2v3M13.5 2v3"/>
+        <path d="M6 11h2M9.5 11h1M13 11h1M6 14h2M9.5 14h1"/>
       </svg>`
     },
     {
