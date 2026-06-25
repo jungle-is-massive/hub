@@ -273,7 +273,7 @@ const PR_CAT_COLOUR = { marcomms:'#7B6FE0', newbiz:'#3ECF8E', marketing:'#4ABFFF
 
 const PR_STATUSES = ['In progress','Scheduled','Reviewing','Planning','Early development','Ideation','Relationship building','Awaiting designer','Under review','Completed'];
 const PR_STATUS_COLOURS = {
-  'in progress':           { bg:'rgba(135,251,102,0.14)', border:'rgba(135,251,102,0.45)', text:'#2a6600' },
+  'in progress':           { bg:'rgba(232,89,12,0.13)',   border:'rgba(232,89,12,0.5)',    text:'#9a3d00' },
   'scheduled':             { bg:'rgba(74,191,255,0.12)',  border:'rgba(74,191,255,0.4)',   text:'#0a5080' },
   'reviewing':             { bg:'rgba(240,180,41,0.14)',  border:'rgba(240,180,41,0.45)',  text:'#7a4e00' },
   'planning':              { bg:'rgba(123,111,224,0.12)', border:'rgba(123,111,224,0.4)',  text:'#3a2e8a' },
@@ -290,6 +290,7 @@ const PR_STATUS_DEFAULT = { bg:'rgba(200,195,184,0.18)', border:'rgba(200,195,18
 function prEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function prStatusClean(s){ return (s||'').replace(/^[^\w]+/,'').trim(); }
 function prStatusStyle(s){ return PR_STATUS_COLOURS[prStatusClean(s).toLowerCase()] || PR_STATUS_DEFAULT; }
+function prFirstUrl(s){ if(!s) return ''; const t=String(s); let m=t.match(/https?:\/\/[^\s<>"')]+/i); if(m) return m[0]; m=t.match(/(^|\s)(www\.[^\s<>"')]+)/i); return m?('https://'+m[2]):''; }
 function prIsBlocked(r){ return r.any_blockers && r.any_blockers.trim().length > 3; }
 function prParse(d){ if(!d) return null; const dt = new Date(String(d).slice(0,10)+'T00:00:00'); return isNaN(dt)?null:dt; }
 function prFmtDate(d){ const dt = prParse(d); if(!dt) return ''; return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
@@ -498,6 +499,8 @@ function prListCard(r){
     dateChip = `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey-mid);white-space:nowrap">⏱ ${prEsc(r.hard_deadline)}</span>`;
   }
   const owner   = r.owner ? `<span style="font-size:11px;color:var(--grey-mid);white-space:nowrap">${prEsc(r.owner)}</span>` : '';
+  const lnkUrl  = prFirstUrl(r.links);
+  const lnk     = lnkUrl ? `<a href="${prEsc(lnkUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Open link" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;color:var(--grey-mid);text-decoration:none;flex-shrink:0;transition:color .12s,background .12s" onmouseover="this.style.color='var(--black)';this.style.background='var(--grey-light)'" onmouseout="this.style.color='var(--grey-mid)';this.style.background='transparent'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : '';
   const blocked = prIsBlocked(r) ? `<span title="Blocked" style="color:#FF6B4A;font-size:11px;flex-shrink:0">⚠</span>` : '';
   const desc    = r.goal ? `<div style="font-size:12px;color:#6a675f;margin-top:1px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(r.goal)}</div>` : '';
   return `<div class="pr-card" draggable="true" data-id="${r.id}" data-prio="${prPrioKey(r)}" onclick="prOpenEdit('${r.id}')"
@@ -510,7 +513,7 @@ function prListCard(r){
       </div>
       ${desc}
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">${dateChip}${owner}${cat}${status}</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">${lnk}${dateChip}${owner}${cat}${status}</div>
   </div>`;
 }
 
@@ -639,9 +642,9 @@ function prRenderCalendar(){
     const items=byDay[dayNum]||[];
     const chips=items.map(({r,ms})=>{
       const col=PR_PRIO_COLOUR[prPrioKey(r)]||'#C8C3B8', label=ms.label?ms.label:r.name;
-      return `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)}${ms.label?' — '+prEsc(ms.label):''}" style="display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:6px;background:${col}1f;border-left:3px solid ${col};cursor:pointer;margin-top:3px;overflow:hidden"><span style="font-size:11px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prEsc(label)}</span></div>`;
+      return `<div onclick="event.stopPropagation();prOpenEdit('${r.id}')" title="${prEsc(r.name)}${ms.label?' — '+prEsc(ms.label):''}" style="display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:6px;background:${col}1f;border-left:3px solid ${col};cursor:pointer;margin-top:3px;min-width:0;overflow:hidden"><span style="font-size:11px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${prEsc(label)}</span></div>`;
     }).join('');
-    cells+=`<div onclick="prOpenCreate({milestones:[{date:'${iso}',label:''}]})" style="min-height:96px;background:var(--white);border:1px solid var(--grey-light);padding:5px 6px;cursor:pointer;position:relative" onmouseover="this.style.background='rgba(135,251,102,0.05)'" onmouseout="this.style.background='var(--white)'">
+    cells+=`<div onclick="prOpenCreate({milestones:[{date:'${iso}',label:''}]})" style="min-height:96px;min-width:0;overflow:hidden;background:var(--white);border:1px solid var(--grey-light);padding:5px 6px;cursor:pointer;position:relative" onmouseover="this.style.background='rgba(135,251,102,0.05)'" onmouseout="this.style.background='var(--white)'">
       <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:${isToday?'800':'500'};color:${isToday?'var(--black)':'var(--grey-mid)'};${isToday?'background:var(--green);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center':''}">${dayNum}</div>
       ${chips}
     </div>`;
@@ -655,7 +658,7 @@ function prRenderCalendar(){
         <button onclick="prCalShift(1)" style="width:32px;height:32px;border-radius:8px;border:1.5px solid var(--grey-light);background:var(--white);cursor:pointer;font-size:14px">›</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);border-radius:12px;overflow:hidden;border:1.5px solid var(--grey-light)">${head}${cells}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-radius:12px;overflow:hidden;border:1.5px solid var(--grey-light)">${head}${cells}</div>
     <div style="margin-top:10px;font-size:11px;color:var(--grey-mid)">Items appear on their due date. Click an empty day to add a new item.</div>`;
 }
 function prCalShift(n){ prCalDate=new Date(prCalDate.getFullYear(),prCalDate.getMonth()+n,1); prRenderCalendar(); }
