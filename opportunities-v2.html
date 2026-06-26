@@ -190,6 +190,39 @@ html, body {
   align-self: flex-start;
 }
 .deal-card-owner-pill.owner-coris { background: rgba(135,251,102,0.15); color: #87FB66; }
+/* ── card action buttons (step 1) ── */
+.deal-card-actions { display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); }
+.dca-btn { display:inline-flex; align-items:center; gap:4px; height:24px; padding:0 9px; border-radius:100px; font-family:'DM Mono',monospace; font-size:9px; font-weight:600; letter-spacing:0.06em; text-decoration:none; cursor:pointer; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.75); transition:all 0.12s; }
+.dca-btn:hover { background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.3); }
+.dca-email:hover { background:var(--green); color:#111; border-color:var(--green); }
+.dca-hs { color:#ff8a3d; border-color:rgba(230,92,0,0.35); background:rgba(230,92,0,0.10); }
+.dca-hs:hover { background:rgba(230,92,0,0.22); color:#ff9d5a; border-color:rgba(230,92,0,0.6); }
+.dca-none { font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,0.3); letter-spacing:0.06em; }
+/* ── ported email compose modal ── */
+#email-compose-modal { position: fixed; inset: 0; background: rgba(14,14,14,0.65); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+#email-compose-modal.open { opacity: 1; pointer-events: all; }
+#email-compose-box { background: var(--cream); border-radius: 16px; width: min(620px, 100%); max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.3); transform: translateY(16px); transition: transform 0.2s; }
+#email-compose-modal.open #email-compose-box { transform: translateY(0); }
+.ecm-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; border-bottom: 1px solid var(--grey-light); }
+.ecm-title { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; color: var(--black); }
+.ecm-close { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--grey-mid); padding: 2px 6px; border-radius: 6px; transition: color 0.12s, background 0.12s; }
+.ecm-close:hover { color: var(--black); background: var(--grey-light); }
+.ecm-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.ecm-templates { display: flex; gap: 6px; flex-wrap: wrap; }
+.ecm-template-pill { height: 28px; padding: 0 12px; background: var(--grey-light); border: 1.5px solid transparent; border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey-mid); cursor: pointer; transition: all 0.12s; }
+.ecm-template-pill:hover { background: var(--black); color: var(--green); }
+.ecm-template-pill.active { background: var(--black); color: var(--green); border-color: var(--green); }
+.ecm-field label { display: block; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey-mid); margin-bottom: 6px; }
+.ecm-field input, .ecm-field textarea { width: 100%; border: 1.5px solid var(--grey-light); border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--black); background: var(--white); outline: none; transition: border-color 0.15s; box-sizing: border-box; resize: vertical; }
+.ecm-field input:focus, .ecm-field textarea:focus { border-color: var(--black); }
+.ecm-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 20px; gap: 10px; }
+.ecm-send-btn { height: 38px; padding: 0 22px; background: var(--black); color: var(--green); border: none; border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s; }
+.ecm-send-btn:hover { opacity: 0.85; }
+.ecm-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ecm-cancel-btn { height: 38px; padding: 0 16px; background: none; border: 1.5px solid var(--grey-light); border-radius: 100px; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey-mid); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.ecm-cancel-btn:hover { border-color: var(--black); color: var(--black); }
+.ecm-no-token { padding: 12px 14px; background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.25); border-radius: 8px; font-size: 12px; color: var(--grey-mid); line-height: 1.5; }
+.ecm-no-token a { color: var(--black); font-weight: 600; }
 
 /* ── LIST VIEW ───────────────────────────────────────────────── */
 #deal-list {
@@ -529,6 +562,148 @@ if (sessionStorage.getItem('jc_auth') === '1') {
 const SUPABASE_URL   = (window.JUNGLE_CONFIG||{}).SB_URL  || '';
 const SUPABASE_KEY   = (window.JUNGLE_CONFIG||{}).SB_KEY  || '';
 const HS_PROXY       = `${SUPABASE_URL}/functions/v1/hs-proxy`;
+
+// ── Google OAuth (Gmail send) — token shared via localStorage across hub pages ──
+const GCAL_CLIENT_ID = '161148155885-jmk24mva9i9akjknkes29kso7n1c9bgl.apps.googleusercontent.com';
+let gcalAccessToken = localStorage.getItem('gcal_access_token') || '';
+let gcalTokenExpiry = parseInt(localStorage.getItem('gcal_token_expiry') || '0');
+function gcalIsConnected() { return gcalAccessToken && Date.now() < gcalTokenExpiry; }
+function gcalSignIn() {
+  const redirect = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GCAL_CLIENT_ID}&redirect_uri=${redirect}&response_type=token&scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.send')}&prompt=select_account`;
+}
+function handleGcalCallback() {
+  const hash = window.location.hash.substring(1); if (!hash) return;
+  const params = Object.fromEntries(new URLSearchParams(hash));
+  if (params.access_token) {
+    gcalAccessToken = params.access_token;
+    gcalTokenExpiry = Date.now() + (parseInt(params.expires_in||'3600') * 1000);
+    localStorage.setItem('gcal_access_token', gcalAccessToken);
+    localStorage.setItem('gcal_token_expiry', String(gcalTokenExpiry));
+    history.replaceState(null, '', window.location.pathname);
+  }
+}
+handleGcalCallback();
+
+// ── Email compose modal (ported from prospects) ──
+let _emailContact = null;
+function getEmailTemplates(name, company) {
+  const firstName = name.split(' ')[0];
+  return {
+    chaser: { subject: 'Following up — Jungle Creations', body: `Hi ${firstName},\n\nI just wanted to follow up on my previous email — I know things get busy and I didn't want it to slip through the cracks.\n\nI'd love to find 20 minutes to show you what we've been doing for brands like yours. We've been helping [relevant brand type] brands build genuine social presence that actually drives commercial results — not just vanity metrics.\n\nWould any time next week work for a quick call?\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations` },
+    meeting_followup: { subject: 'Great to meet you — next steps', body: `Hi ${firstName},\n\nReally enjoyed our conversation — thanks for taking the time.\n\nAs discussed, I'll put together a brief overview of how we could approach [the challenge you mentioned] for ${company}. I'll get that across to you by end of week.\n\nIn the meantime, if anything comes up or you have questions, feel free to drop me a line.\n\nLooking forward to continuing the conversation.\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations` },
+    checkin: { subject: 'Checking in — Jungle Creations', body: `Hi ${firstName},\n\nHope you're well. I wanted to reach out as it's been a little while since we last spoke.\n\nWe've had a few interesting briefs come through recently from brands in a similar space to ${company} and it got me thinking about our conversation.\n\nHappy to share what we've been up to if useful — would a quick 15-minute catch-up work at any point in the next few weeks?\n\nBest,\nCoris\n\n—\nCoris Leachman\nExecutive Director of Growth, Jungle Creations` }
+  };
+}
+function openEmailModal(contactObj) {
+  _emailContact = typeof contactObj === 'string' ? JSON.parse(contactObj) : contactObj;
+  document.getElementById('ecm-title').textContent = `Email ${_emailContact.name}`;
+  document.getElementById('ecm-to').value = _emailContact.email || '';
+  document.getElementById('ecm-subject').value = '';
+  document.getElementById('ecm-body').value = '';
+  document.querySelectorAll('.ecm-template-pill').forEach(p => p.classList.remove('active'));
+  const noToken = document.getElementById('ecm-no-token-msg');
+  const sendBtn = document.getElementById('ecm-send-btn');
+  if (gcalIsConnected()) { noToken.style.display = 'none'; sendBtn.style.display = ''; }
+  else { noToken.style.display = 'block'; sendBtn.style.display = 'none'; }
+  document.getElementById('email-compose-modal').classList.add('open');
+}
+function closeEmailModal() {
+  document.getElementById('email-compose-modal').classList.remove('open');
+  _emailContact = null;
+}
+function applyEmailTemplate(type, btn) {
+  if (!_emailContact) return;
+  const templates = getEmailTemplates(_emailContact.name, _emailContact.company || 'your brand');
+  const t = templates[type]; if (!t) return;
+  document.getElementById('ecm-subject').value = t.subject;
+  document.getElementById('ecm-body').value = t.body;
+  document.querySelectorAll('.ecm-template-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ecm-body').focus();
+}
+function copyEmailToClipboard() {
+  const subject = document.getElementById('ecm-subject').value;
+  const body = document.getElementById('ecm-body').value;
+  const to = document.getElementById('ecm-to').value;
+  navigator.clipboard.writeText(`To: ${to}\nSubject: ${subject}\n\n${body}`).then(() => {
+    const btn = document.getElementById('ecm-copy-btn'), orig = btn.textContent;
+    btn.textContent = 'Copied ✓'; setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+async function sendProspectEmail() {
+  const to = document.getElementById('ecm-to').value.trim();
+  const subject = document.getElementById('ecm-subject').value.trim();
+  const body = document.getElementById('ecm-body').value.trim();
+  const btn = document.getElementById('ecm-send-btn');
+  if (!to || !subject || !body) { alert('Please fill in all fields.'); return; }
+  if (!gcalIsConnected()) {
+    document.getElementById('ecm-no-token-msg').style.display = 'block';
+    btn.style.display = 'none'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const encodedSubject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
+    const htmlBody = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const HS_BCC = '145756322@bcc.eu1.hubspot.com';
+    const rawMessage = [`To: ${to}`,`Bcc: ${HS_BCC}`,`Subject: ${encodedSubject}`,'MIME-Version: 1.0','Content-Type: text/html; charset=utf-8','',htmlBody].join('\r\n');
+    const encoded = btoa(unescape(encodeURIComponent(rawMessage))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const res = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', { method:'POST', headers:{'Authorization':`Bearer ${gcalAccessToken}`,'Content-Type':'application/json'}, body:JSON.stringify({raw:encoded}) });
+    if (!res.ok) { const err = await res.json(); throw new Error(err?.error?.message || `Gmail API ${res.status}`); }
+    alert(`Email sent to ${to} ✓`);
+    closeEmailModal();
+  } catch(e) { alert(`Error sending: ${e.message}`); }
+  btn.disabled = false; btn.textContent = 'Send via Gmail →';
+}
+
+// ── Deal → contact details (for card actions) ──
+let dealContacts = {}; // dealId -> {name,email,phone,contactId}
+async function loadDealContacts() {
+  dealContacts = {};
+  const ids = allDeals.map(d => d.id);
+  if (!ids.length) return;
+  try {
+    const aRes = await fetch(HS_PROXY, {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'x-proxy-target':'hubspot','x-hs-path':'/crm/v4/associations/deals/contacts/batch/read','Content-Type':'application/json'},
+      body: JSON.stringify({ inputs: ids.map(id => ({ id })) })
+    });
+    const a = await aRes.json();
+    const dealToContact = {}; const contactIds = new Set();
+    (a.results || []).forEach(r => {
+      const cid = (r.to || [])[0] && String(r.to[0].toObjectId);
+      if (cid) { dealToContact[String(r.from.id)] = cid; contactIds.add(cid); }
+    });
+    if (!contactIds.size) return;
+    const cRes = await fetch(HS_PROXY, {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'x-proxy-target':'hubspot','x-hs-path':'/crm/v3/objects/contacts/batch/read','Content-Type':'application/json'},
+      body: JSON.stringify({ inputs: [...contactIds].map(id => ({ id })), properties:['email','phone','firstname','lastname'] })
+    });
+    const c = await cRes.json();
+    const cMap = {};
+    (c.results || []).forEach(ct => {
+      const p = ct.properties || {};
+      cMap[ct.id] = { name: [p.firstname,p.lastname].filter(Boolean).join(' ') || '(no name)', email: p.email || '', phone: p.phone || '', contactId: ct.id };
+    });
+    Object.entries(dealToContact).forEach(([dealId,cid]) => { if (cMap[cid]) dealContacts[dealId] = cMap[cid]; });
+  } catch(e) { console.warn('loadDealContacts failed', e); }
+}
+function dealActionsHtml(deal) {
+  const c = dealContacts[deal.id];
+  const hsUrl = `https://app-eu1.hubspot.com/contacts/145756322/record/0-3/${deal.id}`;
+  let btns = '';
+  if (c && c.email) {
+    const payload = JSON.stringify({ name:c.name, company:(deal.properties.dealname||''), email:c.email, title:'' }).replace(/"/g,'&quot;');
+    btns += `<button class="dca-btn dca-email" title="Email ${c.email}" onclick="event.stopPropagation();openEmailModal(${payload})">✉ Email</button>`;
+  }
+  if (c && c.phone) {
+    btns += `<a class="dca-btn" href="tel:${c.phone}" title="Call ${c.phone}" onclick="event.stopPropagation()">✆ Call</a>`;
+  }
+  btns += `<a class="dca-btn dca-hs" href="${hsUrl}" target="_blank" rel="noopener" title="Open deal in HubSpot" onclick="event.stopPropagation()">↗ HubSpot</a>`;
+  if (!c) btns += `<span class="dca-none">no contact linked</span>`;
+  return `<div class="deal-card-actions" draggable="false" ondragstart="event.stopPropagation();event.preventDefault()" onmousedown="event.stopPropagation()">${btns}</div>`;
+}
 const AGENCY_PIPELINE = '2808364263';
 
 const AGENCY_STAGE_CONFIG = [
@@ -604,6 +779,7 @@ async function loadDeals() {
     });
     const data = await res.json();
     allDeals = data.results || [];
+    await loadDealContacts();
     render();
   } catch(e) {
     document.getElementById('status-note').textContent = `Error: ${e.message}`;
@@ -729,7 +905,8 @@ function renderBoard(filterStage) {
               Close: ${fmtDate(p.closedate)}
             </div>` : ''}
           </div>
-          <div class="deal-card-activity">Last activity: ${timeAgo(p.hs_lastmodifieddate)}</div>`;
+          <div class="deal-card-activity">Last activity: ${timeAgo(p.hs_lastmodifieddate)}</div>
+          ${dealActionsHtml(deal)}`;
         attachDrag(card, deal);
         col.appendChild(card);
       });
@@ -1239,5 +1416,37 @@ document.getElementById('deal-board').style.display = 'flex';
 <script>window.JUNGLE_NAV_ACTIVE = 'opportunities';</script>
 <script src="https://jungle-is-massive.github.io/hub/jungle-leftnav.js"></script>
 
+<!-- EMAIL COMPOSE MODAL (ported from prospects) -->
+<div id="email-compose-modal" onclick="if(event.target===this)closeEmailModal()">
+  <div id="email-compose-box">
+    <div class="ecm-header">
+      <div class="ecm-title" id="ecm-title">Email prospect</div>
+      <button class="ecm-close" onclick="closeEmailModal()">&#10005;</button>
+    </div>
+    <div class="ecm-body">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-mid);margin-bottom:8px">Quick templates</div>
+        <div class="ecm-templates">
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('chaser',this)">Chaser</button>
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('meeting_followup',this)">Meeting follow-up</button>
+          <button class="ecm-template-pill" onclick="applyEmailTemplate('checkin',this)">Check-in</button>
+        </div>
+      </div>
+      <div class="ecm-field"><label>To</label><input type="email" id="ecm-to" placeholder="email@address.com"></div>
+      <div class="ecm-field"><label>Subject</label><input type="text" id="ecm-subject" placeholder="Subject line…"></div>
+      <div class="ecm-field"><label>Message</label><textarea id="ecm-body" rows="10" placeholder="Email body…"></textarea></div>
+      <div id="ecm-no-token-msg" style="display:none" class="ecm-no-token">
+        ⚠️ Google session not active. <a href="javascript:gcalSignIn()">Reconnect Google</a> to send via Gmail, or copy and paste into your email client.
+      </div>
+    </div>
+    <div class="ecm-footer">
+      <button class="ecm-cancel-btn" onclick="closeEmailModal()">Cancel</button>
+      <div style="display:flex;gap:8px">
+        <button class="ecm-cancel-btn" onclick="copyEmailToClipboard()" id="ecm-copy-btn">Copy to clipboard</button>
+        <button class="ecm-send-btn" id="ecm-send-btn" onclick="sendProspectEmail()">Send via Gmail →</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
