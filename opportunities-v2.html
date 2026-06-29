@@ -242,6 +242,29 @@ html, body {
 .nr-item-stage { padding:1px 6px; border-radius:100px; background:rgba(255,255,255,0.08); }
 .nr-item-actions { display:flex; gap:5px; flex-wrap:wrap; }
 .nr-empty { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.32); text-align:center; padding:34px 14px; line-height:1.7; }
+/* ── periphery view (step 3) ── */
+#periphery-panel { flex:1; min-height:0; overflow:hidden; padding:16px 24px 22px; display:none; flex-direction:column; gap:12px; }
+#periphery-panel.visible { display:flex; }
+.pp-toolbar { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.pp-search { flex:1; max-width:360px; height:34px; padding:0 14px; border-radius:100px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.05); color:var(--white); font-family:'DM Sans',sans-serif; font-size:12px; outline:none; }
+.pp-search::placeholder { color:rgba(255,255,255,0.35); }
+.pp-search:focus { border-color:var(--green); }
+.pp-filter { height:34px; padding:0 12px; border-radius:100px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.05); color:var(--white); font-family:'DM Mono',monospace; font-size:10px; outline:none; cursor:pointer; }
+.pp-filter option { background:#1a1a1a; color:#fff; }
+.pp-count { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-left:auto; white-space:nowrap; }
+.pp-table-wrap { flex:1; min-height:0; overflow-y:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.08); }
+.pp-table-wrap::-webkit-scrollbar { width:6px; } .pp-table-wrap::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:3px; }
+.pp-table { width:100%; border-collapse:collapse; font-size:12px; }
+.pp-table th { position:sticky; top:0; background:#1b1b1a; font-family:'DM Mono',monospace; font-size:9px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.42); padding:10px 14px; text-align:left; white-space:nowrap; z-index:1; }
+.pp-table td { padding:10px 14px; border-top:1px solid rgba(255,255,255,0.06); color:rgba(255,255,255,0.85); vertical-align:middle; }
+.pp-table tbody tr:hover td { background:rgba(255,255,255,0.03); }
+.pp-name { font-family:'DM Sans',sans-serif; font-weight:700; color:var(--white); }
+.pp-li { color:#5aa0e0; text-decoration:none; font-family:'DM Mono',monospace; font-size:10px; }
+.pp-li:hover { text-decoration:underline; }
+.pp-promote { height:28px; padding:0 13px; border-radius:100px; border:none; background:var(--green); color:#111; font-family:'DM Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:opacity 0.12s; white-space:nowrap; }
+.pp-promote:hover { opacity:0.85; }
+.pp-promote:disabled { opacity:0.5; cursor:default; }
+.pp-empty { padding:40px; text-align:center; font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.35); }
 
 /* ── LIST VIEW ───────────────────────────────────────────────── */
 #deal-list {
@@ -411,6 +434,10 @@ html, body {
         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="2" width="10" height="9" rx="1"/><line x1="1" y1="5" x2="11" y2="5"/><line x1="4" y1="2" x2="4" y2="1"/><line x1="8" y1="2" x2="8" y2="1"/></svg>
         4-week
       </button>
+      <button class="view-btn" id="view-btn-periphery" onclick="switchView('periphery',this)">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="1.7"/><circle cx="6" cy="6" r="4.6"/></svg>
+        Periphery
+      </button>
     </div>
   </div>
   <div class="topbar-right">
@@ -449,6 +476,19 @@ html, body {
   <div id="deal-list"></div>
   <div id="timeline-panel"></div>
   <div id="fourweek-panel"></div>
+  <div id="periphery-panel">
+    <div class="pp-toolbar">
+      <input type="text" id="pp-search" class="pp-search" placeholder="Search name, company, title…" oninput="renderPeriphery()">
+      <select id="pp-campaign" class="pp-filter" onchange="renderPeriphery()"><option value="">All campaigns</option></select>
+      <span class="pp-count" id="pp-count">—</span>
+    </div>
+    <div class="pp-table-wrap">
+      <table class="pp-table">
+        <thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Campaign</th><th>Links</th><th></th></tr></thead>
+        <tbody id="pp-tbody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- NEEDS-A-NUDGE RAIL -->
@@ -842,6 +882,100 @@ function focusDealCard(dealId) {
     window.open(`https://app-eu1.hubspot.com/contacts/145756322/record/0-3/${dealId}`,'_blank');
   }
 }
+
+// ── Periphery view (step 3) ──
+let allProspects = [];
+let peripheryLoaded = false;
+function hsHeaders(path){ return { 'Authorization':`Bearer ${SUPABASE_KEY}`, 'x-proxy-target':'hubspot', 'x-hs-path':path, 'Content-Type':'application/json' }; }
+function ppEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function prospectEmail(p){ return (p.email||p.corporate_email||p.manual_email||'').trim(); }
+function prospectName(p){ return [p.first_name,p.last_name].filter(Boolean).join(' ').trim() || '(no name)'; }
+async function loadPeriphery(force){
+  if (peripheryLoaded && !force){ renderPeriphery(); return; }
+  const tbody=document.getElementById('pp-tbody');
+  tbody.innerHTML=`<tr><td colspan="6" class="pp-empty">Loading periphery…</td></tr>`;
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/prospects?hubspot_deal_id=is.null&select=id,first_name,last_name,company,title,email,corporate_email,manual_email,linkedin_url,campaign&order=created_at.desc`,
+      { headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` } });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    allProspects=await res.json();
+    peripheryLoaded=true;
+    const sel=document.getElementById('pp-campaign');
+    const camps=[...new Set(allProspects.map(p=>p.campaign).filter(Boolean))].sort();
+    sel.innerHTML='<option value="">All campaigns</option>'+camps.map(c=>`<option value="${ppEsc(c)}">${ppEsc(c)}</option>`).join('');
+    renderPeriphery();
+  }catch(e){ tbody.innerHTML=`<tr><td colspan="6" class="pp-empty">Error loading: ${ppEsc(e.message)}</td></tr>`; }
+}
+function renderPeriphery(){
+  const q=(document.getElementById('pp-search').value||'').toLowerCase().trim();
+  const camp=document.getElementById('pp-campaign').value;
+  let rows=allProspects.filter(p=>!p.hubspot_deal_id);
+  if(camp) rows=rows.filter(p=>p.campaign===camp);
+  if(q) rows=rows.filter(p=>(prospectName(p)+' '+(p.company||'')+' '+(p.title||'')).toLowerCase().includes(q));
+  const remaining=allProspects.filter(p=>!p.hubspot_deal_id).length;
+  document.getElementById('pp-count').textContent=`${rows.length} shown · ${remaining} in periphery`;
+  const tbody=document.getElementById('pp-tbody');
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="6" class="pp-empty">No matching prospects.</td></tr>`; return; }
+  const shown=rows.slice(0,400);
+  tbody.innerHTML=shown.map(p=>{
+    const email=prospectEmail(p);
+    const li=p.linkedin_url?`<a class="pp-li" href="${ppEsc(p.linkedin_url)}" target="_blank" rel="noopener">in ↗</a>`:'';
+    const em=email?`<span style="font-size:10px;color:rgba(255,255,255,0.4)">${ppEsc(email)}</span>`:'<span style="font-size:9px;color:rgba(255,255,255,0.25)">no email</span>';
+    return `<tr id="pp-row-${p.id}">
+      <td class="pp-name">${ppEsc(prospectName(p))}</td>
+      <td>${ppEsc(p.company||'—')}</td>
+      <td style="color:rgba(255,255,255,0.55);font-size:11px">${ppEsc(p.title||'—')}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.45)">${ppEsc(p.campaign||'—')}</td>
+      <td style="white-space:nowrap">${li}${li&&email?' · ':''}${em}</td>
+      <td style="text-align:right"><button class="pp-promote" onclick="promoteProspect('${p.id}')">Promote to deal →</button></td>
+    </tr>`;
+  }).join('')+(rows.length>400?`<tr><td colspan="6" class="pp-empty">Showing first 400 of ${rows.length} — narrow with search or campaign filter.</td></tr>`:'');
+}
+async function promoteProspect(id){
+  const p=allProspects.find(x=>x.id===id);
+  if(!p) return;
+  const row=document.getElementById('pp-row-'+id);
+  const btn=row?row.querySelector('.pp-promote'):null;
+  if(btn){ btn.disabled=true; btn.textContent='Promoting…'; }
+  const email=prospectEmail(p), name=prospectName(p);
+  try{
+    // 1. find-or-create contact (match by email to avoid duplicates)
+    let contactId=null;
+    if(email){
+      const sRes=await fetch(HS_PROXY,{ method:'POST', headers:hsHeaders('/crm/v3/objects/contacts/search'),
+        body:JSON.stringify({ filterGroups:[{filters:[{propertyName:'email',operator:'EQ',value:email}]}], properties:['email'], limit:1 }) });
+      if(sRes.ok){ const sd=await sRes.json(); if(sd.results&&sd.results.length) contactId=sd.results[0].id; }
+    }
+    if(!contactId){
+      const props={ firstname:p.first_name||'', lastname:p.last_name||'', jobtitle:p.title||'', company:p.company||'' };
+      if(email) props.email=email;
+      const cRes=await fetch(HS_PROXY,{ method:'POST', headers:hsHeaders('/crm/v3/objects/contacts'), body:JSON.stringify({ properties:props }) });
+      if(!cRes.ok) throw new Error('contact create '+cRes.status);
+      contactId=(await cRes.json()).id;
+    }
+    // 2. create deal at Cold outreach
+    const dealName=`${p.company||name} — ${name}`;
+    const dRes=await fetch(HS_PROXY,{ method:'POST', headers:hsHeaders('/crm/v3/objects/deals'),
+      body:JSON.stringify({ properties:{ dealname:dealName, pipeline:AGENCY_PIPELINE, dealstage:'3846842616', hubspot_owner_id:'32990686', deal_source:'Cold Outbound' } }) });
+    if(!dRes.ok) throw new Error('deal create '+dRes.status);
+    const dealId=(await dRes.json()).id;
+    // 3. associate contact <-> deal (default association)
+    await fetch(HS_PROXY,{ method:'PUT', headers:hsHeaders(`/crm/v4/objects/deals/${dealId}/associations/default/contacts/${contactId}`) });
+    // 4. stamp prospect row in Supabase
+    const upd=await fetch(`${SUPABASE_URL}/rest/v1/prospects?id=eq.${id}`,{ method:'PATCH',
+      headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
+      body:JSON.stringify({ hubspot_deal_id:dealId, hubspot_contact_id:contactId, promoted_at:new Date().toISOString() }) });
+    if(!upd.ok) console.warn('supabase stamp failed', upd.status);
+    // 5. update local + UI
+    p.hubspot_deal_id=dealId;
+    if(row){ row.style.transition='opacity 0.3s'; row.style.opacity='0'; setTimeout(renderPeriphery,320); }
+    if(typeof showToast==='function') showToast(`Promoted ${name} → Cold outreach ✓`);
+    loadDeals(); // refresh board so the new card appears
+  }catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='Promote to deal →'; }
+    alert('Promote failed: '+e.message);
+  }
+}
 const AGENCY_PIPELINE = '2808364263';
 
 const AGENCY_STAGE_CONFIG = [
@@ -947,6 +1081,7 @@ function switchView(view, btn) {
   list.style.display  = 'none';
   timeline.classList.remove('visible');
   fourweek.classList.remove('visible');
+  document.getElementById('periphery-panel').classList.remove('visible');
   filterBar.style.display = '';
 
   if (view === 'board') {
@@ -963,6 +1098,10 @@ function switchView(view, btn) {
     filterBar.style.display = 'none';
     fourweek.classList.add('visible');
     renderFourWeek();
+  } else if (view === 'periphery') {
+    filterBar.style.display = 'none';
+    document.getElementById('periphery-panel').classList.add('visible');
+    loadPeriphery();
   }
   updateNudgeRail();
 }
